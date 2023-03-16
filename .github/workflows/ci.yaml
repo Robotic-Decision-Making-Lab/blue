@@ -1,0 +1,45 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  CLANG_TIDY: true
+
+jobs:
+  test:
+    name: Test Implementation
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        env:
+          - IMAGE: rolling-ci
+            ROS_DISTRO: rolling
+          - IMAGE: humble-ci
+            ROS_DISTRO: humble
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+
+      - name: Log into registry
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run ROS Industrial CI
+        uses: ros-industrial/industrial_ci@master
+        env:
+          DOCKER_IMAGE: ghcr.io/evan-palmer/alpha:${{ matrix.env.IMAGE }}
+          CXXFLAGS: >-
+            -Wall -Wextra -Wpedantic -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
+          CC: ${{ env.CLANG_TIDY && 'clang' }}
+          CXX: ${{ env.CLANG_TIDY && 'clang++' }}

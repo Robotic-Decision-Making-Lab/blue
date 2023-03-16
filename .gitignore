@@ -30,3 +30,15 @@
 *.exe
 *.out
 *.app
+
+# ROS
+build/
+install/
+log/
+
+# VSCode
+.vscode/
+
+# python
+.mypy_cache/
+__pycache__

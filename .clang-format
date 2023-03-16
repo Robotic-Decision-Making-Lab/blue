@@ -1,0 +1,27 @@
+---
+Language: Cpp
+BasedOnStyle: Google
+ColumnLimit: 100
+MaxEmptyLinesToKeep: 1
+
+IndentWidth: 2
+TabWidth: 2
+UseTab: Never
+AccessModifierOffset: -2
+AlignAfterOpenBracket: AlwaysBreak
+ConstructorInitializerIndentWidth: 0
+ContinuationIndentWidth: 2
+DerivePointerAlignment: false
+PointerAlignment: Middle
+PackConstructorInitializers: Never
+
+# Configure brace wrapping cases
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  BeforeCatch: true

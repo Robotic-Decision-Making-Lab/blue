@@ -1,0 +1,99 @@
+name: Docker
+
+on:
+  schedule:
+    - cron: "0 17 * * 6"
+  push:
+    branches:
+      - main
+  pull_request:
+    paths:
+      - .docker/**
+      - .github/workflows/docker.yaml
+  workflow_dispatch:
+
+env:
+  PUSH: ${{ (github.event_name != 'pull_request') && (github.repository == 'evan-palmer/blue') }}
+
+jobs:
+  ci:
+    strategy:
+      fail-fast: false
+      matrix:
+        ROS_DISTRO: [humble, rolling]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log into registry
+        if: env.PUSH == 'true'
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        if: env.PUSH == 'true'
+        id: meta
+        uses: docker/metadata-action@v4.0.1
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3.0.0
+        with:
+          context: .
+          file: .docker/Dockerfile
+          build-args: ROS_DISTRO=${{ matrix.ROS_DISTRO }}
+          target: ${{ github.job }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: ${{ env.PUSH }}
+
+  source:
+    strategy:
+      fail-fast: false
+      matrix:
+        ROS_DISTRO: [humble, rolling]
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log into registry
+        if: env.PUSH == 'true'
+        uses: docker/login-action@v2.0.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        if: env.PUSH == 'true'
+        id: meta
+        uses: docker/metadata-action@v4.0.1
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v3.0.0
+        with:
+          context: .
+          file: .docker/Dockerfile
+          build-args: ROS_DISTRO=${{ matrix.ROS_DISTRO }}
+          target: ${{ github.job }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: ${{ env.PUSH }}
