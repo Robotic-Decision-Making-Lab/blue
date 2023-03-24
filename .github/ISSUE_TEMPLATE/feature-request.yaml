@@ -1,0 +1,59 @@
+name: Feature Request
+description: Suggest a new idea for the project.
+title: "[FEATURE]: <Please write a descriptive title after the '[FEATURE]: ' prefix>"
+labels: [enhancement]
+
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thank you for taking the time to request a new feature! Before creating
+        a new issue, please make sure to take a few minutes to check the issue
+        tracker for existing issues similar to the proposed feature.
+
+  - type: checkboxes
+    attributes:
+      label: "Feature Type"
+      description: >
+        Please indicate what type of feature request you would like to propose.
+      options:
+        - label: >
+            Adding new functionality to the BlueROV2 driver
+        - label: >
+            Changing existing functionality in the BlueROV2 driver
+        - label: >
+            Removing existing functionality in the BlueROV2 driver
+
+  - type: textarea
+    attributes:
+      label: "Problem Description"
+      description: >
+        Please provide a clear and concise description of what problem
+        the feature would solve.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Feature Description"
+      description: >
+        Please provide a description of the proposed feature, using pseudocode
+        if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Alternative Solutions"
+      description: >
+        Please provide a description of any alternative solutions or features
+        that would satisfy the feature request.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: "Additional Context"
+      description: >
+        Please provide any additional context (e.g., relevant GitHub issues,
+        code examples, or references) needed to understand the feature request.

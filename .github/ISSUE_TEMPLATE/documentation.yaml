@@ -1,0 +1,48 @@
+name: Documentation Improvement
+description: Report an issue related to the BlueROV2 driver documentation.
+title: "[DOC]: <Please write a descriptive title after the '[DOC]: ' prefix>"
+labels: [documentation]
+
+body:
+  - type: markdown
+    attributes:
+      value: >
+        Thank you for taking the time to report a documentation issue! Before creating
+        a new issue, please make sure to take a few minutes to check the issue
+        tracker for existing issues similar to that being reported.
+
+  - type: checkboxes
+    attributes:
+      label: Feature Type
+      description: >
+        Please indicate what type of documentation issue you are reporting.
+      options:
+        - label: >
+            Adding new documentation to the BlueROV2 driver documentation
+        - label: >
+            Changing existing BlueROV2 driver documentation
+        - label: >
+            Removing existing BlueROV2 driver documentation
+
+  - type: textarea
+    attributes:
+      label: Documentation Location
+      description: >
+        Please provide the location of the documentation that should be modified.
+
+  - type: textarea
+    attributes:
+      label: Documentation Problem
+      description: >
+        Please provide a description of how the documentation needs to be improved.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Suggested Change
+      description: >
+        Please provide a description of the proposed change and why the proposed change
+        improves the upon the existing documentation.
+    validations:
+      required: true

@@ -1,0 +1,34 @@
+name: Formatting (pre-commit)
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  pre-commit:
+    name: Format
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install clang-format-14
+        run: sudo apt-get install clang-format-14
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.0
+        id: precommit
+
+      - name: Upload pre-commit changes
+        if: failure() && steps.precommit.outcome == 'failure'
+        uses: rhaschke/upload-git-patch-action@main
+        with:
+          name: pre-commit
