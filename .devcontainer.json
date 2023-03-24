@@ -1,9 +1,10 @@
 {
-  "dockerFile": "Dockerfile",
+  "dockerFile": ".docker/Dockerfile",
+  "context": ".",
   "build": {
     "args": {
       "WORKSPACE": "${containerWorkspaceFolder}",
-      "ROS_DISTRO": "humble"
+      "ROS_DISTRO": "rolling"
     }
   },
   "remoteUser": "dev",
@@ -24,12 +25,6 @@
   "customizations": {
     "vscode": {
       "settings": {
-        "terminal.integrated.profiles.linux": {
-          "bash": {
-            "path": "/bin/bash"
-          }
-        },
-        "terminal.integrated.defaultProfile.linux": "bash",
         "files.associations": {
           "*.repos": "yaml",
           "*.world": "xml",
@@ -37,16 +32,11 @@
           "*.srdf": "xml",
           "*.rviz": "yaml"
         },
-        "files.eol": "\n",
+        "terminal.integrated.defaultProfile.linux": "bash",
         "files.insertFinalNewline": true,
         "files.trimTrailingWhitespace": true,
-        "editor.acceptSuggestionOnEnter": "smart",
-        "editor.wordWrap": "on",
         "editor.formatOnSave": true,
-        "editor.tabSize": 2,
-        "editor.rulers": [80],
-        "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "xml.format.maxLineWidth": 80,
+        "xml.format.maxLineWidth": 100,
         "json.format.enable": true,
         "python.linting.enabled": true,
         "python.linting.flake8Enabled": true,
@@ -54,7 +44,10 @@
         "python.linting.pydocstyleEnabled": true,
         "python.linting.mypyEnabled": true,
         "python.formatting.provider": "black",
-        "python.formatting.blackPath": "/usr/local/bin/black",
+        "autoDocstring.startOnNewLine": false,
+        "autoDocstring.docstringFormat": "google",
+        "isort.args": ["--profile", "black"],
+        "isort.check": true,
         "python.autoComplete.extraPaths": [
           "/opt/ros/humble/lib/python3.10/site-packages/"
         ],
@@ -65,24 +58,18 @@
         "C_Cpp.clang_format_fallbackStyle": "Google",
         "C_Cpp.codeAnalysis.clangTidy.enabled": true,
         "C_Cpp.codeAnalysis.clangTidy.runAutomatically": true,
-        "clang-format.executable": "/usr/bin/clang-format",
-        "uncrustify.configPath.linux": "/opt/ros/humble/lib/python3.10/site-packages/ament_uncrustify/configuration/ament_code_style.cfg",
+        "clang-format.executable": "/usr/bin/clang-format-14",
         "[cpp]": {
-          "editor.wordBasedSuggestions": false,
-          "editor.suggest.insertMode": "replace",
-          "editor.semanticHighlighting.enabled": true,
           "editor.rulers": [100],
-          "editor.defaultFormatter": "xaver.clang-format",
-          "editor.formatOnSave": true
+          "editor.tabSize": 2,
+          "editor.defaultFormatter": "xaver.clang-format"
         },
         "[python]": {
           "editor.tabSize": 4,
           "editor.rulers": [90],
-          "editor.defaultFormatter": "ms-python.python",
           "editor.codeActionsOnSave": {
             "source.organizeImports": true
-          },
-          "editor.formatOnSave": true
+          }
         },
         "[dockerfile]": {
           "editor.quickSuggestions": {
@@ -92,34 +79,19 @@
           "editor.tabSize": 4
         },
         "[json]": {
-          "editor.quickSuggestions": {
-            "strings": true
-          },
-          "editor.suggest.insertMode": "replace"
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
         },
         "[xml]": {
           "editor.defaultFormatter": "redhat.vscode-xml"
         },
         "[yaml]": {
-          "editor.insertSpaces": true,
-          "editor.autoIndent": "advanced",
           "editor.defaultFormatter": "redhat.vscode-yaml"
         },
         "[markdown]": {
-          "editor.unicodeHighlight.ambiguousCharacters": false,
-          "editor.unicodeHighlight.invisibleCharacters": false,
-          "diffEditor.ignoreTrimWhitespace": false,
-          "editor.wordWrap": "on",
-          "editor.quickSuggestions": {
-            "comments": "off",
-            "strings": "off",
-            "other": "off"
-          }
+          "editor.rulers": [80],
+          "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
         },
         "search.exclude": {
-          "**/node_modules": true,
-          "**/bower_components": true,
-          "**/*.code-search": true,
           "**/build": true,
           "**/install": true,
           "**/log": true
@@ -128,17 +100,18 @@
       "extensions": [
         "ms-azuretools.vscode-docker",
         "ms-python.python",
-        "ms-python.vscode-pylance",
         "njpwerner.autodocstring",
-        "redhat.vscode-xml",
-        "redhat.vscode-yaml",
         "cschlosser.doxdocgen",
         "ms-vscode.cpptools",
+        "redhat.vscode-xml",
+        "redhat.vscode-yaml",
         "josetr.cmake-language-support-vscode",
         "smilerobotics.urdf",
         "DavidAnson.vscode-markdownlint",
         "esbenp.prettier-vscode",
-        "xaver.clang-format"
+        "xaver.clang-format",
+        "ms-python.isort",
+        "ms-python.flake8"
       ]
     }
   }

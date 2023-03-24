@@ -4,32 +4,26 @@
 - [ ] I have sufficiently commented my code
 - [ ] The implementation follows the project style conventions
 - [ ] All project unit tests are passing
-- [ ] If necessary, documentation has been provided or updated to discuss the changes
-- [ ] System integration tests are performed successfully
-- [ ] Any new dependencies have been added to the requirements list
-- [ ] Any changes that will not be completed or bugs that have been introduced have been added as issues
+- [ ] If relevant, documentation has been provided or updated to discuss the changes made
+- [ ] System integration tests were performed successfully
 
 ## Changes Made
 
-_A clear and concise description of all changes made in this PR. This should
-include a high-level discussion regarding the implementation of the PR._
+Please provide a description of all changes made in this PR and why the changes
+are needed.
 
 ## Associated Issues
 
-_A list of all open issues that this PR will close or contribute toward closing._
+Please provide a list of all open issues that this PR will close or contribute
+toward closing.
 
-Fixes # (issue)
+- Fixes # (issue)
 
 ## Files Changed
 
-_A list of all files changed and a summary of the changes made to the respective
-files._
+Please provide a list of all files changed and a summary of the changes made to
+the respective files.
 
 ## Testing
 
-_A clear and concise description of the testing performed. Instructions should
-be included discussing how to replicate the testing results._
-
-## Issues Introduced
-
-_A list of the issues that have been introduced through this PR._
+Please provide a clear and concise description of the testing performed.
