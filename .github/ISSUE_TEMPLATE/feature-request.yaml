@@ -11,18 +11,16 @@ body:
         a new issue, please make sure to take a few minutes to check the issue
         tracker for existing issues similar to the proposed feature.
 
-  - type: checkboxes
+  - type: dropdown
     attributes:
-      label: "Feature Type"
-      description: >
-        Please indicate what type of feature request you would like to propose.
+      label: Feature Type
+      description: Please indicate what type of feature request you would like to propose.
       options:
-        - label: >
-            Adding new functionality to the BlueROV2 driver
-        - label: >
-            Changing existing functionality in the BlueROV2 driver
-        - label: >
-            Removing existing functionality in the BlueROV2 driver
+        - Adding new functionality to the BlueROV2 driver
+        - Changing existing functionality in the BlueROV2 driver
+        - Removing existing functionality in the BlueROV2 driver
+    validations:
+      required: true
 
   - type: textarea
     attributes:

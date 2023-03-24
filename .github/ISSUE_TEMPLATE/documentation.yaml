@@ -11,18 +11,16 @@ body:
         a new issue, please make sure to take a few minutes to check the issue
         tracker for existing issues similar to that being reported.
 
-  - type: checkboxes
+  - type: dropdown
     attributes:
-      label: Feature Type
-      description: >
-        Please indicate what type of documentation issue you are reporting.
+      label: Documentation Change Type
+      description: Please indicate what type of documentation issue you are reporting.
       options:
-        - label: >
-            Adding new documentation to the BlueROV2 driver documentation
-        - label: >
-            Changing existing BlueROV2 driver documentation
-        - label: >
-            Removing existing BlueROV2 driver documentation
+        - Adding new documentation to the BlueROV2 driver documentation
+        - Changing existing BlueROV2 driver documentation
+        - Removing existing BlueROV2 driver documentation
+    validations:
+      required: true
 
   - type: textarea
     attributes:

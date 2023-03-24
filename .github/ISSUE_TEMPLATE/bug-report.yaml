@@ -4,59 +4,59 @@ title: "[BUG]: <Please write a descriptive title after the '[BUG]: ' prefix>"
 labels: [bug]
 
 body:
-- type: markdown
-  attributes:
-    value: >
-      Thank you for taking the time to file a bug report! Before creating a new
-      issue, please make sure to take a few minutes to check the issue tracker
-      for existing issues about the bug.
+  - type: markdown
+    attributes:
+      value: >
+        Thank you for taking the time to file a bug report! Before creating a new
+        issue, please make sure to take a few minutes to check the issue tracker
+        for existing issues about the bug.
 
-- type: textarea
-  attributes:
-    label: "Issue Description"
-    description: >
-      Please provide a clear and concise description of what the bug is.
-  validations:
-    required: true
+  - type: textarea
+    attributes:
+      label: "Issue Description"
+      description: >
+        Please provide a clear and concise description of what the bug is.
+    validations:
+      required: true
 
-- type: textarea
-  attributes:
-    label: "Steps to Reproduce"
-    description: >
-      Please provide the steps that should be taken to reproduce the bug.
-  validations:
-    required: true
+  - type: textarea
+    attributes:
+      label: "Steps to Reproduce"
+      description: >
+        Please provide the steps that should be taken to reproduce the bug.
+    validations:
+      required: true
 
-- type: textarea
-  attributes:
-    label: "Expected Behavior"
-    description: >
-      Please describe or show an example of the expected behavior.
-  validations:
-    required: true
+  - type: textarea
+    attributes:
+      label: "Expected Behavior"
+      description: >
+        Please describe or show an example of the expected behavior.
+    validations:
+      required: true
 
-- type: textarea
-  attributes:
-    label: "Error Message"
-    description: >
-      Please include the full error message, if any.
-    placeholder: >
-      << Full traceback starting from `Traceback: ...` >>
-    render: bash
+  - type: textarea
+    attributes:
+      label: "Error Message"
+      description: >
+        Please include the full error message, if any.
+      placeholder: >
+        << Full traceback starting from `Traceback: ...` >>
+      render: bash
 
-- type: textarea
-  attributes:
-    label: "Runtime Environment"
-    description: >
-      Please provide a description of the environment in which the error
-      occurred.
-    placeholder: >
-      Raspberry Pi 4 running Ubuntu 22.04 natively.
-  validations:
-    required: true
+  - type: textarea
+    attributes:
+      label: "Runtime Environment"
+      description: >
+        Please provide a description of the environment in which the error
+        occurred.
+      placeholder: >
+        Raspberry Pi 4 running Ubuntu 22.04 natively.
+    validations:
+      required: true
 
-- type: textarea
-  attributes:
-    label: "Additional Context"
-    description: >
-      Please provide any additional context needed to understand the bug.
+  - type: textarea
+    attributes:
+      label: "Additional Context"
+      description: >
+        Please provide any additional context needed to understand the bug.
