@@ -19,6 +19,8 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
   ament_cmake
   mavros_msgs
+  std_msgs
+  std_srvs
 )
 
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
