@@ -1,0 +1,8 @@
+blue_bridge:
+  ros__parameters:
+    x3: -0.00192446
+    x2: -0.00380258
+    x1: 12.37793873
+    x0: 1488.05975756
+    min_pwm_to_zero: 1472
+    max_pwm_to_zero: 1528
