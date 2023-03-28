@@ -1,2 +1,5 @@
 # ignore everything
 *
+
+# Except the following
+!blue_bridge

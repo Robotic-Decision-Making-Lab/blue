@@ -9,7 +9,7 @@ WORKDIR /root/ws_blue
 COPY . src/blue
 
 # Install the core apt packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     git \
     wget \
     curl \
@@ -23,8 +23,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
+# Install MAVROS dependencies prior to installing ROS dependencies
+RUN [ "/bin/bash" , "-c" , "\
+    wget https://raw.githubusercontent.com/mavlink/mavros/master/mavros/scripts/install_geographiclib_datasets.sh \
+    && chmod +x install_geographiclib_datasets.sh \
+    && sudo ./install_geographiclib_datasets.sh" ]
+
 # Install all ROS dependencies
-RUN apt-get update \
+RUN apt-get update && apt-get upgrade -y \
     && rosdep update \
     && DEBIAN_FRONTEND=noninteractive \
     rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
@@ -40,7 +46,7 @@ WORKDIR $ROS_UNDERLAY/..
 
 COPY . src/blue
 
-RUN apt-get update \
+RUN apt-get update && apt-get upgrade -y \
     && rosdep update \
     && DEBIAN_FRONTEND=noninteractive \
     rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
@@ -63,7 +69,7 @@ WORKDIR $ROS_UNDERLAY/..
 
 COPY . src/blue
 
-RUN apt-get update \
+RUN apt-get update && apt-get upgrade -y \
     && rosdep update \
     && DEBIAN_FRONTEND=noninteractive \
     rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
@@ -73,7 +79,7 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install development tools
-RUN apt-get update && apt-get install -y --no-install-recommends \
+RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
     python3-dev \
     python3-pip \
     iputils-ping \
@@ -98,7 +104,7 @@ ARG USER_GID=$USER_UID
 
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    && apt-get update \
+    && apt-get update && apt-get upgrade -y \
     && apt-get install -y sudo \
     && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
