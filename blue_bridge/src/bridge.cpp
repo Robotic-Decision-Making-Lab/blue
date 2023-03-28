@@ -46,6 +46,7 @@ Bridge::Bridge()
   // Start a timer to publish the current desired PWM values at a frequency of 50hz
   timer_ = create_wall_timer(20ms, std::bind(&Bridge::publishOverrideRCIn, this));
 
+  // Set up a service to manage control
   enable_override_service_ = this->create_service<std_srvs::srv::SetBool>(
     "/blue_bridge/rc/override/enable",
     std::bind(&Bridge::enableOverride, this, std::placeholders::_1, std::placeholders::_2));
