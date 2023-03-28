@@ -7,6 +7,8 @@
   <maintainer email="evanp922@gmail.com">Evan Palmer</maintainer>
   <license>MIT</license>
 
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
   <exec_depend>mavros</exec_depend>
   <exec_depend>mavros_extras</exec_depend>
   <depend>std_msgs</depend>
@@ -15,6 +17,6 @@
   <depend>geographic_msgs</depend>
 
   <export>
-    <build_type>cmake</build_type>
+    <build_type>ament_cmake</build_type>
   </export>
 </package>

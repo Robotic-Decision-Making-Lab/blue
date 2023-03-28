@@ -44,6 +44,7 @@ private:
   mavros_msgs::msg::OverrideRCIn current_pwm_values_;
   rclcpp::Subscription<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_subscription_;
   rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_publisher_;
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr enable_override_service_;
   rclcpp::TimerBase::SharedPtr timer_;
 };
 

@@ -36,7 +36,7 @@ Bridge::Bridge()
 {
   // Create a subscription to get the desired PWM values
   rc_override_subscription_ = this->create_subscription<mavros_msgs::msg::OverrideRCIn>(
-    "/blue/rc/override", 1,
+    "/blue_bridge/rc/override", 1,
     std::bind(&Bridge::updateCurrentPwmValues, this, std::placeholders::_1));
 
   // Create a publisher to publish the current desired RC values
@@ -45,6 +45,10 @@ Bridge::Bridge()
 
   // Start a timer to publish the current desired PWM values at a frequency of 50hz
   timer_ = create_wall_timer(20ms, std::bind(&Bridge::publishOverrideRCIn, this));
+
+  enable_override_service_ = this->create_service<std_srvs::srv::SetBool>(
+    "/blue_bridge/rc/override/enable",
+    std::bind(&Bridge::enableOverride, this, std::placeholders::_1, std::placeholders::_2));
 }
 
 bool Bridge::active() const { return bridge_running_; }
