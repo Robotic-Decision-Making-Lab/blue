@@ -33,10 +33,6 @@ class BaseController : public rclcpp::Node
 public:
   virtual ~BaseController() = default;  // NOLINT
 
-  // TODO(evan-palmer): move these to a library
-  double convertVoltageToPwm(double voltage);
-  double convertForceToPwm(double force);
-
   void setControlSignal(const mavros_msgs::msg::OverrideRCIn & control_input);
 
 protected:

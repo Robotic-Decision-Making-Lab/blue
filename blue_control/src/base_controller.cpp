@@ -46,6 +46,11 @@ BaseController::BaseController(const std::string & node_name, const rclcpp::Node
     std::bind(&BaseController::enableOverride, this, std::placeholders::_1, std::placeholders::_2));
 }
 
+void BaseController::setControlSignal(const mavros_msgs::msg::OverrideRCIn & control_input)
+{
+  control_signal_ = control_input;
+}
+
 void BaseController::publishRC() const
 {
   // Only publish the override values if the bridge has been enabled and the subscription
