@@ -27,34 +27,35 @@
 
 using namespace std::chrono_literals;
 
-namespace blue_control
+namespace blue::control
 {
 
-BaseController::BaseController()
-: Node("blue_control")
+BaseController::BaseController(const std::string & node_name, const rclcpp::NodeOptions & options)
+: Node(node_name, options)
 {
   // Create a publisher to publish the current desired RC values
-  rc_override_publisher_ =
+  rc_override_pub_ =
     this->create_publisher<mavros_msgs::msg::OverrideRCIn>("/mavros/rc/override", 1);
 
   // Start a timer to publish the current desired PWM values at a frequency of 50hz
-  timer_ = create_wall_timer(20ms, std::bind(&Bridge::publishOverrideRCIn, this));
+  timer_ = create_wall_timer(20ms, std::bind(&BaseController::publishRC, this));
 
   // Set up a service to manage whether or not the RC values will be overridden
   enable_override_service_ = this->create_service<std_srvs::srv::SetBool>(
     "/blue_control/rc/override/enable",
-    std::bind(&Bridge::enableOverride, this, std::placeholders::_1, std::placeholders::_2));
+    std::bind(&BaseController::enableOverride, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void Bridge::publishOverrideRCIn() const
+void BaseController::publishRC() const
 {
-  // Only publish the override values if the bridge has been enabled
-  if (override_enabled_) {
-    rc_override_publisher_->publish(current_pwm_values_);
+  // Only publish the override values if the bridge has been enabled and the subscription
+  // has been set up
+  if (override_enabled_ && (rc_override_pub_->get_subscription_count() > 0)) {
+    rc_override_pub_->publish(control_signal_);
   }
 }
 
-void Bridge::enableOverride(
+void BaseController::enableOverride(
   const std::shared_ptr<std_srvs::srv::SetBool::Request> request,  // NOLINT
   std::shared_ptr<std_srvs::srv::SetBool::Response> response)      // NOLINT
 {
@@ -65,4 +66,4 @@ void Bridge::enableOverride(
   response->success = (override_enabled_ == request->data);
 }
 
-}  // namespace blue_control
+}  // namespace blue::control

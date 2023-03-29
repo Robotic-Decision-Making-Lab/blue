@@ -21,26 +21,13 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   mavros_msgs
   std_msgs
   std_srvs
+  geometry_msgs
 )
 
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-include_directories(include)
-
-add_executable(${PROJECT_NAME} src/bridge.cpp)
-ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
-
-install(
-  TARGETS ${PROJECT_NAME}
-  DESTINATION lib/${PROJECT_NAME}
-)
-
-install(
-  DIRECTORY include/
-  DESTINATION include
-)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

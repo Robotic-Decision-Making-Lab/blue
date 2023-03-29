@@ -18,34 +18,16 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "mavros_msgs/msg/override_rc_in.hpp"
-#include "rclcpp/rclcpp.hpp"
-#include "std_srvs/srv/set_bool.hpp"
-
-namespace blue_bridge
+namespace blue::control
 {
 
-class Bridge : public rclcpp::Node
+class DynamicModel
 {
 public:
-  Bridge();
-
-  bool active() const;
+  DynamicModel(/* args */);
 
 private:
-  void publishOverrideRCIn() const;
-  void updateCurrentPwmValues(const mavros_msgs::msg::OverrideRCIn & desired_pwm_values_msg);
-  void enableOverride(
-    std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-    std::shared_ptr<std_srvs::srv::SetBool::Response> response);
-
-  bool bridge_running_;
-
-  mavros_msgs::msg::OverrideRCIn current_pwm_values_;
-  rclcpp::Subscription<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_subscription_;
-  rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_publisher_;
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr enable_override_service_;
-  rclcpp::TimerBase::SharedPtr timer_;
+  /* data */
 };
 
-}  // namespace blue_bridge
+}  // namespace blue::control
