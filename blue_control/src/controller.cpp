@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "blue_control/base_controller.hpp"
+#include "blue_control/controller.hpp"
 
 #include <chrono>
 #include <memory>
@@ -30,28 +30,43 @@ using namespace std::chrono_literals;
 namespace blue::control
 {
 
-BaseController::BaseController(const std::string & node_name, const rclcpp::NodeOptions & options)
-: Node(node_name, options)
+Controller::Controller(const std::string & node_name, const rclcpp::NodeOptions & options)
+: Node(node_name, options),
+  control_loop_freq_(250)
 {
+  {
+    rcl_interfaces::msg::ParameterDescriptor desc;
+    desc.name = "control_loop_freq";
+    desc.type = rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE;
+    desc.description = "The frequency at which the control loop should run";
+    desc.read_only = true;
+    control_loop_freq_ = declare_parameter(desc.name, control_loop_freq_, desc);
+  }
+
   // Create a publisher to publish the current desired RC values
   rc_override_pub_ =
     this->create_publisher<mavros_msgs::msg::OverrideRCIn>("/mavros/rc/override", 1);
 
-  // Start a timer to publish the current desired PWM values at a frequency of 50hz
-  timer_ = create_wall_timer(20ms, std::bind(&BaseController::publishRC, this));
+  // If the control loop frequency is greater than 50hz, publish PWM values at the same rate as the
+  // control loop, otherwise publish PWM values at 50hz.
+  const double pwm_freq_sec = control_loop_freq_ > 50 ? (1 / control_loop_freq_) : 0.02;
+
+  // Start a timer to publish the current desired PWM values at the
+  timer_ = create_wall_timer(
+    std::chrono::duration<double>(pwm_freq_sec), std::bind(&Controller::publishRcCb, this));
 
   // Set up a service to manage whether or not the RC values will be overridden
   enable_override_service_ = this->create_service<std_srvs::srv::SetBool>(
     "/blue_control/rc/override/enable",
-    std::bind(&BaseController::enableOverride, this, std::placeholders::_1, std::placeholders::_2));
+    std::bind(&Controller::enableOverrideCb, this, std::placeholders::_1, std::placeholders::_2));
 }
 
-void BaseController::setControlSignal(const mavros_msgs::msg::OverrideRCIn & control_input)
+void Controller::setControlSignal(const mavros_msgs::msg::OverrideRCIn & control_input)
 {
   control_signal_ = control_input;
 }
 
-void BaseController::publishRC() const
+void Controller::publishRcCb() const
 {
   // Only publish the override values if the bridge has been enabled and the subscription
   // has been set up
@@ -60,7 +75,7 @@ void BaseController::publishRC() const
   }
 }
 
-void BaseController::enableOverride(
+void Controller::enableOverrideCb(
   const std::shared_ptr<std_srvs::srv::SetBool::Request> request,  // NOLINT
   std::shared_ptr<std_srvs::srv::SetBool::Response> response)      // NOLINT
 {
@@ -69,6 +84,18 @@ void BaseController::enableOverride(
 
   // Set the response according to whether or not the update was done properly
   response->success = (override_enabled_ == request->data);
+}
+
+void Controller::setOdomPoseCb(const geometry_msgs::msg::PoseStamped & pose)
+{
+  // TODO(evan-palmer): update transforms here
+  odom_pose_ = pose;
+}
+
+void Controller::proxySlamPoseCb(const geometry_msgs::msg::PoseStamped & pose)
+{
+  // TODO(evan-palmer): update to use correct coordinate frames here
+  ext_nav_pub_->publish(pose);
 }
 
 }  // namespace blue::control

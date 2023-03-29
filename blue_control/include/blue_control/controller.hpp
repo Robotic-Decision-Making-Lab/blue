@@ -28,26 +28,31 @@
 namespace blue::control
 {
 
-class BaseController : public rclcpp::Node
+class Controller : public rclcpp::Node
 {
 public:
-  virtual ~BaseController() = default;  // NOLINT
+  virtual ~Controller() = default;  // NOLINT
 
   void setControlSignal(const mavros_msgs::msg::OverrideRCIn & control_input);
 
 protected:
-  BaseController(const std::string & node_name, const rclcpp::NodeOptions & options);
+  Controller(const std::string & node_name, const rclcpp::NodeOptions & options);
+
+  double control_loop_freq_;
 
 private:
-  void publishRC() const;
-  void enableOverride(
+  // Callbacks
+  void publishRcCb() const;
+  void enableOverrideCb(
     std::shared_ptr<std_srvs::srv::SetBool::Request> request,
     std::shared_ptr<std_srvs::srv::SetBool::Response> response);
+  void setOdomPoseCb(const geometry_msgs::msg::PoseStamped & pose);
+  void proxySlamPoseCb(const geometry_msgs::msg::PoseStamped & pose);
 
   // BlueROV2 state
   bool override_enabled_;
   mavros_msgs::msg::OverrideRCIn control_signal_;
-  geometry_msgs::msg::PoseStamped pose_;
+  geometry_msgs::msg::PoseStamped odom_pose_;
 
   // Subscriptions
   rclcpp::Subscription<mavros_msgs::msg::State>::SharedPtr state_sub_;
