@@ -31,71 +31,69 @@ namespace blue::control
 {
 
 Controller::Controller(const std::string & node_name, const rclcpp::NodeOptions & options)
-: Node(node_name, options),
-  control_loop_freq_(250)
+: Node(node_name, options)
 {
+  double control_loop_freq = 250;
   {
     rcl_interfaces::msg::ParameterDescriptor desc;
     desc.name = "control_loop_freq";
     desc.type = rcl_interfaces::msg::ParameterType::PARAMETER_DOUBLE;
-    desc.description = "The frequency at which the control loop should run";
+    desc.description =
+      "The frequency at which the control loop should run. This must be greater than 50Hz to "
+      "override the RC inputs.";
     desc.read_only = true;
-    control_loop_freq_ = declare_parameter(desc.name, control_loop_freq_, desc);
+    control_loop_freq = declare_parameter(desc.name, control_loop_freq, desc);
   }
 
-  // Create a publisher to publish the current desired RC values
+  if (control_loop_freq < 50) {
+    throw std::invalid_argument(
+      "The control loop frequency must be greater than 50Hz to override the RC inputs!");
+  }
+
   rc_override_pub_ =
     this->create_publisher<mavros_msgs::msg::OverrideRCIn>("/mavros/rc/override", 1);
 
-  // If the control loop frequency is greater than 50hz, publish PWM values at the same rate as the
-  // control loop, otherwise publish PWM values at 50hz.
-  const double pwm_freq_sec = control_loop_freq_ > 50 ? (1 / control_loop_freq_) : 0.02;
+  pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
+    "/mavros/local_position/pose", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort(),
+    [this](geometry_msgs::msg::PoseStamped::ConstSharedPtr pose) -> void {
+      setOdomPoseCb(std::move(pose));
+    });
 
-  // Start a timer to publish the current desired PWM values at the
+  start_control_ = this->create_service<std_srvs::srv::SetBool>(
+    "/blue/control/run",
+    [this](
+      const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
+      const std::shared_ptr<std_srvs::srv::SetBool::Response> & response) -> void {
+      startControlCb(request, response);
+    });
+
   timer_ = create_wall_timer(
-    std::chrono::duration<double>(pwm_freq_sec), std::bind(&Controller::publishRcCb, this));
-
-  // Set up a service to manage whether or not the RC values will be overridden
-  enable_override_service_ = this->create_service<std_srvs::srv::SetBool>(
-    "/blue_control/rc/override/enable",
-    std::bind(&Controller::enableOverrideCb, this, std::placeholders::_1, std::placeholders::_2));
+    std::chrono::duration<double>(1 / control_loop_freq), [this]() -> void { runControlLoopCb(); });
 }
 
-void Controller::setControlSignal(const mavros_msgs::msg::OverrideRCIn & control_input)
-{
-  control_signal_ = control_input;
-}
+bool Controller::running() const { return running_; }
 
-void Controller::publishRcCb() const
+void Controller::runControlLoopCb()
 {
-  // Only publish the override values if the bridge has been enabled and the subscription
-  // has been set up
-  if (override_enabled_ && (rc_override_pub_->get_subscription_count() > 0)) {
-    rc_override_pub_->publish(control_signal_);
+  if (running() && (rc_override_pub_->get_subscription_count() > 0)) {
+    rc_override_pub_->publish(update());
   }
 }
 
-void Controller::enableOverrideCb(
-  const std::shared_ptr<std_srvs::srv::SetBool::Request> request,  // NOLINT
-  std::shared_ptr<std_srvs::srv::SetBool::Response> response)      // NOLINT
+void Controller::startControlCb(
+  const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
+  const std::shared_ptr<std_srvs::srv::SetBool::Response> & response)
 {
-  // Enable/disable publishing the override messages
-  override_enabled_ = request->data;
+  running_ = request->data;
 
   // Set the response according to whether or not the update was done properly
-  response->success = (override_enabled_ == request->data);
+  response->success = (running() == request->data);
 }
 
-void Controller::setOdomPoseCb(const geometry_msgs::msg::PoseStamped & pose)
+void Controller::setOdomPoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose)  // NOLINT
 {
   // TODO(evan-palmer): update transforms here
-  odom_pose_ = pose;
-}
-
-void Controller::proxySlamPoseCb(const geometry_msgs::msg::PoseStamped & pose)
-{
-  // TODO(evan-palmer): update to use correct coordinate frames here
-  ext_nav_pub_->publish(pose);
+  odom_pose_ = *pose;
 }
 
 }  // namespace blue::control

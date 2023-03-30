@@ -28,7 +28,6 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
 

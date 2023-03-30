@@ -4,12 +4,15 @@ FROM ros:$ROS_DISTRO-ros-base as ci
 LABEL maintainer="Evan Palmer"
 LABEL maintainer-email="evanp922@gmail.com"
 
+ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR /root/ws_blue
 
 COPY . src/blue
 
-# Install the core apt packages
-RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
+# Install apt packages
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
+    && apt-get -q install --no-install-recommends -y \
     git \
     wget \
     curl \
@@ -30,10 +33,10 @@ RUN [ "/bin/bash" , "-c" , "\
     && sudo ./install_geographiclib_datasets.sh" ]
 
 # Install all ROS dependencies
-RUN apt-get update && apt-get upgrade -y \
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
     && rosdep update \
-    && DEBIAN_FRONTEND=noninteractive \
-    rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
+    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
     && rm -rf src \
     && apt-get autoremove -y \
     && apt-get clean -y \
@@ -42,14 +45,15 @@ RUN apt-get update && apt-get upgrade -y \
 FROM ci as source
 
 ENV ROS_UNDERLAY /root/ws_blue/install
+ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR $ROS_UNDERLAY/..
 
 COPY . src/blue
 
-RUN apt-get update && apt-get upgrade -y \
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
     && rosdep update \
-    && DEBIAN_FRONTEND=noninteractive \
-    rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
+    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
@@ -65,21 +69,24 @@ RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
 FROM ci as develop
 
 ENV ROS_UNDERLAY /root/ws_blue/install
+ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR $ROS_UNDERLAY/..
 
 COPY . src/blue
 
-RUN apt-get update && apt-get upgrade -y \
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
     && rosdep update \
-    && DEBIAN_FRONTEND=noninteractive \
-    rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
+    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
     && rm -rf src \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Install development tools
-RUN apt-get update && apt-get upgrade -y && apt-get install -y --no-install-recommends \
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
+    && apt-get -q install --no-install-recommends -y \
     python3-dev \
     python3-pip \
     iputils-ping \

@@ -18,6 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#include <atomic>
+#include <mutex>
+#include <thread>
+
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 #include "mavros_msgs/msg/state.hpp"
@@ -32,39 +36,33 @@ class Controller : public rclcpp::Node
 {
 public:
   virtual ~Controller() = default;  // NOLINT
-
-  void setControlSignal(const mavros_msgs::msg::OverrideRCIn & control_input);
-
-protected:
   Controller(const std::string & node_name, const rclcpp::NodeOptions & options);
 
-  double control_loop_freq_;
+  [[nodiscard]] bool running() const;
 
-private:
-  // Callbacks
-  void publishRcCb() const;
-  void enableOverrideCb(
-    std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-    std::shared_ptr<std_srvs::srv::SetBool::Response> response);
-  void setOdomPoseCb(const geometry_msgs::msg::PoseStamped & pose);
-  void proxySlamPoseCb(const geometry_msgs::msg::PoseStamped & pose);
+protected:
+  virtual mavros_msgs::msg::OverrideRCIn update();
 
   // BlueROV2 state
-  bool override_enabled_;
-  mavros_msgs::msg::OverrideRCIn control_signal_;
   geometry_msgs::msg::PoseStamped odom_pose_;
+  bool running_;
+
+private:
+  void runControlLoopCb();
+  void startControlCb(
+    const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
+    const std::shared_ptr<std_srvs::srv::SetBool::Response> & response);
+  void setOdomPoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose);
 
   // Subscriptions
   rclcpp::Subscription<mavros_msgs::msg::State>::SharedPtr state_sub_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
-  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr slam_pose_sub_;
 
   // Publishers
   rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_pub_;
-  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr ext_nav_pub_;
 
   // Services
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr enable_override_service_;
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr start_control_;
 
   // PWM timer
   rclcpp::TimerBase::SharedPtr timer_;
