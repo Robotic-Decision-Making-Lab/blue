@@ -18,45 +18,34 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "geometry_msgs/msg/twist_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
-#include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "sensor_msgs/msg/imu.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
-namespace blue::control
+namespace blue::bridge
 {
 
-class Controller : public rclcpp::Node
+class Bridge : public rclcpp::Node
 {
 public:
-  virtual ~Controller() = default;  // NOLINT
-  Controller(const std::string & node_name, const rclcpp::NodeOptions & options);
+  Bridge();
 
-  [[nodiscard]] bool running() const;
-
-protected:
-  virtual mavros_msgs::msg::OverrideRCIn update();
+  [[nodiscard]] bool active() const;
 
 private:
-  void runControlLoopCb();
-  void startControlCb(
+  void publishOverrideRcInCb() const;
+  void setCurrentPwmValuesCb(mavros_msgs::msg::OverrideRCIn::ConstSharedPtr pwm);
+  void enableOverrideCb(
     const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
     const std::shared_ptr<std_srvs::srv::SetBool::Response> & response);
-  void setOdomPoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose);
 
-  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
-  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_;
+  bool bridge_running_;
+  mavros_msgs::msg::OverrideRCIn current_pwm_values_;
+
+  rclcpp::Subscription<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_sub_;
   rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_pub_;
-  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr start_control_;
+  rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr enable_override_service_;
   rclcpp::TimerBase::SharedPtr timer_;
-
-  // BlueROV2 state; these are fused to create the public odometry msg in the desired frame
-  geometry_msgs::msg::PoseStamped odom_pose_;
-  geometry_msgs::msg::TwistStamped odom_twist_;
-  bool running_;
 };
 
-}  // namespace blue::control
+}  // namespace blue::bridge

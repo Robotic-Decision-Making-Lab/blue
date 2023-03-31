@@ -45,13 +45,8 @@ Controller::Controller(const std::string & node_name, const rclcpp::NodeOptions 
     control_loop_freq = declare_parameter(desc.name, control_loop_freq, desc);
   }
 
-  if (control_loop_freq < 50) {
-    throw std::invalid_argument(
-      "The control loop frequency must be greater than 50Hz to override the RC inputs!");
-  }
-
-  rc_override_pub_ =
-    this->create_publisher<mavros_msgs::msg::OverrideRCIn>("/mavros/rc/override", 1);
+  rc_override_pub_ = this->create_publisher<mavros_msgs::msg::OverrideRCIn>(
+    "/blue_bridge/rc/override", rclcpp::QoS(rclcpp::KeepLast(1)).reliable());
 
   pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
     "/mavros/local_position/pose", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort(),
@@ -75,7 +70,7 @@ bool Controller::running() const { return running_; }
 
 void Controller::runControlLoopCb()
 {
-  if (running() && (rc_override_pub_->get_subscription_count() > 0)) {
+  if (running()) {
     rc_override_pub_->publish(update());
   }
 }
