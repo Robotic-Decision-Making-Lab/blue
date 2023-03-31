@@ -93,6 +93,7 @@ void Controller::startControlCb(
 void Controller::setOdomPoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose)  // NOLINT
 {
   // TODO(evan-palmer): update transforms here
+  // TODO(evan-palmer): calculate and update linear velocity
   odom_pose_ = *pose;
 }
 

@@ -18,15 +18,13 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include <atomic>
-#include <mutex>
-#include <thread>
-
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 #include "mavros_msgs/msg/state.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
+#include "sensor_msgs/msg/imu.hpp"
 #include "std_srvs/srv/set_bool.hpp"
 
 namespace blue::control
@@ -42,10 +40,6 @@ public:
 
 protected:
   virtual mavros_msgs::msg::OverrideRCIn update();
-
-  // BlueROV2 state
-  geometry_msgs::msg::PoseStamped odom_pose_;
-  bool running_;
 
 private:
   void runControlLoopCb();
@@ -66,6 +60,11 @@ private:
 
   // PWM timer
   rclcpp::TimerBase::SharedPtr timer_;
+
+  // BlueROV2 state; these are fused to create the public odometry msg in the desired frame
+  geometry_msgs::msg::PoseStamped odom_pose_;
+  geometry_msgs::msg::TwistStamped odom_twist_;
+  bool running_;
 };
 
 }  // namespace blue::control
