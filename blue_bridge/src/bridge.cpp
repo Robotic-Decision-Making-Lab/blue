@@ -106,7 +106,7 @@ void Bridge::enableOverrideCb(
 int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<blue_bridge::Bridge>());
+  rclcpp::spin(std::make_shared<blue::bridge::Bridge>());
   rclcpp::shutdown();
   return 0;
 }

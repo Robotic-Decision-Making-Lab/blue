@@ -51,7 +51,7 @@ Controller::Controller(const std::string & node_name, const rclcpp::NodeOptions 
   pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
     "/mavros/local_position/pose", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort(),
     [this](geometry_msgs::msg::PoseStamped::ConstSharedPtr pose) -> void {
-      setOdomPoseCb(std::move(pose));
+      updatePoseCb(std::move(pose));
     });
 
   start_control_ = this->create_service<std_srvs::srv::SetBool>(
@@ -66,11 +66,9 @@ Controller::Controller(const std::string & node_name, const rclcpp::NodeOptions 
     std::chrono::duration<double>(1 / control_loop_freq), [this]() -> void { runControlLoopCb(); });
 }
 
-bool Controller::running() const { return running_; }
-
 void Controller::runControlLoopCb()
 {
-  if (running()) {
+  if (running_) {
     rc_override_pub_->publish(update());
   }
 }
@@ -82,14 +80,20 @@ void Controller::startControlCb(
   running_ = request->data;
 
   // Set the response according to whether or not the update was done properly
-  response->success = (running() == request->data);
+  response->success = (running_ == request->data);
 }
 
-void Controller::setOdomPoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose)  // NOLINT
+void Controller::updatePoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose)  // NOLINT
 {
   // TODO(evan-palmer): update transforms here
   // TODO(evan-palmer): calculate and update linear velocity
-  odom_pose_ = *pose;
+  odom_.pose.pose = pose->pose;
+}
+
+void Controller::updateAngularVelCb(sensor_msgs::msg::Imu::ConstSharedPtr imu)  // NOLINT
+{
+  // TODO(evan-palmer): update transforms here (if necessary)
+  odom_.twist.twist.angular = imu->angular_velocity;
 }
 
 }  // namespace blue::control

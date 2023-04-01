@@ -35,28 +35,25 @@ public:
   virtual ~Controller() = default;  // NOLINT
   Controller(const std::string & node_name, const rclcpp::NodeOptions & options);
 
-  [[nodiscard]] bool running() const;
-
 protected:
   virtual mavros_msgs::msg::OverrideRCIn update();
+
+  bool running_;
+  nav_msgs::msg::Odometry odom_;
 
 private:
   void runControlLoopCb();
   void startControlCb(
     const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
     const std::shared_ptr<std_srvs::srv::SetBool::Response> & response);
-  void setOdomPoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose);
+  void updatePoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose);
+  void updateAngularVelCb(sensor_msgs::msg::Imu::ConstSharedPtr imu);
 
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_;
   rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_pub_;
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr start_control_;
   rclcpp::TimerBase::SharedPtr timer_;
-
-  // BlueROV2 state; these are fused to create the public odometry msg in the desired frame
-  geometry_msgs::msg::PoseStamped odom_pose_;
-  geometry_msgs::msg::TwistStamped odom_twist_;
-  bool running_;
 };
 
 }  // namespace blue::control
