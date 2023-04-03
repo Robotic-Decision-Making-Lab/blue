@@ -59,11 +59,14 @@ Controller::Controller(const std::string & node_name, const rclcpp::NodeOptions 
     [this](
       const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
       const std::shared_ptr<std_srvs::srv::SetBool::Response> & response) -> void {
-      startControlCb(request, response);
+      enableControlCb(request, response);
     });
 
   timer_ = create_wall_timer(
     std::chrono::duration<double>(1 / control_loop_freq), [this]() -> void { runControlLoopCb(); });
+
+  // Set the initial pose time
+  pose_time_ = this->get_clock()->now();
 }
 
 void Controller::runControlLoopCb()
@@ -73,7 +76,7 @@ void Controller::runControlLoopCb()
   }
 }
 
-void Controller::startControlCb(
+void Controller::enableControlCb(
   const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
   const std::shared_ptr<std_srvs::srv::SetBool::Response> & response)
 {
@@ -85,9 +88,20 @@ void Controller::startControlCb(
 
 void Controller::updatePoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose)  // NOLINT
 {
-  // TODO(evan-palmer): update transforms here
-  // TODO(evan-palmer): calculate and update linear velocity
+  // Update the linear velocity
+  double duration = rclcpp::Duration(pose->header.stamp - pose_time_).seconds();  // NOLINT
+
+  odom_.twist.twist.linear.x = (pose->pose.position.x - odom_.pose.pose.position.x) / duration;
+  odom_.twist.twist.linear.y = (pose->pose.position.y - odom_.pose.pose.position.y) / duration;
+  odom_.twist.twist.linear.z = (pose->pose.position.z - odom_.pose.pose.position.z) / duration;
+
+  // Now we can update the pose
   odom_.pose.pose = pose->pose;
+
+  // Save the timestamp for the next measurement
+  pose_time_ = pose->header.stamp;
+
+  // TODO(evan-palmer): update transforms here
 }
 
 void Controller::updateAngularVelCb(sensor_msgs::msg::Imu::ConstSharedPtr imu)  // NOLINT

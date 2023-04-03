@@ -38,22 +38,32 @@ public:
 protected:
   virtual mavros_msgs::msg::OverrideRCIn update();
 
+  // BlueROV2 state
   bool running_;
   nav_msgs::msg::Odometry odom_;
 
 private:
   void runControlLoopCb();
-  void startControlCb(
+  void enableControlCb(
     const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
     const std::shared_ptr<std_srvs::srv::SetBool::Response> & response);
   void updatePoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose);
   void updateAngularVelCb(sensor_msgs::msg::Imu::ConstSharedPtr imu);
 
+  // Subscriptions
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_;
+
+  // Publishers
   rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_pub_;
+
+  // Services
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr start_control_;
+
+  // Timers
   rclcpp::TimerBase::SharedPtr timer_;
+
+  rclcpp::Time pose_time_;
 };
 
 }  // namespace blue::control
