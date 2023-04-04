@@ -52,54 +52,36 @@ Bridge::Bridge()
       "The override frequency must be greater than 50Hz to override the RC inputs!");
   }
 
+  // Set the PWM values that should be used when overriding the RC inputs
   rc_override_sub_ = this->create_subscription<mavros_msgs::msg::OverrideRCIn>(
-    "/blue_bridge/rc/override", rclcpp::QoS(rclcpp::KeepLast(1)).reliable(),
-    [this](mavros_msgs::msg::OverrideRCIn::ConstSharedPtr pwm) -> void {
-      setCurrentPwmValuesCb(pwm);  // NOLINT
+    "/blue/rc/override", rclcpp::QoS(rclcpp::KeepLast(1)).reliable(),
+    [this](mavros_msgs::msg::OverrideRCIn::ConstSharedPtr pwm) -> void {  // NOLINT
+      current_pwm_values_ = *pwm;
     });
 
   rc_override_pub_ = this->create_publisher<mavros_msgs::msg::OverrideRCIn>(
     "/mavros/rc/override", rclcpp::QoS(rclcpp::KeepLast(1)).reliable());
 
+  // Publish the Override RC values at the specified frequency
   timer_ = create_wall_timer(std::chrono::duration<double>(1 / override_freq), [this]() -> void {
-    publishOverrideRcInCb();
+    // Only publish the override values if the bridge has been enabled
+    if (active() && (rc_override_pub_->get_subscription_count() > 0)) {
+      rc_override_pub_->publish(current_pwm_values_);
+    }
   });
 
+  // Enable/disable RC override
   enable_override_service_ = this->create_service<std_srvs::srv::SetBool>(
-    "/blue_bridge/rc/override/enable",
+    "/blue/rc/override/enable",
     [this](
       const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
       const std::shared_ptr<std_srvs::srv::SetBool::Response> & response) -> void {
-      enableOverrideCb(request, response);
+      bridge_running_ = request->data;
+      response->success = (bridge_running_ == request->data);
     });
 }
 
 bool Bridge::active() const { return bridge_running_; }
-
-void Bridge::publishOverrideRcInCb() const
-{
-  // Only publish the override values if the bridge has been enabled
-  if (active() && (rc_override_pub_->get_subscription_count() > 0)) {
-    rc_override_pub_->publish(current_pwm_values_);
-  }
-}
-
-void Bridge::setCurrentPwmValuesCb(mavros_msgs::msg::OverrideRCIn::ConstSharedPtr pwm)  // NOLINT
-{
-  // Update the desired RC override values
-  current_pwm_values_ = *pwm;
-}
-
-void Bridge::enableOverrideCb(
-  const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
-  const std::shared_ptr<std_srvs::srv::SetBool::Response> & response)
-{
-  // Enable/disable publishing the override messages
-  bridge_running_ = request->data;
-
-  // Set the response according to whether or not the update was done properly
-  response->success = (bridge_running_ == request->data);
-}
 
 }  // namespace blue::bridge
 

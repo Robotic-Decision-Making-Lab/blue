@@ -33,12 +33,6 @@ public:
   [[nodiscard]] bool active() const;
 
 private:
-  void publishOverrideRcInCb() const;
-  void setCurrentPwmValuesCb(mavros_msgs::msg::OverrideRCIn::ConstSharedPtr pwm);
-  void enableOverrideCb(
-    const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
-    const std::shared_ptr<std_srvs::srv::SetBool::Response> & response);
-
   bool bridge_running_;
   mavros_msgs::msg::OverrideRCIn current_pwm_values_;
 

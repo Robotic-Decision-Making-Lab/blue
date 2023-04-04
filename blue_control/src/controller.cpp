@@ -25,8 +25,6 @@
 
 #include "rclcpp/rclcpp.hpp"
 
-using namespace std::chrono_literals;
-
 namespace blue::control
 {
 
@@ -46,7 +44,7 @@ Controller::Controller(const std::string & node_name, const rclcpp::NodeOptions 
   }
 
   rc_override_pub_ = this->create_publisher<mavros_msgs::msg::OverrideRCIn>(
-    "/blue_bridge/rc/override", rclcpp::QoS(rclcpp::KeepLast(1)).reliable());
+    "/blue/rc/override", rclcpp::QoS(rclcpp::KeepLast(1)).reliable());
 
   pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
     "/mavros/local_position/pose", rclcpp::QoS(rclcpp::KeepLast(1)).best_effort(),
@@ -59,7 +57,9 @@ Controller::Controller(const std::string & node_name, const rclcpp::NodeOptions 
     [this](
       const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
       const std::shared_ptr<std_srvs::srv::SetBool::Response> & response) -> void {
-      enableControlCb(request, response);
+      // Enable external control
+      running_ = request->data;
+      response->success = (running_ == request->data);
     });
 
   timer_ = create_wall_timer(
@@ -74,16 +74,6 @@ void Controller::runControlLoopCb()
   if (running_) {
     rc_override_pub_->publish(update());
   }
-}
-
-void Controller::enableControlCb(
-  const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
-  const std::shared_ptr<std_srvs::srv::SetBool::Response> & response)
-{
-  running_ = request->data;
-
-  // Set the response according to whether or not the update was done properly
-  response->success = (running_ == request->data);
 }
 
 void Controller::updatePoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose)  // NOLINT

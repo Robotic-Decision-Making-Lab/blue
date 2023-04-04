@@ -25,6 +25,8 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/imu.hpp"
 #include "std_srvs/srv/set_bool.hpp"
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
 
 namespace blue::control
 {
@@ -42,11 +44,17 @@ protected:
   bool running_;
   nav_msgs::msg::Odometry odom_;
 
+  // Static transforms
+  tf2::Transform tf_cam_base_;
+
+  // Dynamic transforms
+  tf2::Transform tf_odom_base_;
+
+  // Inverse transforms
+  tf2::Transform tf_base_odom_;
+
 private:
   void runControlLoopCb();
-  void enableControlCb(
-    const std::shared_ptr<std_srvs::srv::SetBool::Request> & request,
-    const std::shared_ptr<std_srvs::srv::SetBool::Response> & response);
   void updatePoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose);
   void updateAngularVelCb(sensor_msgs::msg::Imu::ConstSharedPtr imu);
 
