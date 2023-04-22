@@ -12,6 +12,7 @@
   <exec_depend>mavros</exec_depend>
   <exec_depend>mavros_extras</exec_depend>
 
+  <depend>rclcpp</depend>
   <depend>std_msgs</depend>
   <depend>std_srvs</depend>
   <depend>nav_msgs</depend>

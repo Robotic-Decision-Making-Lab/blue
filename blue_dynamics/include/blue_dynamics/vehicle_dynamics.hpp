@@ -18,16 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-namespace blue::control
+namespace dynamics
 {
 
-class DynamicModel
-{
-public:
-  DynamicModel(/* args */);
-
-private:
-  /* data */
-};
-
-}  // namespace blue::control
+}  // namespace dynamics

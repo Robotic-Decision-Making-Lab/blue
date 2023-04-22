@@ -43,7 +43,7 @@ Controller::Controller(const std::string & node_name, const rclcpp::NodeOptions 
     control_loop_freq = declare_parameter(desc.name, control_loop_freq, desc);
   }
 
-  rc_override_pub_ = this->create_publisher<mavros_msgs::msg::OverrideRCIn>(
+  rc_pub_ = this->create_publisher<mavros_msgs::msg::OverrideRCIn>(
     "/blue/rc/override", rclcpp::QoS(rclcpp::KeepLast(1)).reliable());
 
   pose_sub_ = this->create_subscription<geometry_msgs::msg::PoseStamped>(
@@ -72,7 +72,7 @@ Controller::Controller(const std::string & node_name, const rclcpp::NodeOptions 
 void Controller::runControlLoopCb()
 {
   if (running_) {
-    rc_override_pub_->publish(update());
+    rc_pub_->publish(update());
   }
 }
 

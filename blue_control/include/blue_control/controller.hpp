@@ -19,7 +19,6 @@
 // THE SOFTWARE.
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
-#include "geometry_msgs/msg/twist_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -55,15 +54,12 @@ protected:
 
 private:
   void runControlLoopCb();
-  void updatePoseCb(geometry_msgs::msg::PoseStamped::ConstSharedPtr pose);
-  void updateAngularVelCb(sensor_msgs::msg::Imu::ConstSharedPtr imu);
 
   // Subscriptions
-  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr pose_sub_;
-  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr imu_sub_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
 
   // Publishers
-  rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_pub_;
+  rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_pub_;
 
   // Services
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr start_control_;
