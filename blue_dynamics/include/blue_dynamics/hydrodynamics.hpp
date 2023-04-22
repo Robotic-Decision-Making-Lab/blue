@@ -18,14 +18,12 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-namespace dynamics
+#include <Eigen/Dense>
+
+namespace blue::dynamics
 {
 
-/**
- * @brief
- *
- */
-struct HydrodynamicsBase
+struct Hydrodynamics6d
 {
   double x;
   double y;
@@ -34,17 +32,7 @@ struct HydrodynamicsBase
   double m;
   double n;
 
-  /**
-   * @brief Construct a new Hydrodynamics Base object
-   *
-   * @param x
-   * @param y
-   * @param z
-   * @param k
-   * @param m
-   * @param n
-   */
-  HydrodynamicsBase(double x, double y, double z, double k, double m, double n)
+  Hydrodynamics6d(double x, double y, double z, double k, double m, double n)
   : x(x),
     y(y),
     z(z),
@@ -53,41 +41,58 @@ struct HydrodynamicsBase
     n(n)
   {
   }
+
+  [[nodiscard]] virtual Eigen::MatrixXd toMatrix() const
+  {
+    Eigen::VectorXd vec;
+    vec << x, y, z, k, m, n;
+
+    return vec.asDiagonal().toDenseMatrix();
+  };
 };
 
-/**
- * @brief
- *
- */
-struct MomentsOfInertia
+struct Hydrodynamics3d
 {
   double x;
   double y;
   double z;
 
-  /**
-   * @brief Construct a new Moments Of Inertia object
-   *
-   * @param x
-   * @param y
-   * @param z
-   */
-  MomentsOfInertia(double x, double y, double z)
+  Hydrodynamics3d(double x, double y, double z)
   : x(x),
     y(y),
     z(z)
   {
   }
+
+  [[nodiscard]] virtual Eigen::Matrix3d toMatrix() const
+  {
+    Eigen::Vector3d vec;
+    vec << x, y, z;
+
+    return vec.asDiagonal().toDenseMatrix();
+  };
 };
 
-/**
- * @brief
- *
- */
-struct AddedMass : HydrodynamicsBase
+struct MomentsOfInertia : Hydrodynamics3d
+{
+  MomentsOfInertia(double x, double y, double z)
+  : Hydrodynamics3d(x, y, z)
+  {
+  }
+};
+
+struct CenterOfBuoyancy : Hydrodynamics3d
+{
+  CenterOfBuoyancy(double x, double y, double z)
+  : Hydrodynamics3d(x, y, z)
+  {
+  }
+};
+
+struct AddedMass : Hydrodynamics6d
 {
   /**
-   * @brief Construct a new Added Mass object
+   * @brief Construct a new AddedMass object.
    *
    * @param x_u_dot
    * @param y_v_dot
@@ -98,19 +103,19 @@ struct AddedMass : HydrodynamicsBase
    */
   AddedMass(
     double x_u_dot, double y_v_dot, double z_w_dot, double k_p_dot, double m_q_dot, double n_r_dot)
-  : HydrodynamicsBase(x_u_dot, y_v_dot, z_w_dot, k_p_dot, m_q_dot, n_r_dot)
+  : Hydrodynamics6d(x_u_dot, y_v_dot, z_w_dot, k_p_dot, m_q_dot, n_r_dot)
   {
   }
 };
 
 /**
- * @brief
+ * @brief Linear damping coefficients.
  *
  */
-struct LinearDamping : HydrodynamicsBase
+struct LinearDamping : Hydrodynamics6d
 {
   /**
-   * @brief Construct a new Linear Damping object
+   * @brief Construct a new LinearDamping object.
    *
    * @param x_u
    * @param y_v
@@ -120,19 +125,19 @@ struct LinearDamping : HydrodynamicsBase
    * @param n_r
    */
   LinearDamping(double x_u, double y_v, double z_w, double k_p, double m_q, double n_r)
-  : HydrodynamicsBase(x_u, y_v, z_w, k_p, m_q, n_r)
+  : Hydrodynamics6d(x_u, y_v, z_w, k_p, m_q, n_r)
   {
   }
 };
 
 /**
- * @brief
+ * @brief Nonlinear damping coefficients.
  *
  */
-struct NonlinearDamping : HydrodynamicsBase
+struct NonlinearDamping : Hydrodynamics6d
 {
   /**
-   * @brief Construct a new Nonlinear Damping object
+   * @brief Construct a new NonlinearDamping object
    *
    * @param x_uu
    * @param y_vv
@@ -142,9 +147,9 @@ struct NonlinearDamping : HydrodynamicsBase
    * @param n_rr
    */
   NonlinearDamping(double x_uu, double y_vv, double z_ww, double k_pp, double m_qq, double n_rr)
-  : HydrodynamicsBase(x_uu, y_vv, z_ww, k_pp, m_qq, n_rr)
+  : Hydrodynamics6d(x_uu, y_vv, z_ww, k_pp, m_qq, n_rr)
   {
   }
 };
 
-}  // namespace dynamics
+}  // namespace blue::dynamics

@@ -18,7 +18,62 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-namespace dynamics
+#include <Eigen/Dense>
+
+#include "blue_dynamics/hydrodynamics.hpp"
+#include "geometry_msgs/msg/point.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
+
+namespace blue::dynamics
 {
 
-}  // namespace dynamics
+struct VehicleDynamics
+{
+  double mass;
+  double weight;
+  double buoyancy;
+  MomentsOfInertia moments;
+  AddedMass added_mass;
+  LinearDamping linear_damping;
+  NonlinearDamping quadratic_damping;
+  CenterOfBuoyancy center_of_buoyancy;
+
+  VehicleDynamics(
+    double mass, double weight, double buoyancy, const MomentsOfInertia & moments,
+    const AddedMass & added_mass, const LinearDamping & linear_damping,
+    const NonlinearDamping & quadratic_damping, const CenterOfBuoyancy & center_of_buoyancy);
+
+  [[nodiscard]] static Eigen::Matrix3d createSkewSymmetricMatrix(double a1, double a2, double a3);
+
+  [[nodiscard]] Eigen::MatrixXd calculateInertiaMatrix() const;
+
+  [[nodiscard]] static Eigen::MatrixXd calculateRigidBodyMatrix(
+    double mass, const MomentsOfInertia & moments);
+
+  [[nodiscard]] static Eigen::MatrixXd calculateAddedMassMatrix(const AddedMass & added_mass);
+
+  [[nodiscard]] Eigen::MatrixXd calculateCoriolisMatrix(
+    const geometry_msgs::msg::TwistStamped & velocity) const;
+
+  [[nodiscard]] static Eigen::MatrixXd calculateRigidBodyCoriolisMatrix(
+    double mass, const MomentsOfInertia & moments,
+    const geometry_msgs::msg::TwistStamped & velocity);
+
+  [[nodiscard]] static Eigen::MatrixXd calculateHydrodynamicCoriolixMatrix(
+    const AddedMass & added_mass, const geometry_msgs::msg::TwistStamped & velocity);
+
+  [[nodiscard]] Eigen::MatrixXd calculateDampingMatrix(
+    const geometry_msgs::msg::TwistStamped & velocity) const;
+
+  [[nodiscard]] static Eigen::MatrixXd calculateLinearDampingMatrix(
+    const LinearDamping & linear_damping);
+
+  [[nodiscard]] static Eigen::MatrixXd calculateNonlinearDampingMatrix(
+    const NonlinearDamping & quadratic_damping, const geometry_msgs::msg::TwistStamped & velocity);
+
+  [[nodiscard]] Eigen::VectorXd calculateRestoringForcesVector(
+    const geometry_msgs::msg::PoseStamped & pose) const;
+};
+
+}  // namespace blue::dynamics
