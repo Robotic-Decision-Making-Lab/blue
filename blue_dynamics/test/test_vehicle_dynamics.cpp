@@ -18,9 +18,30 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include <Eigen/Dense>
+
 #include "blue_dynamics/vehicle_dynamics.hpp"
 
 namespace blue::dynamics::test
 {
+
+TEST(VehicleDynamicsTest, CreatesSkewSymmetricMatrix) {}
+
+TEST(VehicleDynamicsTest, CalculatesRigidBodyMassMatrix) {}
+
+TEST(VehicleDynamicsTest, CalculatesAddedMassMatrix) {}
+
+TEST(VehicleDynamicsTest, CalculatesRigidBodyCoriolisMatrix) {}
+
+TEST(VehicleDynamicsTest, CalculatesAddedCoriolisMatrix) {}
+
+TEST(VehicleDynamicsTest, CalculatesLinearMatrix) {}
+
+TEST(VehicleDynamicsTest, CalculatesNonlinearMatrix) {}
+
+TEST(VehicleDynamicsTest, CalculatesRestoringForcesVector) {}
 
 }  // namespace blue::dynamics::test

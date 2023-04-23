@@ -28,6 +28,14 @@
 namespace blue::dynamics
 {
 
+/**
+ * @brief The hydrodynamic model for an underwater vehicle.
+ *
+ * @note This implementation draws from Thor I. Fossen's "Handbook of Marine Craft Hydrodynamics
+ * and Motion Control" (2011) and Gianluca Antonelli's "Underwater Robots" (2014) for the
+ * hydrodynamic model. Relevant equations and definitions used are documented with each method.
+ *
+ */
 struct VehicleDynamics
 {
   double mass;                   // The total mass of the vehicle (kg).
@@ -42,11 +50,6 @@ struct VehicleDynamics
 
   /**
    * @brief Create a new VehicleDynamics object.
-   *
-   * @note This implementation draws from Thor I. Fossen's "Handbook of Marine Craft Hydrodynamics
-   * and Motion Control" (2011) and Gianluca Antonelli's "Underwater Robots" (2014) for the
-   * hydrodynamic model. Relevant equations and definitions used are documented with each method.
-   *
    *
    * @param mass The total mass of the vehicle (kg).
    * @param weight The weight of the vehicle in the inertial frame. This is denoted as `W` in
@@ -84,8 +87,8 @@ struct VehicleDynamics
   /**
    * @brief Calculate the vehicle's inertia matrix.
    *
-   * @note The inertia matrix, commonly denoted by textbooks as `M`, is the sum of the rigid body
-   * mass `M_RB` and the added mass `M_A` such that `M = M_RB + M_A`.
+   * @note The inertia matrix `M` is the sum of the rigid body mass `M_RB` and the added mass `M_A`
+   * such that `M = M_RB + M_A`.
    *
    * @return Eigen::MatrixXd
    */
