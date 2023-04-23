@@ -62,6 +62,8 @@ VehicleDynamics::VehicleDynamics(
   Eigen::MatrixXd mat(6, 6);
 
   mat.topLeftCorner(3, 3) = mass * Eigen::MatrixXd::Identity(3, 3);
+  mat.topRightCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
+  mat.bottomLeftCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
   mat.bottomRightCorner(3, 3) = moments.toMatrix();
 
   return mat;
@@ -91,6 +93,8 @@ VehicleDynamics::VehicleDynamics(
   const Eigen::Vector3d moments_v2 = moments.toMatrix() * v2;
 
   mat.topLeftCorner(3, 3) = mass * createSkewSymmetricMatrix(v2(0), v2(1), v2(2));
+  mat.topRightCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
+  mat.bottomLeftCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
   mat.bottomRightCorner(3, 3) =
     -1 * createSkewSymmetricMatrix(moments_v2(0), moments_v2(1), moments_v2(2));
 
@@ -110,6 +114,7 @@ VehicleDynamics::VehicleDynamics(
     added_mass.k * velocity.twist.angular.x, added_mass.m * velocity.twist.angular.y,
     added_mass.n * velocity.twist.angular.z);
 
+  mat.topLeftCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
   mat.topRightCorner(3, 3) = linear_vel;
   mat.bottomLeftCorner(3, 3) = linear_vel;
   mat.bottomRightCorner(3, 3) = angular_vel;
@@ -134,11 +139,13 @@ VehicleDynamics::VehicleDynamics(
   const NonlinearDamping & quadratic_damping, const geometry_msgs::msg::TwistStamped & velocity)
 {
   Eigen::VectorXd vec(6);
-  vec << std::abs(velocity.twist.linear.x), std::abs(velocity.twist.linear.y),
-    std::abs(velocity.twist.linear.z), std::abs(velocity.twist.angular.x),
-    std::abs(velocity.twist.angular.y), std::abs(velocity.twist.angular.z);
+  vec << velocity.twist.linear.x, velocity.twist.linear.y, velocity.twist.linear.z,
+    velocity.twist.angular.x, velocity.twist.angular.y, velocity.twist.angular.z;
 
-  return -1 * quadratic_damping.toMatrix() * vec;
+  // Take the absolute value of each coefficient
+  vec = vec.cwiseAbs();
+
+  return -1 * (quadratic_damping.toMatrix() * vec).asDiagonal();
 }
 
 [[nodiscard]] Eigen::VectorXd VehicleDynamics::calculateRestoringForcesVector(
