@@ -28,7 +28,8 @@ namespace blue::dynamics
 VehicleDynamics::VehicleDynamics(
   double mass, double weight, double buoyancy, const MomentsOfInertia & moments,
   const AddedMass & added_mass, const LinearDamping & linear_damping,
-  const NonlinearDamping & quadratic_damping, const CenterOfBuoyancy & center_of_buoyancy)
+  const NonlinearDamping & quadratic_damping, const CenterOfBuoyancy & center_of_buoyancy,
+  const CenterOfGravity & center_of_gravity)
 : mass(mass),
   weight(weight),
   buoyancy(buoyancy),
@@ -36,7 +37,8 @@ VehicleDynamics::VehicleDynamics(
   added_mass(std::move(added_mass)),
   linear_damping(std::move(linear_damping)),
   quadratic_damping(std::move(quadratic_damping)),
-  center_of_buoyancy(std::move(center_of_buoyancy))
+  center_of_buoyancy(std::move(center_of_buoyancy)),
+  center_of_gravity(std::move(center_of_gravity))
 {
 }
 
@@ -51,10 +53,10 @@ VehicleDynamics::VehicleDynamics(
 
 [[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateInertiaMatrix() const
 {
-  return calculateRigidBodyMatrix(mass, moments) + calculateAddedMassMatrix(added_mass);
+  return calculateRigidBodyMassMatrix(mass, moments) + calculateAddedMassMatrix(added_mass);
 }
 
-[[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateRigidBodyMatrix(
+[[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateRigidBodyMassMatrix(
   double mass, const MomentsOfInertia & moments)
 {
   Eigen::MatrixXd mat(6, 6);
@@ -68,14 +70,14 @@ VehicleDynamics::VehicleDynamics(
 [[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateAddedMassMatrix(
   const AddedMass & added_mass)
 {
-  return added_mass.toMatrix();
+  return -1 * added_mass.toMatrix();
 }
 
 [[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateCoriolisMatrix(
   const geometry_msgs::msg::TwistStamped & velocity) const
 {
   return calculateRigidBodyCoriolisMatrix(mass, moments, velocity) +
-         calculateHydrodynamicCoriolixMatrix(added_mass, velocity);
+         calculateAddedCoriolixMatrix(added_mass, velocity);
 }
 
 [[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateRigidBodyCoriolisMatrix(
@@ -83,22 +85,19 @@ VehicleDynamics::VehicleDynamics(
 {
   Eigen::MatrixXd mat(6, 6);
 
-  Eigen::Matrix3d linear_vel =
-    mass * createSkewSymmetricMatrix(
-             velocity.twist.linear.x, velocity.twist.linear.y, velocity.twist.linear.z);
+  Eigen::Vector3d v2;
+  v2 << velocity.twist.angular.x, velocity.twist.angular.y, velocity.twist.angular.z;
 
-  Eigen::Matrix3d angular_vel = createSkewSymmetricMatrix(
-    moments.x * velocity.twist.angular.x, moments.y * velocity.twist.angular.y,
-    moments.z * velocity.twist.angular.z);
+  const Eigen::Vector3d moments_v2 = moments.toMatrix() * v2;
 
-  mat.topRightCorner(3, 3) = linear_vel;
-  mat.bottomLeftCorner(3, 3) = linear_vel;
-  mat.bottomRightCorner(3, 3) = angular_vel;
+  mat.topLeftCorner(3, 3) = mass * createSkewSymmetricMatrix(v2(0), v2(1), v2(2));
+  mat.bottomRightCorner(3, 3) =
+    -1 * createSkewSymmetricMatrix(moments_v2(0), moments_v2(1), moments_v2(2));
 
   return mat;
 }
 
-[[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateHydrodynamicCoriolixMatrix(
+[[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateAddedCoriolixMatrix(
   const AddedMass & added_mass, const geometry_msgs::msg::TwistStamped & velocity)
 {
   Eigen::MatrixXd mat(6, 6);
@@ -145,5 +144,26 @@ VehicleDynamics::VehicleDynamics(
 [[nodiscard]] Eigen::VectorXd VehicleDynamics::calculateRestoringForcesVector(
   const geometry_msgs::msg::PoseStamped & pose) const
 {
+  Eigen::Quaterniond q(
+    pose.pose.orientation.w, pose.pose.orientation.x, pose.pose.orientation.y,
+    pose.pose.orientation.z);
+
+  Eigen::Matrix3d rot = q.toRotationMatrix();
+
+  // The Z-axis points downwards, so gravity is positive and buoyancy is negative
+  Eigen::Vector3d fg;
+  fg << 0, 0, weight;
+
+  Eigen::Vector3d fb;
+  fb << 0, 0, buoyancy;
+  fb *= -1;
+
+  Eigen::VectorXd g_rb(6);
+  g_rb.topRows(3) = rot * (fg + fb);
+  g_rb.bottomRows(3) =
+    center_of_gravity.toVector().cross(rot * fg) + center_of_buoyancy.toVector().cross(rot * fb);
+  g_rb *= -1;
+
+  return g_rb;
 }
 }  // namespace blue::dynamics

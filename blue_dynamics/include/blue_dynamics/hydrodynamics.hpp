@@ -48,7 +48,15 @@ struct Hydrodynamics6d
     vec << x, y, z, k, m, n;
 
     return vec.asDiagonal().toDenseMatrix();
-  };
+  }
+
+  [[nodiscard]] virtual Eigen::VectorXd toVector() const
+  {
+    Eigen::VectorXd vec;
+    vec << x, y, z, k, m, n;
+
+    return vec;
+  }
 };
 
 struct Hydrodynamics3d
@@ -70,7 +78,15 @@ struct Hydrodynamics3d
     vec << x, y, z;
 
     return vec.asDiagonal().toDenseMatrix();
-  };
+  }
+
+  [[nodiscard]] virtual Eigen::Vector3d toVector() const
+  {
+    Eigen::Vector3d vec;
+    vec << x, y, z;
+
+    return vec;
+  }
 };
 
 struct MomentsOfInertia : Hydrodynamics3d
@@ -84,6 +100,14 @@ struct MomentsOfInertia : Hydrodynamics3d
 struct CenterOfBuoyancy : Hydrodynamics3d
 {
   CenterOfBuoyancy(double x, double y, double z)
+  : Hydrodynamics3d(x, y, z)
+  {
+  }
+};
+
+struct CenterOfGravity : Hydrodynamics3d
+{
+  CenterOfGravity(double x, double y, double z)
   : Hydrodynamics3d(x, y, z)
   {
   }
