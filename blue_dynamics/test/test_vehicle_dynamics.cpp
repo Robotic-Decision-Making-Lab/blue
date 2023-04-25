@@ -18,30 +18,167 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <Eigen/Dense>
+#include <cmath>
 
 #include "blue_dynamics/vehicle_dynamics.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
 
 namespace blue::dynamics::test
 {
 
-TEST(VehicleDynamicsTest, CreatesSkewSymmetricMatrix) {}
+TEST(VehicleDynamicsTest, CreatesSkewSymmetricMatrix)
+{
+  const double a1 = 1.0;
+  const double a2 = 2.0;
+  const double a3 = 3.0;
 
-TEST(VehicleDynamicsTest, CalculatesRigidBodyMassMatrix) {}
+  Eigen::Matrix3d expected;
+  expected << 0, -a3, a2, a3, 0, -a1, -a2, a1, 0;
 
-TEST(VehicleDynamicsTest, CalculatesAddedMassMatrix) {}
+  const Eigen::Matrix3d actual =
+    blue::dynamics::VehicleDynamics::createSkewSymmetricMatrix(a1, a2, a3);
 
-TEST(VehicleDynamicsTest, CalculatesRigidBodyCoriolisMatrix) {}
+  ASSERT_TRUE(expected.isApprox(actual));
+}
 
-TEST(VehicleDynamicsTest, CalculatesAddedCoriolisMatrix) {}
+TEST(VehicleDynamicsTest, CalculatesRigidBodyMassMatrix)
+{
+  const auto moments = blue::dynamics::MomentsOfInertia(1.0, 2.0, 3.0);
+  const double mass = 5.0;
 
-TEST(VehicleDynamicsTest, CalculatesLinearMatrix) {}
+  Eigen::VectorXd diagonal(6);  // NOLINT
+  diagonal << mass, mass, mass, moments.x, moments.y, moments.z;
 
-TEST(VehicleDynamicsTest, CalculatesNonlinearMatrix) {}
+  const Eigen::MatrixXd expected = diagonal.asDiagonal().toDenseMatrix();
+
+  const Eigen::MatrixXd actual =
+    blue::dynamics::VehicleDynamics::calculateRigidBodyMassMatrix(mass, moments);
+
+  ASSERT_TRUE(expected.isApprox(actual));
+}
+
+TEST(VehicleDynamicsTest, CalculatesAddedMassMatrix)
+{
+  const blue::dynamics::AddedMass added_mass =
+    blue::dynamics::AddedMass(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+
+  const Eigen::MatrixXd expected = -added_mass.toMatrix();
+
+  const Eigen::MatrixXd actual =
+    blue::dynamics::VehicleDynamics::calculateAddedMassMatrix(added_mass);
+
+  ASSERT_TRUE(expected.isApprox(actual));
+}
+
+TEST(VehicleDynamicsTest, CalculatesRigidBodyCoriolisMatrix)
+{
+  auto moments = blue::dynamics::MomentsOfInertia(1.0, 2.0, 3.0);
+  const double mass = 5.0;
+
+  geometry_msgs::msg::TwistStamped velocity;
+  velocity.twist.angular.x = 1.0;
+  velocity.twist.angular.y = 2.0;
+  velocity.twist.angular.z = 3.0;
+
+  Eigen::MatrixXd expected(6, 6);
+  expected.topRightCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
+  expected.bottomLeftCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
+  expected.topLeftCorner(3, 3) =
+    mass * blue::dynamics::VehicleDynamics::createSkewSymmetricMatrix(
+             velocity.twist.angular.x, velocity.twist.angular.y, velocity.twist.angular.z);
+
+  Eigen::Vector3d v2(3);
+  v2 << velocity.twist.angular.x, velocity.twist.angular.y, velocity.twist.angular.z;
+
+  const Eigen::Vector3d moments_v2 = moments.toMatrix() * v2;
+
+  expected.bottomRightCorner(3, 3) = -blue::dynamics::VehicleDynamics::createSkewSymmetricMatrix(
+    moments_v2(0), moments_v2(1), moments_v2(2));
+
+  Eigen::MatrixXd actual =
+    blue::dynamics::VehicleDynamics::calculateRigidBodyCoriolisMatrix(mass, moments, velocity);
+
+  ASSERT_TRUE(expected.isApprox(actual));
+}
+
+TEST(VehicleDynamicsTest, CalculatesAddedCoriolisMatrix)
+{
+  const blue::dynamics::AddedMass added_mass =
+    blue::dynamics::AddedMass(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+
+  geometry_msgs::msg::TwistStamped velocity;
+  velocity.twist.linear.x = 1.0;
+  velocity.twist.linear.y = 2.0;
+  velocity.twist.linear.z = 3.0;
+  velocity.twist.angular.x = 1.0;
+  velocity.twist.angular.y = 2.0;
+  velocity.twist.angular.z = 3.0;
+
+  Eigen::MatrixXd linear = blue::dynamics::VehicleDynamics::createSkewSymmetricMatrix(
+    added_mass.x * velocity.twist.linear.x, added_mass.y * velocity.twist.linear.y,
+    added_mass.z * velocity.twist.linear.z);
+
+  Eigen::MatrixXd expected(6, 6);
+  expected.topLeftCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
+  expected.topRightCorner(3, 3) = linear;
+  expected.bottomLeftCorner(3, 3) = linear;
+  expected.bottomRightCorner(3, 3) = blue::dynamics::VehicleDynamics::createSkewSymmetricMatrix(
+    added_mass.k * velocity.twist.angular.x, added_mass.m * velocity.twist.angular.y,
+    added_mass.n * velocity.twist.angular.z);
+
+  Eigen::MatrixXd actual =
+    blue::dynamics::VehicleDynamics::calculateAddedCoriolixMatrix(added_mass, velocity);
+
+  ASSERT_TRUE(expected.isApprox(actual));
+}
+
+TEST(VehicleDynamicsTest, CalculatesLinearDampingMatrix)
+{
+  const auto linear = blue::dynamics::LinearDamping(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+  const Eigen::MatrixXd expected = -linear.toMatrix();
+
+  const Eigen::MatrixXd actual =
+    blue::dynamics::VehicleDynamics::calculateLinearDampingMatrix(linear);
+
+  ASSERT_TRUE(expected.isApprox(actual));
+}
+
+TEST(VehicleDynamicsTest, CalculatesNonlinearDampingMatrix)
+{
+  geometry_msgs::msg::TwistStamped velocity;
+  velocity.twist.linear.x = -1.0;
+  velocity.twist.linear.y = -2.0;
+  velocity.twist.linear.z = -3.0;
+  velocity.twist.angular.x = -1.0;
+  velocity.twist.angular.y = -2.0;
+  velocity.twist.angular.z = -3.0;
+
+  Eigen::VectorXd velocity_vect(6);  // NOLINT
+  velocity_vect << std::abs(velocity.twist.linear.x), std::abs(velocity.twist.linear.y),
+    std::abs(velocity.twist.linear.z), std::abs(velocity.twist.angular.x),
+    std::abs(velocity.twist.angular.y), std::abs(velocity.twist.angular.z);
+
+  const auto nonlinear = blue::dynamics::NonlinearDamping(1.0, 2.0, 3.0, 4.0, 5.0, 6.0);
+  const Eigen::MatrixXd expected =
+    -(nonlinear.toMatrix() * velocity_vect).asDiagonal().toDenseMatrix();
+
+  const Eigen::MatrixXd actual =
+    blue::dynamics::VehicleDynamics::calculateNonlinearDampingMatrix(nonlinear, velocity);
+
+  ASSERT_TRUE(expected.isApprox(actual));
+}
 
 TEST(VehicleDynamicsTest, CalculatesRestoringForcesVector) {}
 
 }  // namespace blue::dynamics::test
+
+int main(int argc, char ** argv)
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  const int result = RUN_ALL_TESTS();
+
+  return result;
+}

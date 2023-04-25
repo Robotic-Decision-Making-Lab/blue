@@ -18,6 +18,10 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#pragma once
+
+#include <string>
+
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 #include "nav_msgs/msg/odometry.hpp"

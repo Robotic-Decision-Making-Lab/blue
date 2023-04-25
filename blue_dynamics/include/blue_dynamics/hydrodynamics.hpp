@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#pragma once
+
 #include <Eigen/Dense>
 
 namespace blue::dynamics
@@ -56,6 +58,19 @@ struct Hydrodynamics6d
   }
 
   /**
+   * @brief Create a vector using the coefficients.
+   *
+   * @return Eigen::VectorXd
+   */
+  [[nodiscard]] virtual Eigen::VectorXd toVector() const
+  {
+    Eigen::VectorXd vec(6);  // NOLINT
+    vec << x, y, z, k, m, n;
+
+    return vec;
+  }
+
+  /**
    * @brief Create a matrix using the coefficients.
    *
    * @note The base struct creates a diagonal matrix from the coefficients.
@@ -64,23 +79,7 @@ struct Hydrodynamics6d
    */
   [[nodiscard]] virtual Eigen::MatrixXd toMatrix() const
   {
-    Eigen::VectorXd vec;
-    vec << x, y, z, k, m, n;
-
-    return vec.asDiagonal().toDenseMatrix();
-  }
-
-  /**
-   * @brief Create a vector using the coefficients.
-   *
-   * @return Eigen::VectorXd
-   */
-  [[nodiscard]] virtual Eigen::VectorXd toVector() const
-  {
-    Eigen::VectorXd vec;
-    vec << x, y, z, k, m, n;
-
-    return vec;
+    return toVector().asDiagonal().toDenseMatrix();
   }
 };
 
@@ -108,6 +107,19 @@ struct Hydrodynamics3d
   }
 
   /**
+   * @brief Create a vector from the coefficients.
+   *
+   * @return Eigen::Vector3d
+   */
+  [[nodiscard]] virtual Eigen::Vector3d toVector() const
+  {
+    Eigen::Vector3d vec(3);  // NOLINT
+    vec << x, y, z;
+
+    return vec;
+  }
+
+  /**
    * @brief Create a matrix from the coefficients.
    *
    * @note The base struct creates a diagonal matrix from the coefficients.
@@ -116,23 +128,7 @@ struct Hydrodynamics3d
    */
   [[nodiscard]] virtual Eigen::Matrix3d toMatrix() const
   {
-    Eigen::Vector3d vec;
-    vec << x, y, z;
-
-    return vec.asDiagonal().toDenseMatrix();
-  }
-
-  /**
-   * @brief Create a vector from the coefficients.
-   *
-   * @return Eigen::Vector3d
-   */
-  [[nodiscard]] virtual Eigen::Vector3d toVector() const
-  {
-    Eigen::Vector3d vec;
-    vec << x, y, z;
-
-    return vec;
+    return toVector().asDiagonal().toDenseMatrix();
   }
 };
 

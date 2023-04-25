@@ -15,6 +15,8 @@
 
   <buildtool_export_depend>eigen3_cmake_module</buildtool_export_depend>
 
+  <test_depend>ament_cmake_gtest</test_depend>
+  <test_depend>ament_cmake_gmock</test_depend>
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>
 

@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#pragma once
+
 #include <Eigen/Dense>
 
 #include "blue_dynamics/hydrodynamics.hpp"

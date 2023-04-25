@@ -45,7 +45,8 @@ install(
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
 
-  # Run linters found in package.xml except those below
+  # Run linters found in package.xml except the two below
+  set(ament_cmake_copyright_FOUND TRUE)
   set(ament_cmake_uncrustify_FOUND TRUE)
 
   ament_lint_auto_find_test_dependencies()

@@ -72,7 +72,7 @@ VehicleDynamics::VehicleDynamics(
 [[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateAddedMassMatrix(
   const AddedMass & added_mass)
 {
-  return -1 * added_mass.toMatrix();
+  return -added_mass.toMatrix();
 }
 
 [[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateCoriolisMatrix(
@@ -87,7 +87,7 @@ VehicleDynamics::VehicleDynamics(
 {
   Eigen::MatrixXd mat(6, 6);
 
-  Eigen::Vector3d v2;
+  Eigen::Vector3d v2(3);  // NOLINT
   v2 << velocity.twist.angular.x, velocity.twist.angular.y, velocity.twist.angular.z;
 
   const Eigen::Vector3d moments_v2 = moments.toMatrix() * v2;
@@ -96,7 +96,7 @@ VehicleDynamics::VehicleDynamics(
   mat.topRightCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
   mat.bottomLeftCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
   mat.bottomRightCorner(3, 3) =
-    -1 * createSkewSymmetricMatrix(moments_v2(0), moments_v2(1), moments_v2(2));
+    -createSkewSymmetricMatrix(moments_v2(0), moments_v2(1), moments_v2(2));
 
   return mat;
 }
@@ -132,7 +132,7 @@ VehicleDynamics::VehicleDynamics(
 [[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateLinearDampingMatrix(
   const LinearDamping & linear_damping)
 {
-  return -1 * linear_damping.toMatrix();
+  return -linear_damping.toMatrix();
 }
 
 [[nodiscard]] Eigen::MatrixXd VehicleDynamics::calculateNonlinearDampingMatrix(
@@ -145,7 +145,7 @@ VehicleDynamics::VehicleDynamics(
   // Take the absolute value of each coefficient
   vec = vec.cwiseAbs();
 
-  return -1 * (quadratic_damping.toMatrix() * vec).asDiagonal();
+  return -(quadratic_damping.toMatrix() * vec).asDiagonal().toDenseMatrix();
 }
 
 [[nodiscard]] Eigen::VectorXd VehicleDynamics::calculateRestoringForcesVector(
@@ -158,10 +158,10 @@ VehicleDynamics::VehicleDynamics(
   Eigen::Matrix3d rot = q.toRotationMatrix();
 
   // The Z-axis points downwards, so gravity is positive and buoyancy is negative
-  Eigen::Vector3d fg;
+  Eigen::Vector3d fg(3);  // NOLINT
   fg << 0, 0, weight;
 
-  Eigen::Vector3d fb;
+  Eigen::Vector3d fb(3);
   fb << 0, 0, buoyancy;
   fb *= -1;
 
