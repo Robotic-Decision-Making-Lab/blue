@@ -24,6 +24,7 @@
 #include <cmath>
 
 #include "blue_dynamics/vehicle_dynamics.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 
 namespace blue::dynamics::test
@@ -171,7 +172,42 @@ TEST(VehicleDynamicsTest, CalculatesNonlinearDampingMatrix)
   ASSERT_TRUE(expected.isApprox(actual));
 }
 
-TEST(VehicleDynamicsTest, CalculatesRestoringForcesVector) {}
+TEST(VehicleDynamicsTest, CalculatesRestoringForcesVector)
+{
+  const double weight = 10.0;
+  const double buoyancy = 7.0;
+  auto pose = geometry_msgs::msg::PoseStamped();
+
+  const auto center_of_gravity = blue::dynamics::CenterOfGravity(0.1, 0.1, 0.3);
+
+  // Buoyancy is coincident with the center of gravity
+  const auto center_of_buoyancy = blue::dynamics::CenterOfBuoyancy(0.1, 0.1, 0.3);
+
+  // No rotation
+  pose.pose.orientation.x = 0.0;
+  pose.pose.orientation.y = 0.0;
+  pose.pose.orientation.z = 0.0;
+  pose.pose.orientation.w = 1.0;
+
+  Eigen::VectorXd expected(6);  // NOLINT
+
+  Eigen::Vector3d fg(0, 0, weight);     // NOLINT
+  Eigen::Vector3d fb(0, 0, -buoyancy);  // NOLINT
+
+  expected.topRows(3) = fg + fb;
+  expected.bottomRows(3) = static_cast<Eigen::Vector3d>(center_of_gravity.toVector()).cross(fg) +
+                           static_cast<Eigen::Vector3d>(center_of_buoyancy.toVector()).cross(fb);
+  expected *= -1;
+
+  const auto vehicle_dynamics = blue::dynamics::VehicleDynamics(
+    0.0, weight, buoyancy, blue::dynamics::MomentsOfInertia(), blue::dynamics::AddedMass(),
+    blue::dynamics::LinearDamping(), blue::dynamics::NonlinearDamping(), center_of_buoyancy,
+    center_of_gravity);
+
+  Eigen::VectorXd actual = vehicle_dynamics.calculateRestoringForcesVector(pose);
+
+  ASSERT_TRUE(expected.isApprox(actual));
+}
 
 }  // namespace blue::dynamics::test
 

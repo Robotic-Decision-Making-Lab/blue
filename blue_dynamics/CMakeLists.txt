@@ -33,6 +33,8 @@ include_directories(
 
 add_library(${PROJECT_NAME} SHARED
   src/vehicle_dynamics.cpp
+  src/current_effects.cpp
+  src/hydrodynamics.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} ${rclcpp_LIBRARIES})

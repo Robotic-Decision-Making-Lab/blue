@@ -158,17 +158,16 @@ VehicleDynamics::VehicleDynamics(
   Eigen::Matrix3d rot = q.toRotationMatrix();
 
   // The Z-axis points downwards, so gravity is positive and buoyancy is negative
-  Eigen::Vector3d fg(3);  // NOLINT
-  fg << 0, 0, weight;
-
-  Eigen::Vector3d fb(3);
-  fb << 0, 0, buoyancy;
-  fb *= -1;
+  Eigen::Vector3d fg(0, 0, weight);     // NOLINT
+  Eigen::Vector3d fb(0, 0, -buoyancy);  // NOLINT
 
   Eigen::VectorXd g_rb(6);
   g_rb.topRows(3) = rot * (fg + fb);
-  g_rb.bottomRows(3) =
-    center_of_gravity.toVector().cross(rot * fg) + center_of_buoyancy.toVector().cross(rot * fb);
+
+  // These vectors already 3d, but are returned as "Xd" vectors and need to be casted to "3d"
+  // vectors to support using the `cross` method.
+  g_rb.bottomRows(3) = static_cast<Eigen::Vector3d>(center_of_gravity.toVector()).cross(rot * fg) +
+                       static_cast<Eigen::Vector3d>(center_of_buoyancy.toVector()).cross(rot * fb);
   g_rb *= -1;
 
   return g_rb;

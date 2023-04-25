@@ -77,12 +77,10 @@ struct VehicleDynamics
   /**
    * @brief Create a skew-symmetric matrix from the provided coefficients.
    *
-   * @note This is also referred to as the "Cross-Product Operator" by some textbooks.
-   *
    * @param a1 Coefficient one.
    * @param a2 Coefficient two.
    * @param a3 Coefficient three.
-   * @return Eigen::Matrix3d
+   * @return The calculated skew-symmetric matrix.
    */
   [[nodiscard]] static Eigen::Matrix3d createSkewSymmetricMatrix(double a1, double a2, double a3);
 
@@ -92,7 +90,7 @@ struct VehicleDynamics
    * @note The inertia matrix `M` is the sum of the rigid body mass `M_RB` and the added mass `M_A`
    * such that `M = M_RB + M_A`.
    *
-   * @return Eigen::MatrixXd
+   * @return The inertia matrix `M`.
    */
   [[nodiscard]] Eigen::MatrixXd calculateInertiaMatrix() const;
 
@@ -106,7 +104,7 @@ struct VehicleDynamics
    *
    * @param mass The total mass of the vehicle (kg).
    * @param moments The moments of inertia. This is assumed to be a diagonal matrix.
-   * @return Eigen::MatrixXd
+   * @return The rigid body inertia matrix `M_RB`.
    */
   [[nodiscard]] static Eigen::MatrixXd calculateRigidBodyMassMatrix(
     double mass, const MomentsOfInertia & moments);
@@ -118,7 +116,7 @@ struct VehicleDynamics
    * Antonelli's textbook "Underwater Robots" in Section 2.4.1.
    *
    * @param added_mass The added mass coefficients.
-   * @return Eigen::MatrixXd
+   * @return The added mass inertia matrix `M_A`.
    */
   [[nodiscard]] static Eigen::MatrixXd calculateAddedMassMatrix(const AddedMass & added_mass);
 
@@ -129,7 +127,7 @@ struct VehicleDynamics
    * forces and the added Coriolis forces such that `C = C_RB + C_A`.
    *
    * @param velocity The current velocity of the vehicle in the body frame.
-   * @return Eigen::MatrixXd
+   * @return The Coriolis-centripetal force matrix `C`.
    */
   [[nodiscard]] Eigen::MatrixXd calculateCoriolisMatrix(
     const geometry_msgs::msg::TwistStamped & velocity) const;
@@ -145,7 +143,7 @@ struct VehicleDynamics
    * @param mass The total mass of the vehicle (kg).
    * @param moments The moments of inertia.
    * @param velocity The current velocity of the vehicle in the body frame.
-   * @return Eigen::MatrixXd
+   * @return The rigid body Coriolis-centripetal force matrix `C_RB`.
    */
   [[nodiscard]] static Eigen::MatrixXd calculateRigidBodyCoriolisMatrix(
     double mass, const MomentsOfInertia & moments,
@@ -159,7 +157,7 @@ struct VehicleDynamics
    *
    * @param added_mass The added mass coefficients.
    * @param velocity The current velocity of the vehicle in the body frame.
-   * @return Eigen::MatrixXd
+   * @return The added Coriolis-centripetal force matrix `C_A`.
    */
   [[nodiscard]] static Eigen::MatrixXd calculateAddedCoriolixMatrix(
     const AddedMass & added_mass, const geometry_msgs::msg::TwistStamped & velocity);
@@ -171,7 +169,7 @@ struct VehicleDynamics
    * damping coefficients.
    *
    * @param velocity The current velocity of the vehicle in the body frame.
-   * @return Eigen::MatrixXd
+   * @return The damping matrix `D`.
    */
   [[nodiscard]] Eigen::MatrixXd calculateDampingMatrix(
     const geometry_msgs::msg::TwistStamped & velocity) const;
@@ -183,7 +181,7 @@ struct VehicleDynamics
    * Antonelli's "Underwater Robots" in Section 2.4.2.
    *
    * @param linear_damping The linear damping coefficients.
-   * @return Eigen::MatrixXd
+   * @return A matrix of linear damping coefficients.
    */
   [[nodiscard]] static Eigen::MatrixXd calculateLinearDampingMatrix(
     const LinearDamping & linear_damping);
@@ -196,7 +194,7 @@ struct VehicleDynamics
    *
    * @param quadratic_damping The nonlinear damping coefficients.
    * @param velocity The current velocity of the vehicle in the body frame.
-   * @return Eigen::MatrixXd
+   * @return A matrix of nonlinear damping coefficients.
    */
   [[nodiscard]] static Eigen::MatrixXd calculateNonlinearDampingMatrix(
     const NonlinearDamping & quadratic_damping, const geometry_msgs::msg::TwistStamped & velocity);
@@ -209,7 +207,7 @@ struct VehicleDynamics
    * Antonelli's "Underwater Robots" in Section 2.5.
    *
    * @param pose The current pose of the vehicle in the inertial frame.
-   * @return Eigen::VectorXd
+   * @return Calculate the vector of restoring forces `g`.
    */
   [[nodiscard]] Eigen::VectorXd calculateRestoringForcesVector(
     const geometry_msgs::msg::PoseStamped & pose) const;

@@ -18,4 +18,35 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#pragma once
+#include "blue_dynamics/current_effects.hpp"
+
+namespace blue::dynamics
+{
+
+CurrentEffects::CurrentEffects(
+  double v_cx, double v_cy, double v_cz, double v_cp = 0, double v_cq = 0, double v_cr = 0)
+: v_cx(v_cx),
+  v_cy(v_cy),
+  v_cz(v_cz),
+  v_cp(v_cp),
+  v_cq(v_cq),
+  v_cr(v_cr)
+{
+}
+
+[[nodiscard]] Eigen::VectorXd CurrentEffects::calculateCurrentEffects(
+  const geometry_msgs::msg::PoseStamped & pose) const
+{
+  Eigen::Quaterniond q(
+    pose.pose.orientation.w, pose.pose.orientation.x, pose.pose.orientation.y,
+    pose.pose.orientation.z);
+
+  Eigen::Matrix3d rot = q.toRotationMatrix();
+
+  Eigen::VectorXd vec(6);  // NOLINT
+  vec << v_cx, v_cy, v_cz, v_cp, v_cq, v_cr;
+
+  return rot * vec;
+}
+
+}  // namespace blue::dynamics

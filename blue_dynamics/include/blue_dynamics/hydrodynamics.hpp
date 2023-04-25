@@ -26,16 +26,36 @@ namespace blue::dynamics
 {
 
 /**
+ * @brief A common base class to use for defining a collection of N-D hydrodynamics coefficients.
+ */
+struct HydrodynamicsXd
+{
+  /**
+   * @brief Convert the coefficients into a column vector.
+   *
+   * @return The coefficients as a vector.
+   */
+  [[nodiscard]] virtual Eigen::VectorXd toVector() const = 0;
+
+  /**
+   * @brief Convert the coefficients into a matrix.
+   *
+   * @return The coefficients as a matrix.
+   */
+  [[nodiscard]] virtual Eigen::MatrixXd toMatrix() const = 0;
+};
+
+/**
  * @brief A base struct that can be used to define a collection of 6-D hydrodynamic coefficients.
  */
-struct Hydrodynamics6d
+struct Hydrodynamics6d : HydrodynamicsXd
 {
-  double x;
-  double y;
-  double z;
-  double k;
-  double m;
-  double n;
+  double x;  // The X coefficient.
+  double y;  // The Y coefficient.
+  double z;  // The Z coefficient.
+  double k;  // The K coefficient.
+  double m;  // The M coefficient.
+  double n;  // The Z coefficient.
 
   /**
    * @brief Construct a new Hydrodynamics6d object.
@@ -47,50 +67,33 @@ struct Hydrodynamics6d
    * @param m The M coefficient.
    * @param n The Z coefficient.
    */
-  Hydrodynamics6d(double x, double y, double z, double k, double m, double n)
-  : x(x),
-    y(y),
-    z(z),
-    k(k),
-    m(m),
-    n(n)
-  {
-  }
+  Hydrodynamics6d(double x, double y, double z, double k, double m, double n);
 
   /**
    * @brief Create a vector using the coefficients.
    *
-   * @return Eigen::VectorXd
+   * @return The coefficients as a column vector.
    */
-  [[nodiscard]] virtual Eigen::VectorXd toVector() const
-  {
-    Eigen::VectorXd vec(6);  // NOLINT
-    vec << x, y, z, k, m, n;
-
-    return vec;
-  }
+  [[nodiscard]] Eigen::VectorXd toVector() const override;
 
   /**
    * @brief Create a matrix using the coefficients.
    *
    * @note The base struct creates a diagonal matrix from the coefficients.
    *
-   * @return Eigen::MatrixXd
+   * @return The coefficients as a 6x6 diagonal matrix.
    */
-  [[nodiscard]] virtual Eigen::MatrixXd toMatrix() const
-  {
-    return toVector().asDiagonal().toDenseMatrix();
-  }
+  [[nodiscard]] Eigen::MatrixXd toMatrix() const override;
 };
 
 /**
  * @brief A base struct that can be used to define a collection of 3-D hydrodynamic coefficients.
  */
-struct Hydrodynamics3d
+struct Hydrodynamics3d : HydrodynamicsXd
 {
-  double x;
-  double y;
-  double z;
+  double x;  // The X coefficient.
+  double y;  // The Y coefficient.
+  double z;  // The Z coefficient.
 
   /**
    * @brief Construct a new Hydrodynamics3d object
@@ -99,37 +102,23 @@ struct Hydrodynamics3d
    * @param y The Y coefficient.
    * @param z The Z coefficient.
    */
-  Hydrodynamics3d(double x, double y, double z)
-  : x(x),
-    y(y),
-    z(z)
-  {
-  }
+  Hydrodynamics3d(double x, double y, double z);
 
   /**
    * @brief Create a vector from the coefficients.
    *
-   * @return Eigen::Vector3d
+   * @return The coefficients as a column vector.
    */
-  [[nodiscard]] virtual Eigen::Vector3d toVector() const
-  {
-    Eigen::Vector3d vec(3);  // NOLINT
-    vec << x, y, z;
-
-    return vec;
-  }
+  [[nodiscard]] Eigen::VectorXd toVector() const override;
 
   /**
    * @brief Create a matrix from the coefficients.
    *
    * @note The base struct creates a diagonal matrix from the coefficients.
    *
-   * @return Eigen::Matrix3d
+   * @return The coefficients as a 3x3 diagonal matrix.
    */
-  [[nodiscard]] virtual Eigen::Matrix3d toMatrix() const
-  {
-    return toVector().asDiagonal().toDenseMatrix();
-  }
+  [[nodiscard]] Eigen::MatrixXd toMatrix() const override;
 };
 
 /**
@@ -138,16 +127,18 @@ struct Hydrodynamics3d
 struct MomentsOfInertia : Hydrodynamics3d
 {
   /**
+   * @brief Construct a new default MomentsOfInertia object.
+   */
+  MomentsOfInertia();
+
+  /**
    * @brief Construct a new MomentsOfInertia object.
    *
    * @param x The I_xx coefficient.
    * @param y The I_yy coefficient.
    * @param z The I_zz coefficient.
    */
-  MomentsOfInertia(double x, double y, double z)
-  : Hydrodynamics3d(x, y, z)
-  {
-  }
+  MomentsOfInertia(double x, double y, double z);
 };
 
 /**
@@ -156,16 +147,18 @@ struct MomentsOfInertia : Hydrodynamics3d
 struct CenterOfBuoyancy : Hydrodynamics3d
 {
   /**
+   * @brief Construct a new default CenterOfBuoyancy object.
+   */
+  CenterOfBuoyancy();
+
+  /**
    * @brief Construct a new CenterOfBuoyancy object.
    *
    * @param x The center of buoyancy along the x-axis.
    * @param y The center of buoyancy along the y-axis.
    * @param z The center of buoyancy along the z-axis.
    */
-  CenterOfBuoyancy(double x, double y, double z)
-  : Hydrodynamics3d(x, y, z)
-  {
-  }
+  CenterOfBuoyancy(double x, double y, double z);
 };
 
 /**
@@ -174,16 +167,18 @@ struct CenterOfBuoyancy : Hydrodynamics3d
 struct CenterOfGravity : Hydrodynamics3d
 {
   /**
+   * @brief Construct a new default CenterOfGravity object.
+   */
+  CenterOfGravity();
+
+  /**
    * @brief Construct a new CenterOfGravity object.
    *
    * @param x The center of gravity along the x-axis.
    * @param y The center of gravity along the y-axis.
    * @param z The center of gravity along the z-axis.
    */
-  CenterOfGravity(double x, double y, double z)
-  : Hydrodynamics3d(x, y, z)
-  {
-  }
+  CenterOfGravity(double x, double y, double z);
 };
 
 /**
@@ -191,6 +186,11 @@ struct CenterOfGravity : Hydrodynamics3d
  */
 struct AddedMass : Hydrodynamics6d
 {
+  /**
+   * @brief Construct a new default AddedMass object.
+   */
+  AddedMass();
+
   /**
    * @brief Construct a new AddedMass object.
    *
@@ -202,10 +202,7 @@ struct AddedMass : Hydrodynamics6d
    * @param n_r_dot The N_dot{r} coefficient.
    */
   AddedMass(
-    double x_u_dot, double y_v_dot, double z_w_dot, double k_p_dot, double m_q_dot, double n_r_dot)
-  : Hydrodynamics6d(x_u_dot, y_v_dot, z_w_dot, k_p_dot, m_q_dot, n_r_dot)
-  {
-  }
+    double x_u_dot, double y_v_dot, double z_w_dot, double k_p_dot, double m_q_dot, double n_r_dot);
 };
 
 /**
@@ -214,6 +211,11 @@ struct AddedMass : Hydrodynamics6d
  */
 struct LinearDamping : Hydrodynamics6d
 {
+  /**
+   * @brief Construct a new default LinearDamping object.
+   */
+  LinearDamping();
+
   /**
    * @brief Construct a new LinearDamping object.
    *
@@ -224,10 +226,7 @@ struct LinearDamping : Hydrodynamics6d
    * @param m_q The M_q coefficient.
    * @param n_r The N_r coefficient.
    */
-  LinearDamping(double x_u, double y_v, double z_w, double k_p, double m_q, double n_r)
-  : Hydrodynamics6d(x_u, y_v, z_w, k_p, m_q, n_r)
-  {
-  }
+  LinearDamping(double x_u, double y_v, double z_w, double k_p, double m_q, double n_r);
 };
 
 /**
@@ -236,6 +235,11 @@ struct LinearDamping : Hydrodynamics6d
  */
 struct NonlinearDamping : Hydrodynamics6d
 {
+  /**
+   * @brief Construct a new default NonlinearDamping object.
+   */
+  NonlinearDamping();
+
   /**
    * @brief Construct a new NonlinearDamping object
    *
@@ -246,10 +250,7 @@ struct NonlinearDamping : Hydrodynamics6d
    * @param m_qq The M_{q|q|} coefficient.
    * @param n_rr The N_{r|r|} coefficient.
    */
-  NonlinearDamping(double x_uu, double y_vv, double z_ww, double k_pp, double m_qq, double n_rr)
-  : Hydrodynamics6d(x_uu, y_vv, z_ww, k_pp, m_qq, n_rr)
-  {
-  }
+  NonlinearDamping(double x_uu, double y_vv, double z_ww, double k_pp, double m_qq, double n_rr);
 };
 
 }  // namespace blue::dynamics

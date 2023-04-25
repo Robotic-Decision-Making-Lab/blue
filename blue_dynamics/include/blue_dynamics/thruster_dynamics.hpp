@@ -19,3 +19,15 @@
 // THE SOFTWARE.
 
 #pragma once
+
+#include <Eigen/Dense>
+
+namespace blue::dynamics
+{
+
+struct ThrusterDynamics
+{
+  ThrusterDynamics();
+};
+
+}  // namespace blue::dynamics
