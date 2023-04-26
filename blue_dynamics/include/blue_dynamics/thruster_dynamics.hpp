@@ -27,7 +27,12 @@ namespace blue::dynamics
 
 struct ThrusterDynamics
 {
-  ThrusterDynamics();
+  [[nodiscard]] virtual Eigen::MatrixXd calculateThrusterDynamics() const = 0;
+};
+
+struct LumpedParameterThrusterDynamics : ThrusterDynamics
+{
+  [[nodiscard]] Eigen::MatrixXd calculateThrusterDynamics() const override;
 };
 
 }  // namespace blue::dynamics

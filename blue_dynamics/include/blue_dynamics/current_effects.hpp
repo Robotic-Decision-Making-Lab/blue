@@ -27,6 +27,9 @@
 namespace blue::dynamics
 {
 
+/**
+ * @brief The velocity of the fluid in which the BlueROV2 is operating.
+ */
 struct CurrentEffects
 {
   double v_cx;  // The linear flow rate in the x direction.
@@ -50,6 +53,9 @@ struct CurrentEffects
 
   /**
    * @brief Calculate the ocean current velocity with respect to the body frame.
+   *
+   * @note The formula used to implement the current effect calculate is obtained from Gianluca
+   * Antonelli's "Underwater Robots" in Section 2.4.3.
    *
    * @param pose The current pose of the vehicle in the inertial frame.
    * @return The ocean current velocity in the body frame.
