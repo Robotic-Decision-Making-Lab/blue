@@ -55,16 +55,16 @@ struct VehicleDynamics
    *
    * @param mass The total mass of the vehicle (kg).
    * @param weight The weight of the vehicle in the inertial frame. This is denoted as `W` in
-   * Section 2.5 of Gianluca Antonelli's "Underwater Robots".
+   *        Section 2.5 of Gianluca Antonelli's "Underwater Robots".
    * @param buoyancy The buoyancy force acting on the vehicle. This is denoted as `B` in Section 2.5
-   * of Gianluca Antonelli's "Underwater Robots".
+   *        of Gianluca Antonelli's "Underwater Robots".
    * @param moments The moments of inertia.
    * @param added_mass The added mass coefficients. These are defined in Section 2.4.1 of Gianluca
-   * Antonelli's "Underwater Robots".
+   *        Antonelli's "Underwater Robots".
    * @param linear_damping The rigid body linear damping coefficients. These are defined in Section
-   * 2.4.2 of Gianluca Antonelli's "Underwater Robots".
+   *        2.4.2 of Gianluca Antonelli's "Underwater Robots".
    * @param quadratic_damping The rigid body nonlinear damping coefficients. These are defined in
-   * Section 2.4.2 of Gianluca Antonelli's "Underwater Robots".
+   *        Section 2.4.2 of Gianluca Antonelli's "Underwater Robots".
    * @param center_of_buoyancy The center of buoyancy.
    * @param center_of_gravity The center of gravity relative to the body frame.
    */
@@ -80,7 +80,7 @@ struct VehicleDynamics
    * @param a1 Coefficient one.
    * @param a2 Coefficient two.
    * @param a3 Coefficient three.
-   * @return The calculated skew-symmetric matrix.
+   * @return The created skew-symmetric matrix.
    */
   [[nodiscard]] static Eigen::Matrix3d createSkewSymmetricMatrix(double a1, double a2, double a3);
 
