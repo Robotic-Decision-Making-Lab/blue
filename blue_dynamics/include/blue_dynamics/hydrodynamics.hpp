@@ -104,7 +104,7 @@ public:
   explicit CurrentEffects(const Eigen::VectorXd & current_velocity);
 
   [[nodiscard]] Eigen::VectorXd calculateCurrentEffects(const Eigen::Matrix3d & rotation) const;
-}
+};
 
 struct HydrodynamicParameters
 {
