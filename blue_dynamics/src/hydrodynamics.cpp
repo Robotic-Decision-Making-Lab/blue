@@ -23,4 +23,32 @@
 namespace blue::dynamics
 {
 
+[[nodiscard]] Eigen::Matrix3d createSkewSymmetricMatrix(double a1, double a2, double a3)
+{
+  Eigen::Matrix3d mat;
+  mat << 0, -a3, a2, a3, 0, -a1, -a2, a1, 0;
+
+  return mat;
+}
+
+Inertia::Inertia(
+  double mass, const Eigen::Vector3d & inertia_tensor_coeff,
+  const Eigen::VectorXd & added_mass_coeff)
+{
+  // Create the rigid body mass matrix from the coefficients
+  Eigen::MatrixXd rigid_body = Eigen::MatrixXd::Zero(6, 6);
+
+  rigid_body.topLeftCorner(3, 3) = mass * Eigen::MatrixXd::Identity(3, 3);
+  rigid_body.bottomRightCorner(3, 3) = inertia_tensor_coeff.asDiagonal().toDenseMatrix();
+
+  // Create the added mass matrix from the coefficients
+  Eigen::MatrixXd added_mass = -added_mass_coeff.asDiagonal().toDenseMatrix();
+
+  // The inertia matrix `M` is the sum of the rigid body and added mass matrices (i.e., `M = M_RB +
+  // M_A`)
+  inertia_matrix_ = rigid_body + added_mass;
+}
+
+[[nodiscard]] Eigen::MatrixXd Inertia::getInertia() const { return inertia_matrix_; }
+
 }  // namespace blue::dynamics

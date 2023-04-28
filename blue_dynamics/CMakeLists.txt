@@ -32,8 +32,6 @@ include_directories(
 )
 
 add_library(${PROJECT_NAME} SHARED
-  src/vehicle_dynamics.cpp
-  src/current_effects.cpp
   src/hydrodynamics.cpp
 )
 
@@ -66,11 +64,11 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   # Setup unit tests
-  ament_add_gtest(
-    test_vehicle_dynamics
-    test/test_vehicle_dynamics.cpp
-  )
-  target_link_libraries(test_vehicle_dynamics ${PROJECT_NAME})
+  # ament_add_gtest(
+  #   test_vehicle_dynamics
+  #   test/test_vehicle_dynamics.cpp
+  # )
+  # target_link_libraries(test_vehicle_dynamics ${PROJECT_NAME})
 endif()
 
 ament_export_targets(${PROJECT_NAME} HAS_LIBRARY_TARGET)

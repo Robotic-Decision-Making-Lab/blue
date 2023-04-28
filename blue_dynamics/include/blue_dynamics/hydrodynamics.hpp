@@ -22,10 +22,6 @@
 
 #include <Eigen/Dense>
 
-#include "geometry_msgs/msg/accel.hpp"
-#include "geometry_msgs/msg/pose.hpp"
-#include "geometry_msgs/msg/twist.hpp"
-
 namespace blue::dynamics
 {
 
@@ -39,12 +35,14 @@ namespace blue::dynamics
  */
 [[nodiscard]] static Eigen::Matrix3d createSkewSymmetricMatrix(double a1, double a2, double a3);
 
-class Intertia
+class Inertia
 {
 public:
-  Intertia(double mass, const Eigen::Matrix3d & moments, const Eigen::MatrixXd & added_mass);
+  Inertia(
+    double mass, const Eigen::Vector3d & inertia_tensor_coeff,
+    const Eigen::VectorXd & added_mass_coeff);
 
-  [[nodiscard]] Eigen::MatrixXd getIntertia() const;
+  [[nodiscard]] Eigen::MatrixXd getInertia() const;
 
 private:
   Eigen::MatrixXd inertia_matrix_;
@@ -53,7 +51,9 @@ private:
 class Coriolis
 {
 public:
-  Coriolis(double mass, const Eigen::Matrix3d & moments, const Eigen::MatrixXd & added_mass);
+  Coriolis(
+    double mass, const Eigen::Vector3d & inertia_tensor_coeff,
+    const Eigen::VectorXd & added_mass_coeff);
 
   [[nodiscard]] Eigen::MatrixXd calculateCoriolis(const Eigen::VectorXd & velocity) const;
   [[nodiscard]] Eigen::MatrixXd calculateCoriolisDot(const Eigen::VectorXd & accel) const;
@@ -70,16 +70,17 @@ private:
 class Damping
 {
 public:
-  Damping(const Eigen::MatrixXd & linear_damping, const Eigen::MatrixXd & quadratic_damping);
+  Damping(
+    const Eigen::VectorXd & linear_damping_coeff, const Eigen::VectorXd & quadratic_damping_coeff);
 
   [[nodiscard]] Eigen::MatrixXd calculateDamping(const Eigen::VectorXd & velocity) const;
-  [[nodiscard]] Eigen::MatrixXd calculateDamping(const Eigen::VectorXd & accel) const;
+  [[nodiscard]] Eigen::MatrixXd calculateDampingDot(const Eigen::VectorXd & accel) const;
 
 private:
   Eigen::MatrixXd linear_damping_;
-  Eigen::MatrixXd quadratic_damping_;
 
   [[nodiscard]] Eigen::MatrixXd calculateNonlinearDamping(const Eigen::VectorXd & velocity) const;
+  [[nodiscard]] Eigen::MatrixXd calculateNonlinearDampingDot(const Eigen::VectorXd & accel) const;
 };
 
 class RestoringForces
@@ -104,18 +105,22 @@ public:
   explicit CurrentEffects(const Eigen::VectorXd & current_velocity);
 
   [[nodiscard]] Eigen::VectorXd calculateCurrentEffects(const Eigen::Matrix3d & rotation) const;
+
+private:
+  Eigen::VectorXd current_velocity_;
 };
 
 struct HydrodynamicParameters
 {
-  Intertia inertia;
+  Inertia inertia;
   Coriolis coriolis;
   Damping damping;
   RestoringForces restoring_forces;
+  CurrentEffects current_effects;
 
   HydrodynamicParameters(
-    const Intertia & inertia, const Coriolis & coriolis, const Damping & damping,
-    const RestoringForces & restoring_forces);
+    const Inertia & inertia, const Coriolis & coriolis, const Damping & damping,
+    const RestoringForces & restoring_forces, const CurrentEffects & current_effects);
 };
 
 }  // namespace blue::dynamics

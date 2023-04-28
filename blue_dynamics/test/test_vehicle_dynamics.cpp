@@ -33,6 +33,8 @@ namespace blue::dynamics::test
 
 TEST(HydrodynamicsTest, TestInertia)
 {
+  const double mass = 5.0;
+
   Eigen::Matrix3d moments;
   moments << 1, 0, 0, 0, 2, 0, 0, 0, 3;
 
@@ -41,11 +43,9 @@ TEST(HydrodynamicsTest, TestInertia)
 
   Eigen::MatrixXd added_mass = added_mass_coefficients.asDiagonal().toDenseMatrix();
 
-  const double mass = 5.0;
-
   const Inertia inertia = Inertia(mass, moments, added_mass);
 
-  const Eigen::MatrixXd inertia_matrix = inertia.calculateInertia();
+  const Eigen::MatrixXd inertia_matrix = inertia.getInertia();
 }
 
 TEST(HydrodynamicsTest, TestCoriolis)
