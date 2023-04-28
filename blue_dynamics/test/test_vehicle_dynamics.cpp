@@ -80,6 +80,8 @@ TEST(HydrodynamicsTest, TestDamping)
 
   const Eigen::MatrixXd quadratic_damping =
     quadratic_damping_coefficients.asDiagonal().toDenseMatrix();
+
+  const Damping damping = Damping(linear_damping, quadratic_damping);
 }
 
 TEST(HydrodynamicsTest, TestRestoringForces)
@@ -97,6 +99,47 @@ TEST(HydrodynamicsTest, TestRestoringForces)
   const Eigen::Matrix3d rot = orientation.toRotationMatrix();
 
   const Eigen::VectorXd restoring_forces_vec = restoring_forces.calculateRestoringForces(rot);
+}
+
+TEST(HydrodynamicsTest, TestVehicleDynamicsInterface)
+{
+  Eigen::Matrix3d moments;
+  moments << 1, 0, 0, 0, 2, 0, 0, 0, 3;
+
+  Eigen::VectorXd added_mass_coefficients(6);  // NOLINT
+  added_mass_coefficients << 1, 2, 3, 4, 5, 6;
+
+  Eigen::MatrixXd added_mass = -added_mass_coefficients.asDiagonal().toDenseMatrix();
+
+  const double mass = 5.0;
+
+  const Inertia inertia = Inertia(mass, moments, added_mass);
+  const Coriolis coriolis = Coriolis(mass, moments, added_mass);
+
+  const double weight = 5.0;
+  const double buoyancy = 7.0;
+
+  const Eigen::Vector3d center_of_buoyancy(1, 2, 3);
+  const Eigen::Vector3d center_of_gravity(4, 5, 6);
+
+  const RestoringForces restoring_forces =
+    RestoringForces(weight, buoyancy, center_of_buoyancy, center_of_gravity);
+
+  Eigen::VectorXd linear_damping_coefficients(6);  // NOLINT
+  linear_damping_coefficients << 1, 2, 3, 4, 5, 6;
+
+  Eigen::VectorXd quadratic_damping_coefficients(6);  // NOLINT
+  quadratic_damping_coefficients << 1, 2, 3, 4, 5, 6;
+
+  const Eigen::MatrixXd linear_damping = linear_damping_coefficients.asDiagonal().toDenseMatrix();
+
+  const Eigen::MatrixXd quadratic_damping =
+    quadratic_damping_coefficients.asDiagonal().toDenseMatrix();
+
+  const Damping damping = Damping(linear_damping, quadratic_damping);
+
+  const VehicleDynamicsInterface vehicle_dynamics =
+    VehicleDynamicsInterface(inertia, coriolis, restoring_forces, damping);
 }
 
 }  // namespace blue::dynamics::test

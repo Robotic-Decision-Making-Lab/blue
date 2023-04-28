@@ -22,6 +22,7 @@
 
 #include <Eigen/Dense>
 
+#include "geometry_msgs/msg/accel.hpp"
 #include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 
@@ -43,7 +44,7 @@ class Intertia
 public:
   Intertia(double mass, const Eigen::Matrix3d & moments, const Eigen::MatrixXd & added_mass);
 
-  [[nodiscard]] Eigen::MatrixXd calculateIntertia() const;
+  [[nodiscard]] Eigen::MatrixXd getIntertia() const;
 
 private:
   Eigen::MatrixXd inertia_matrix_;
@@ -55,6 +56,7 @@ public:
   Coriolis(double mass, const Eigen::Matrix3d & moments, const Eigen::MatrixXd & added_mass);
 
   [[nodiscard]] Eigen::MatrixXd calculateCoriolis(const Eigen::VectorXd & velocity) const;
+  [[nodiscard]] Eigen::MatrixXd calculateCoriolisDot(const Eigen::VectorXd & accel) const;
 
 private:
   double mass_;
@@ -70,14 +72,14 @@ class Damping
 public:
   Damping(const Eigen::MatrixXd & linear_damping, const Eigen::MatrixXd & quadratic_damping);
 
-  [[nodiscard]] Eigen::MatrixXd calculateDamping(const geometry_msgs::msg::Twist & velocity) const;
+  [[nodiscard]] Eigen::MatrixXd calculateDamping(const Eigen::VectorXd & velocity) const;
+  [[nodiscard]] Eigen::MatrixXd calculateDamping(const Eigen::VectorXd & accel) const;
 
 private:
   Eigen::MatrixXd linear_damping_;
   Eigen::MatrixXd quadratic_damping_;
 
-  [[nodiscard]] Eigen::MatrixXd calculateNonlinearDamping(
-    const geometry_msgs::msg::Twist & velocity) const;
+  [[nodiscard]] Eigen::MatrixXd calculateNonlinearDamping(const Eigen::VectorXd & velocity) const;
 };
 
 class RestoringForces
@@ -88,6 +90,32 @@ public:
     const Eigen::Vector3d & center_of_gravity);
 
   [[nodiscard]] Eigen::VectorXd calculateRestoringForces(const Eigen::Matrix3d & rotation) const;
+
+private:
+  double weight_;
+  double buoyancy_;
+  Eigen::Vector3d center_of_buoyancy_;
+  Eigen::Vector3d center_of_gravity_;
+};
+
+class CurrentEffects
+{
+public:
+  explicit CurrentEffects(const Eigen::VectorXd & current_velocity);
+
+  [[nodiscard]] Eigen::VectorXd calculateCurrentEffects(const Eigen::Matrix3d & rotation) const;
+}
+
+struct HydrodynamicParameters
+{
+  Intertia inertia;
+  Coriolis coriolis;
+  Damping damping;
+  RestoringForces restoring_forces;
+
+  HydrodynamicParameters(
+    const Intertia & inertia, const Coriolis & coriolis, const Damping & damping,
+    const RestoringForces & restoring_forces);
 };
 
 }  // namespace blue::dynamics
