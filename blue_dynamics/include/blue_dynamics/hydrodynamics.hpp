@@ -25,15 +25,8 @@
 namespace blue::dynamics
 {
 
-/**
- * @brief Create a skew-symmetric matrix from the provided coefficients.
- *
- * @param a1 Coefficient one.
- * @param a2 Coefficient two.
- * @param a3 Coefficient three.
- * @return The created skew-symmetric matrix.
- */
 [[nodiscard]] static Eigen::Matrix3d createSkewSymmetricMatrix(double a1, double a2, double a3);
+[[nodiscard]] static Eigen::Matrix3d createSkewSymmetricMatrix(const Eigen::Vector3d & vec);
 
 class Inertia
 {
@@ -61,9 +54,10 @@ public:
 private:
   double mass_;
   Eigen::Matrix3d moments_;
-  Eigen::MatrixXd added_mass_;
+  Eigen::VectorXd added_mass_;
 
-  [[nodiscard]] Eigen::MatrixXd calculateRigidBodyCoriolis(const Eigen::VectorXd & velocity) const;
+  [[nodiscard]] Eigen::MatrixXd calculateRigidBodyCoriolis(
+    const Eigen::Vector3d & angular_velocity) const;
   [[nodiscard]] Eigen::MatrixXd calculateAddedCoriolis(const Eigen::VectorXd & velocity) const;
 };
 
@@ -91,6 +85,8 @@ public:
     const Eigen::Vector3d & center_of_gravity);
 
   [[nodiscard]] Eigen::VectorXd calculateRestoringForces(const Eigen::Matrix3d & rotation) const;
+  [[nodiscard]] Eigen::VectorXd calculateRestoringForcesDot(
+    const Eigen::Matrix3d & rotation, const Eigen::VectorXd & velocity) const;
 
 private:
   double weight_;
