@@ -43,17 +43,13 @@ Inertia::Inertia(
   double mass, const Eigen::Vector3d & inertia_tensor_coeff,
   const Eigen::VectorXd & added_mass_coeff)
 {
-  // Create the rigid body mass matrix from the coefficients
   Eigen::MatrixXd rigid_body = Eigen::MatrixXd::Zero(6, 6);
 
   rigid_body.topLeftCorner(3, 3) = mass * Eigen::MatrixXd::Identity(3, 3);
   rigid_body.bottomRightCorner(3, 3) = inertia_tensor_coeff.asDiagonal().toDenseMatrix();
 
-  // Create the added mass matrix from the coefficients
   Eigen::MatrixXd added_mass = -added_mass_coeff.asDiagonal().toDenseMatrix();
 
-  // The inertia matrix `M` is the sum of the rigid body and added mass matrices (i.e., `M = M_RB +
-  // M_A`)
   inertia_matrix_ = rigid_body + added_mass;
 }
 
@@ -64,7 +60,7 @@ Coriolis::Coriolis(
   const Eigen::VectorXd & added_mass_coeff)
 : mass_(mass),
   moments_(inertia_tensor_coeff.asDiagonal().toDenseMatrix()),
-  added_mass_(std::move(added_mass_coeff))
+  added_mass_coeff_(std::move(added_mass_coeff))
 {
 }
 
@@ -87,13 +83,11 @@ Coriolis::Coriolis(
 [[nodiscard]] Eigen::MatrixXd Coriolis::calculateRigidBodyCoriolis(
   const Eigen::Vector3d & angular_velocity) const
 {
-  Eigen::MatrixXd rigid(6, 6);
+  Eigen::MatrixXd rigid = Eigen::MatrixXd::Zero(6, 6);
 
   const Eigen::Vector3d moments_v2 = moments_ * angular_velocity;
 
   rigid.topLeftCorner(3, 3) = mass_ * createSkewSymmetricMatrix(angular_velocity);
-  rigid.topRightCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
-  rigid.bottomLeftCorner(3, 3) = Eigen::MatrixXd::Zero(3, 3);
   rigid.bottomRightCorner(3, 3) = -createSkewSymmetricMatrix(moments_v2);
 
   return rigid;
@@ -105,16 +99,105 @@ Coriolis::Coriolis(
   Eigen::MatrixXd added = Eigen::MatrixXd::Zero(6, 6);
 
   Eigen::Matrix3d linear_vel = createSkewSymmetricMatrix(
-    added_mass_(0) * velocity(0), added_mass_(1) * velocity(1), added_mass_(2) * velocity(2));
+    added_mass_coeff_(0) * velocity(0), added_mass_coeff_(1) * velocity(1),
+    added_mass_coeff_(2) * velocity(2));
 
   Eigen::Matrix3d angular_vel = createSkewSymmetricMatrix(
-    added_mass_(3) * velocity(3), added_mass_(4) * velocity(4), added_mass_(5) * velocity(5));
+    added_mass_coeff_(3) * velocity(3), added_mass_coeff_(4) * velocity(4),
+    added_mass_coeff_(5) * velocity(5));
 
   added.topRightCorner(3, 3) = linear_vel;
   added.bottomLeftCorner(3, 3) = linear_vel;
   added.bottomRightCorner(3, 3) = angular_vel;
 
   return added;
+}
+
+Damping::Damping(
+  const Eigen::VectorXd & linear_damping_coeff, const Eigen::VectorXd & quadratic_damping_coeff)
+: linear_damping_(-linear_damping_coeff.asDiagonal().toDenseMatrix()),
+  quadratic_damping_coeff_(std::move(quadratic_damping_coeff))
+{
+}
+
+[[nodiscard]] Eigen::MatrixXd Damping::calculateDamping(const Eigen::VectorXd & velocity) const
+{
+  return linear_damping_ + calculateNonlinearDamping(velocity);
+}
+
+[[nodiscard]] Eigen::MatrixXd Damping::calculateDampingDot(const Eigen::VectorXd & accel) const
+{
+  // The time derivative of the damping matrix uses the same operations as that used for the
+  // non-derivative version, so we just wrap the original function to improve readability & reduce
+  // code complexity
+  return calculateDamping(accel);
+}
+
+[[nodiscard]] Eigen::MatrixXd Damping::calculateNonlinearDamping(
+  const Eigen::VectorXd & velocity) const
+{
+  return -(quadratic_damping_coeff_.asDiagonal().toDenseMatrix() * velocity.cwiseAbs())
+            .asDiagonal()
+            .toDenseMatrix();
+}
+
+RestoringForces::RestoringForces(
+  double weight, double buoyancy, const Eigen::Vector3d & center_of_buoyancy,
+  const Eigen::Vector3d & center_of_gravity)
+: weight_(weight),
+  buoyancy_(buoyancy),
+  center_of_buoyancy_(center_of_buoyancy),
+  center_of_gravity_(center_of_gravity)
+{
+}
+
+[[nodiscard]] Eigen::VectorXd RestoringForces::calculateRestoringForces(
+  const Eigen::Matrix3d & rotation) const
+{
+  // The Z-axis points downwards, so gravity is positive and buoyancy is negative
+  const Eigen::Vector3d fg(0, 0, weight_);
+  const Eigen::Vector3d fb(0, 0, -buoyancy_);
+
+  Eigen::VectorXd g_rb(6);
+
+  g_rb.topRows(3) = rotation * (fg + fb);
+  g_rb.bottomRows(3) =
+    center_of_gravity_.cross(rotation * fg) + center_of_buoyancy_.cross(rotation * fb);
+
+  g_rb *= -1;
+
+  return g_rb;
+}
+
+[[nodiscard]] Eigen::VectorXd RestoringForces::calculateRestoringForcesDot(
+  const Eigen::Matrix3d & rotation, const Eigen::Vector3d & angular_velocity) const
+{
+  const Eigen::Matrix3d skew = createSkewSymmetricMatrix(rotation * angular_velocity);
+  Eigen::Matrix3d skew_rotated = -rotation.transpose() * skew;
+
+  return calculateRestoringForces(skew_rotated);
+}
+
+CurrentEffects::CurrentEffects(const Eigen::VectorXd & current_velocity)
+: current_velocity_(std::move(current_velocity))
+{
+}
+
+[[nodiscard]] Eigen::VectorXd CurrentEffects::calculateCurrentEffects(
+  const Eigen::Matrix3d & rotation) const
+{
+  return rotation * current_velocity_;
+}
+
+HydrodynamicParameters::HydrodynamicParameters(
+  const Inertia & inertia, const Coriolis & coriolis, const Damping & damping,
+  const RestoringForces & restoring_forces, const CurrentEffects & current_effects)
+: inertia(inertia),
+  coriolis(coriolis),
+  damping(damping),
+  restoring_forces(restoring_forces),
+  current_effects(current_effects)
+{
 }
 
 }  // namespace blue::dynamics

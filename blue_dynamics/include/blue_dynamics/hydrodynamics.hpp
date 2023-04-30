@@ -54,7 +54,7 @@ public:
 private:
   double mass_;
   Eigen::Matrix3d moments_;
-  Eigen::VectorXd added_mass_;
+  Eigen::VectorXd added_mass_coeff_;
 
   [[nodiscard]] Eigen::MatrixXd calculateRigidBodyCoriolis(
     const Eigen::Vector3d & angular_velocity) const;
@@ -72,9 +72,9 @@ public:
 
 private:
   Eigen::MatrixXd linear_damping_;
+  Eigen::VectorXd quadratic_damping_coeff_;
 
   [[nodiscard]] Eigen::MatrixXd calculateNonlinearDamping(const Eigen::VectorXd & velocity) const;
-  [[nodiscard]] Eigen::MatrixXd calculateNonlinearDampingDot(const Eigen::VectorXd & accel) const;
 };
 
 class RestoringForces
@@ -86,7 +86,7 @@ public:
 
   [[nodiscard]] Eigen::VectorXd calculateRestoringForces(const Eigen::Matrix3d & rotation) const;
   [[nodiscard]] Eigen::VectorXd calculateRestoringForcesDot(
-    const Eigen::Matrix3d & rotation, const Eigen::VectorXd & velocity) const;
+    const Eigen::Matrix3d & rotation, const Eigen::Vector3d & angular_velocity) const;
 
 private:
   double weight_;
