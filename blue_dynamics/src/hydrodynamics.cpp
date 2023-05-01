@@ -34,7 +34,7 @@ namespace blue::dynamics
 [[nodiscard]] Eigen::Matrix3d createSkewSymmetricMatrix(const Eigen::Vector3d & vec)
 {
   Eigen::Matrix3d mat;
-  mat << 0, -vec(3), vec(2), vec(3), 0, -vec(1), -vec(2), vec(1), 0;
+  mat << 0, -vec(2), vec(1), vec(2), 0, -vec(0), -vec(1), vec(0), 0;
 
   return mat;
 }

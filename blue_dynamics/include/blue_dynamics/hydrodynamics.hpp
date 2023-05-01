@@ -33,7 +33,7 @@ namespace blue::dynamics
  * @param a3 Coefficient three.
  * @return A skew-symmetric matrix.
  */
-[[nodiscard]] static Eigen::Matrix3d createSkewSymmetricMatrix(double a1, double a2, double a3);
+[[nodiscard]] Eigen::Matrix3d createSkewSymmetricMatrix(double a1, double a2, double a3);
 
 /**
  * @brief Create a skew-symmetric matrix from the provided vector.
@@ -41,7 +41,7 @@ namespace blue::dynamics
  * @param vec The vector whose coefficients will be used to create the skew-symmetric matrix.
  * @return A skew-symmetric matrix.
  */
-[[nodiscard]] static Eigen::Matrix3d createSkewSymmetricMatrix(const Eigen::Vector3d & vec);
+[[nodiscard]] Eigen::Matrix3d createSkewSymmetricMatrix(const Eigen::Vector3d & vec);
 
 /**
  * @brief The inertia of the vehicle.

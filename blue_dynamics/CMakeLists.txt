@@ -64,11 +64,11 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 
   # Setup unit tests
-  # ament_add_gtest(
-  #   test_vehicle_dynamics
-  #   test/test_vehicle_dynamics.cpp
-  # )
-  # target_link_libraries(test_vehicle_dynamics ${PROJECT_NAME})
+  ament_add_gtest(
+    test_hydrodynamics
+    test/test_hydrodynamics.cpp
+  )
+  target_link_libraries(test_hydrodynamics ${PROJECT_NAME})
 endif()
 
 ament_export_targets(${PROJECT_NAME} HAS_LIBRARY_TARGET)
