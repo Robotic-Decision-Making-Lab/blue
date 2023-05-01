@@ -20,7 +20,6 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   ament_cmake
   eigen3_cmake_module
   Eigen3
-  geometry_msgs
 )
 
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
