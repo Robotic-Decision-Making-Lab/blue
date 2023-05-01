@@ -154,9 +154,8 @@ RestoringForces::RestoringForces(
 [[nodiscard]] Eigen::VectorXd RestoringForces::calculateRestoringForces(
   const Eigen::Matrix3d & rotation) const
 {
-  // The Z-axis points downwards, so gravity is positive and buoyancy is negative
   const Eigen::Vector3d fg(0, 0, weight_);
-  const Eigen::Vector3d fb(0, 0, -buoyancy_);
+  const Eigen::Vector3d fb(0, 0, buoyancy_);
 
   Eigen::VectorXd g_rb(6);
 
