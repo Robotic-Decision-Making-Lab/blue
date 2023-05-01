@@ -155,7 +155,7 @@ RestoringForces::RestoringForces(
   const Eigen::Matrix3d & rotation) const
 {
   const Eigen::Vector3d fg(0, 0, weight_);
-  const Eigen::Vector3d fb(0, 0, buoyancy_);
+  const Eigen::Vector3d fb(0, 0, -buoyancy_);
 
   Eigen::VectorXd g_rb(6);
 
