@@ -55,7 +55,7 @@ public:
    * @param mass The total mass of the vehicle (kg).
    * @param inertia_tensor_coeff The inertia tensor coefficients `(I_xx, I_yy, I_zz)` (kg m^2).
    * @param added_mass_coeff The added mass coefficients `(X_dot{u}, Y_dot{v}, Z_dot{w}, K_dot{p},
-   * M_dot{q}, N_dot{r})`.
+   *        M_dot{q}, N_dot{r})`.
    */
   Inertia(
     double mass, const Eigen::Vector3d & inertia_tensor_coeff,
@@ -92,7 +92,7 @@ public:
    * @param mass The total mass of the vehicle (kg).
    * @param inertia_tensor_coeff The inertia tensor coefficients `(I_xx, I_yy, I_zz)` (kg m^2).
    * @param added_mass_coeff The added mass coefficients `(X_dot{u}, Y_dot{v}, Z_dot{w}, K_dot{p},
-   * M_dot{q}, N_dot{r})`.
+   *        M_dot{q}, N_dot{r})`.
    */
   Coriolis(
     double mass, const Eigen::Vector3d & inertia_tensor_coeff,
@@ -156,7 +156,7 @@ public:
    *
    * @param linear_damping_coeff The linear damping coefficients `(X_u, Y_v, Z_w, K_p, M_q, N_r)`.
    * @param quadratic_damping_coeff The nonlinear damping coefficients `(X_u|u|, Y_v|v|, Z_w|w|,
-   * K_p|p|, M_q|q|, N_r|r|)`.
+   *        K_p|p|, M_q|q|, N_r|r|)`.
    */
   Damping(
     const Eigen::VectorXd & linear_damping_coeff, const Eigen::VectorXd & quadratic_damping_coeff);
@@ -206,9 +206,10 @@ public:
    * @note The gravitational force vector `g` is given as [0, 0, 9.81]^T m/s^2.
    *
    * @param weight The weight of the vehicle (N). This should be defined according to the definition
-   * of `W` provided in Gianluca Antonelli's "Underwater Robots" in Section 2.5.
+   *        of `W` provided in Gianluca Antonelli's "Underwater Robots" in Section 2.5.
    * @param buoyancy The buoyancy force acting on the vehicle. This should be defined according to
-   * the definition of `B` provided in Gianluca Antonelli's "Underwater Robots" in Section 2.5.
+   *        the definition of `B` provided in Gianluca Antonelli's "Underwater Robots" in
+   *        Section 2.5.
    * @param center_of_buoyancy The center of buoyancy of the vehicle relative to the body frame.
    * @param center_of_gravity The center of gravity of the vehicle relative to the body frame.
    */
