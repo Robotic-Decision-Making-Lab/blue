@@ -155,7 +155,7 @@ public:
    * @brief Construct a new Damping object.
    *
    * @param linear_damping_coeff The linear damping coefficients `(X_u, Y_v, Z_w, K_p, M_q, N_r)`.
-   * @param quadratic_damping_coeff The nonlinear damping coefficients `(X_uu, Y_v|v|, Z_w|w|,
+   * @param quadratic_damping_coeff The nonlinear damping coefficients `(X_u|u|, Y_v|v|, Z_w|w|,
    * K_p|p|, M_q|q|, N_r|r|)`.
    */
   Damping(
