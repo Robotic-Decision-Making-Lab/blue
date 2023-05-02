@@ -17,3 +17,15 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+
+#include "thruster_dynamics.hpp"
+
+namespace blue::dynamics
+{
+
+[[nodiscard]] static Eigen::MatrixXd ThrusterDynamics::calculateSingleStateThrusterDynamics(
+  double force)
+{
+}
+
+}  // namespace blue::dynamics

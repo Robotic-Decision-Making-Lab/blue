@@ -102,12 +102,7 @@ public:
    * @brief Calculate the Coriolis and centripetal forces for the vehicle.
    *
    * @note The Coriolis and centripetal force matrix `C` is the sum of the rigid body Coriolis
-   * forces `C_RB` and the added Coriolis forces `C_A` such that `C = C_RB + C_A`. The definition of
-   * the rigid body Coriolis-centripetal matrix `C_RB` used in this work is provided by Thor I.
-   * Fossen's textbook "Handbook of Marine Craft Hydrodynamics and Motion Control" in Equation 3.57.
-   * Note that, in this model, we define the body frame to be coincident with the center of mass,
-   * such that r_g^b = 0. The definition of the added Coriolis-centripetal matrix `C_A` used in this
-   * work is provided by Gianluca Antonelli's "Underwater Robots" in Section 2.4.1.
+   * forces `C_RB` and the added Coriolis forces `C_A` such that `C = C_RB + C_A`.
    *
    * @param velocity The current velocity of the vehicle in the body frame.
    * @return The Coriolis and centripetal force matrix `C`.
@@ -115,20 +110,16 @@ public:
   [[nodiscard]] Eigen::MatrixXd calculateCoriolis(const Eigen::VectorXd & velocity) const;
 
   /**
-   * @brief Calculate the time derivative of the Coriolis and centripetal forces for the vehicle.
-   *
-   * @param accel The current acceleration of the vehicle in the body frame.
-   * @return The time derivative of the Coriolis and centripetal force matrix `C`.
-   */
-  [[nodiscard]] Eigen::MatrixXd calculateCoriolisDot(const Eigen::VectorXd & accel) const;
-
-private:
-  double mass_;
-  Eigen::Matrix3d moments_;
-  Eigen::VectorXd added_mass_coeff_;
-
-  /**
    * @brief Calculate the rigid body Coriolis matrix.
+   *
+   * @note The definition of the rigid body Coriolis-centripetal matrix `C_RB` used in this work is
+   * provided by Thor I. Fossen's textbook "Handbook of Marine Craft Hydrodynamics and Motion
+   * Control" in Equation 3.57. Note that, in this model, we define the body frame to be coincident
+   * with the center of mass, such that r_g^b = 0.
+   *
+   * @remark The preferred entrypoint for calculating the Coriolis matrix is to through the
+   * `calculateCoriolis` method; however, this method is made accessible for advanced users who wish
+   * to calculate the rigid body Coriolis matrix directly.
    *
    * @param angular_velocity The current angular velocity of the vehicle in the body frame (rad/s).
    * @return The rigid body Coriolis matrix `C_RB`.
@@ -139,10 +130,22 @@ private:
   /**
    * @brief Calculate the added Coriolis matrix.
    *
+   * @note The definition of the added Coriolis-centripetal matrix `C_A` used in this work is
+   * provided by Gianluca Antonelli's "Underwater Robots" in Section 2.4.1.
+   *
+   * @remark The preferred entrypoint for calculating the Coriolis matrix is to through the
+   * `calculateCoriolis` method; however, this method is made accessible for advanced users who wish
+   * to calculate the added Coriolis matrix directly.
+   *
    * @param velocity The current velocity of the vehicle in the body frame.
    * @return The added Coriolis matrix `C_A`.
    */
   [[nodiscard]] Eigen::MatrixXd calculateAddedCoriolis(const Eigen::VectorXd & velocity) const;
+
+private:
+  double mass_;
+  Eigen::Matrix3d moments_;
+  Eigen::VectorXd added_mass_coeff_;
 };
 
 /**
@@ -172,14 +175,6 @@ public:
    * @return The damping matrix `D`.
    */
   [[nodiscard]] Eigen::MatrixXd calculateDamping(const Eigen::VectorXd & velocity) const;
-
-  /**
-   * @brief Calculate the time derivative of the damping forces for the vehicle.
-   *
-   * @param accel The current acceleration of the vehicle in the body frame.
-   * @return The time derivative of the damping matrix `D`.
-   */
-  [[nodiscard]] Eigen::MatrixXd calculateDampingDot(const Eigen::VectorXd & accel) const;
 
 private:
   Eigen::MatrixXd linear_damping_;
@@ -224,16 +219,6 @@ public:
    * @return The vector of restoring forces.
    */
   [[nodiscard]] Eigen::VectorXd calculateRestoringForces(const Eigen::Matrix3d & rotation) const;
-
-  /**
-   * @brief Calculate the time derivative of the restoring forces for the vehicle.
-   *
-   * @param rotation The current rotation of the vehicle in the inertial frame.
-   * @param angular_velocity The current angular velocity of the vehicle in the body frame.
-   * @return The time derivative of the restoring forces vector.
-   */
-  [[nodiscard]] Eigen::VectorXd calculateRestoringForcesDot(
-    const Eigen::Matrix3d & rotation, const Eigen::Vector3d & angular_velocity) const;
 
 private:
   double weight_;

@@ -72,14 +72,6 @@ Coriolis::Coriolis(
   return calculateRigidBodyCoriolis(angular_velocity) + calculateAddedCoriolis(velocity);
 }
 
-[[nodiscard]] Eigen::MatrixXd Coriolis::calculateCoriolisDot(const Eigen::VectorXd & accel) const
-{
-  // The operations used to calculate the time derivative of the Coriolis matrix are the same as
-  // that for the velocity (except with acceleration now), so we just wrap the original function to
-  // improve readability & reduce code complexity
-  return calculateCoriolis(accel);
-}
-
 [[nodiscard]] Eigen::MatrixXd Coriolis::calculateRigidBodyCoriolis(
   const Eigen::Vector3d & angular_velocity) const
 {
@@ -125,14 +117,6 @@ Damping::Damping(
   return linear_damping_ + calculateNonlinearDamping(velocity);
 }
 
-[[nodiscard]] Eigen::MatrixXd Damping::calculateDampingDot(const Eigen::VectorXd & accel) const
-{
-  // The time derivative of the damping matrix uses the same operations as that used for the
-  // non-derivative version, so we just wrap the original function to improve readability & reduce
-  // code complexity
-  return calculateDamping(accel);
-}
-
 [[nodiscard]] Eigen::MatrixXd Damping::calculateNonlinearDamping(
   const Eigen::VectorXd & velocity) const
 {
@@ -166,15 +150,6 @@ RestoringForces::RestoringForces(
   g_rb *= -1;
 
   return g_rb;
-}
-
-[[nodiscard]] Eigen::VectorXd RestoringForces::calculateRestoringForcesDot(
-  const Eigen::Matrix3d & rotation, const Eigen::Vector3d & angular_velocity) const
-{
-  const Eigen::Matrix3d skew = createSkewSymmetricMatrix(rotation * angular_velocity);
-  Eigen::Matrix3d skew_rotated = -rotation.transpose() * skew;
-
-  return calculateRestoringForces(skew_rotated);
 }
 
 CurrentEffects::CurrentEffects(const Eigen::VectorXd & current_velocity)
