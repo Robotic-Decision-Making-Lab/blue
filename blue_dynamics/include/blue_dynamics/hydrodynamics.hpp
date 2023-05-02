@@ -119,7 +119,8 @@ public:
    *
    * @remark The preferred entrypoint for calculating the Coriolis matrix is to through the
    * `calculateCoriolis` method; however, this method is made accessible for advanced users who wish
-   * to calculate the rigid body Coriolis matrix directly.
+   * to calculate the rigid body Coriolis matrix directly (which may be necessary when calculating
+   * the dynamics using the relative velocity).
    *
    * @param angular_velocity The current angular velocity of the vehicle in the body frame (rad/s).
    * @return The rigid body Coriolis matrix `C_RB`.
@@ -135,7 +136,8 @@ public:
    *
    * @remark The preferred entrypoint for calculating the Coriolis matrix is to through the
    * `calculateCoriolis` method; however, this method is made accessible for advanced users who wish
-   * to calculate the added Coriolis matrix directly.
+   * to calculate the added Coriolis matrix directly (which may be necessary when calculating
+   * the dynamics using the relative velocity).
    *
    * @param velocity The current velocity of the vehicle in the body frame.
    * @return The added Coriolis matrix `C_A`.
