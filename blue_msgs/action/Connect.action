@@ -1,0 +1,11 @@
+# Connect/disconnect the control interface.
+
+# Set to 'True' to attempt to establish a connection. Set to
+# 'False' otherwise.
+bool connect
+---
+# Returns 'True' if the connect/disconnect was successful. Returns
+# 'False' otherwise.
+bool success
+---
+# No feedback is provided.

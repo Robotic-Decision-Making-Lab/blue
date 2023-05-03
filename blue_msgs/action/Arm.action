@@ -1,0 +1,11 @@
+# Arm/disarm the BlueROV2 thrusters.
+
+# Set to 'True' to arm the BlueROV2 thrusters. Set to 'False'
+# to disarm the thrusters.
+# bool arm
+---
+# Returns 'True' if the arm/disarm attempt was successful. Returns
+# 'False' otherwise.
+bool success
+---
+# No feedback is required.
