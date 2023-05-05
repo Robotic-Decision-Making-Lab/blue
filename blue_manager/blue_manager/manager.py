@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import time
 from copy import deepcopy
 from functools import partial
 
@@ -27,7 +28,7 @@ from rcl_interfaces.msg import Parameter, ParameterType
 from rcl_interfaces.srv import GetParameters, SetParameters
 from rclpy.node import Node
 from rclpy.task import Future
-from std_srvs.srv import SetBool
+from std_srvs.srv import SetBool, Trigger
 
 
 class Manager(Node):
@@ -42,9 +43,12 @@ class Manager(Node):
         self.connected = False
         self.armed = False
 
-        self.declare_parameters("", [("rov_config", "heavy")])
+        self.declare_parameters("", [("rov_config", "heavy"), ("backup_timeout", 5.0)])
 
         rov_config = self.get_parameter("rov_config").get_parameter_value().string_value
+        self.backup_timeout = (
+            self.get_parameter("backup_timeout").get_parameter_value().double_value
+        )
 
         # The BlueROV2 has two configurations: the heavy configuration with 8 thrusters
         # and the standard configuration with 6 thrusters.
@@ -55,7 +59,7 @@ class Manager(Node):
                 num_thrusters = 6
 
         # Maintain a backup of the thruster parameters so that we can restore them when
-        # disconnecting
+        # switching modes
         self.thruster_params_backup: dict[str, Parameter | None] = {
             f"SERVO{i}_FUNCTION": None for i in range(1, num_thrusters + 1)
         }
@@ -66,8 +70,14 @@ class Manager(Node):
         )
 
         # Services
-        self.connect_srv = self.create_service(
-            SetBool, "/blue/connect", self.manage_connection_cb
+        self.backup_params_srv = self.create_service(
+            Trigger, "/blue/param/backup", self.backup_thruster_params_cb
+        )
+        self.restore_backup_params_srv = self.create_service(
+            Trigger, "/blue/param/restore_backup", self.restore_backup_params_cb
+        )
+        self.set_pwm_passthrough_srv = self.create_service(
+            SetBool, "/blue/mode/set_pwm_passthrough", self.set_pwm_passthrough_mode_cb
         )
 
         def wait_for_service(client):
@@ -113,13 +123,8 @@ class Manager(Node):
                 name=event.param_id, value=event.value
             )
 
-            if self.thruster_params_backed_up:
-                self.get_logger().info(
-                    "Successfully backed up the ArduSub thruster parameters."
-                )
-
-    def request_ardusub_params(self, param_ids: list[str]) -> Future:
-        """Request parameter values from ArduSub.
+    def _request_ardusub_params(self, param_ids: list[str]) -> Future:
+        """Request ArduSub parameter values from MAVROS.
 
         Args:
             param_ids: The names of the parameters whose values should be requested.
@@ -131,126 +136,148 @@ class Manager(Node):
             GetParameters.Request(names=param_ids)
         )
 
-    def request_thruster_params(self, thruster_param_ids: list[str]) -> None:
-        """Request the thruster parameters which will be overwritten.
-
-        The thruster parameters requested include all MOTORn_FUNCTION parameters
-        assigned to be motors. These are modified by the manager to support the PWM
-        Pass-through mode, but need to be restored when the manager is shutdown.
+    def _set_ardusub_params(self, params: list[Parameter]) -> Future:
+        """Set ArduSub parameters using MAVROS.
 
         Args:
-            thruster_param_ids: The names of the thruster parameters whose values
-                should be backed up.
-        """
-
-        def handle_request_future_cb(future: Future, param_ids: list[str]):
-            try:
-                response = future.result()
-            except Exception:
-                ...
-            else:
-                # The parameter values are provided in the same order as the names
-                # were provided in
-                for param_value, param_id in zip(response.values, param_ids):
-                    self.thruster_params_backup[param_id] = Parameter(
-                        name=param_id, value=param_value
-                    )
-
-        future = self.request_ardusub_params(thruster_param_ids)
-        future.add_done_callback(
-            partial(handle_request_future_cb, param_ids=thruster_param_ids)
-        )
-
-    def manage_connection_cb(
-        self, request: SetBool.Request, response: SetBool.Response
-    ) -> SetBool.Response:
-        """Connect/disconnect the manager.
-
-        Args:
-            request: The connection service request.
-            response: The connection service response.
+            params: The parameter values that should be set.
 
         Returns:
-            The connection service response.
+            A future object which provides access to the parameter setting result.
         """
-        if request.data:
-            response.success = self.connect()
-        else:
-            response.success = True
-
-        # TODO(Evan): This is wrong
-        self.connected = response.success
-
-        return response
-
-    def connect(self) -> bool:
-        self.get_logger().warning(
-            "Attempting to connect the manager to the BlueROV2. All ArduSub arming"
-            " and failsafe procedures will be disabled upon successful connection."
+        return self.set_param_srv_client.call_async(
+            SetParameters.Request(parameters=params)
         )
+
+    def backup_thruster_params_cb(
+        self, request: Trigger.Request, response: Trigger.Response
+    ) -> Trigger.Response:
+        """Create a backup of the thruster function parameters.
+
+        The thruster parameters that get backed up include all SERVOn_FUNCTION
+        parameters assigned to be motors (determined by the ROV configuration).
+        These are modified by the manager to support the PWM
+        Passthrough mode, but need to be restored when the manager is shutdown.
+
+        Args:
+            request: The request to backup the thruster parameters.
+            response: The result of the backup attempt.
+
+        Returns:
+            The result of the backup attempt.
+        """
         if not self.thruster_params_backed_up:
-            # Get the IDs of the parameters that weren't successfully backed up on
-            # initialization
+            # All thruster parameters should be received when MAVROS is populating the
+            # parameter server, but we make sure just in case that failed
             unsaved_params = [
                 param_id
                 for param_id in self.thruster_params_backup.keys()
                 if self.thruster_params_backup[param_id] is None
             ]
 
-            self.request_thruster_params(unsaved_params)
+            def handle_request_future_cb(future: Future, param_ids: list[str]):
+                try:
+                    response = future.result()
+                except Exception:
+                    ...
+                else:
+                    # The parameter values are provided in the same order as the names
+                    # were provided in
+                    for param_value, param_id in zip(response.values, param_ids):
+                        self.thruster_params_backup[param_id] = Parameter(
+                            name=param_id, value=param_value
+                        )
 
-            if not self.thruster_params_backed_up:
-                self.get_logger().error(
-                    "Connection attempt failed. The system has not finished backing"
-                    " up the thruster parameters or the backup process failed."
-                )
-                return False
-
-        # Set the motors to PWM passthrough mode
-        return self.set_pwm_passthrough_mode()
-
-    def set_pwm_passthrough_mode(self) -> bool:
-        if not self.thruster_params_backed_up:
-            self.get_logger().error(
-                "The thrusters cannot be set to PWM Pass-through mode without first"
-                " being backed up."
+            future = self._request_ardusub_params(unsaved_params)
+            future.add_done_callback(
+                partial(handle_request_future_cb, param_ids=unsaved_params)
             )
-            return False
 
-        passthrough_params = deepcopy(self.thruster_params_backup)
+            # Wait for the request to finish
+            # NOTE: There are a few methods that have been recommended/documented as
+            # ways to block until the request is finished including using
+            # `spin_until_future_complete` and `while not future.done()`. Unfortunately
+            # both of these methods block indefinitely in this scenario, so we just use
+            # a timeout instead
+            end_t = time.time() + self.backup_timeout
+            while time.time() < end_t:
+                if self.thruster_params_backed_up:
+                    break
 
-        # Set the servo mode to "DISABLED"
-        # This disables the arming and failsafe features, but now lets us send PWM
-        # values to the thrusters without any mixing
-        for param in passthrough_params.values():
-            param.value.integer_value = 0  # type: ignore
-            param.value.type = ParameterType.PARAMETER_INTEGER  # type: ignore
+                time.sleep(0.1)
 
-        # We would actually prefer to set all of the parameters atomically; however,
-        # this functionality is not supported by MAVROS
-        set_param_request = SetParameters.Request(
-            parameters=list(passthrough_params.values())
-        )
+        response.success = self.thruster_params_backed_up
 
-        self.set_param_srv_client.call_async(set_param_request).add_done_callback(
-            self.this_is_a_test
-        )
-
-        return True
-
-    def this_is_a_test(self, future):
-        try:
-            response = future.result()
-        except Exception as e:
-            self.get_logger().info("Service call failed %r" % (e,))
+        if not response.success:
+            response.message = (
+                "Failed to backup the thruster parameters. Please verify"
+                " that MAVROS has finished populating the parameter server."
+            )
         else:
-            self.get_logger().info(f"Parameter set succeed..maybe?: {response}")
+            response.message = "Successfully backed up all thruster parameters!"
 
-    def disconnect(self) -> bool:
-        return False
+        return response
 
-    def restore_motor_param_backup(self) -> bool:
-        ...
+    def restore_backup_params_cb(
+        self, request: Trigger.Request, response: Trigger.Response
+    ) -> Trigger.Response:
+        if not self.thruster_params_backed_up:
+            response.success = False
+            response.message = (
+                "The thruster parameters have not yet been successfully backed up."
+                " No backup to restore."
+            )
+
+            return response
+
+        # TODO(evan): Send a set request and record the result
+
+    def set_pwm_passthrough_mode_cb(
+        self, request: SetBool.Request, response: SetBool.Response
+    ) -> SetBool.Response:
+        if request.data:
+            if not self.thruster_params_backed_up:
+                response.success = False
+                response.message = (
+                    "The thrusters cannot be set to PWM Passthrough mode without first"
+                    " being successfully backed up!"
+                )
+                return response
+
+            self.get_logger().warning(
+                "Attempting to switch to the PWM Passthrough flight mode. All ArduSub"
+                " arming and failsafe procedures will be disabled upon successful"
+                " connection."
+            )
+
+            passthrough_params = deepcopy(self.thruster_params_backup)
+
+            # Set the servo mode to "DISABLED"
+            # This disables the arming and failsafe features, but now lets us send PWM
+            # values to the thrusters without any mixing
+            for param in passthrough_params.values():
+                param.value.type = ParameterType.PARAMETER_INTEGER  # type: ignore
+                param.value.integer_value = 0  # type: ignore
+
+            def get_mode_change_result(future):
+                try:
+                    response = future.result()
+                except Exception:
+                    ...
+                else:
+                    if all([result.successful for result in response.results]):
+                        self.get_logger().info("whooooooooooooooooooooooooo")
+
+            # We would actually prefer to set all of the parameters atomically, but
+            # this functionality is not currently supported by MAVROS
+            future = self._set_ardusub_params(list(passthrough_params.values()))
+            future.add_done_callback(get_mode_change_result)
+
+        # TODO(evan): Find a better way to get the result of the parameter setting
+
+        response.success = True
+
+        return response
 
 
 def main(args: list[str] | None = None):
