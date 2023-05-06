@@ -70,6 +70,10 @@ class Manager(Node):
         )
 
         # Services
+        # TODO(evan): Is exposing this really the most usable interface?
+        # this makes it really easy to accidentally override your original parameters
+        # It might be better to instead bring back the "connect" functionality or
+        # something similar that protects the original backup
         self.backup_params_srv = self.create_service(
             Trigger, "/blue/param/backup", self.backup_thruster_params_cb
         )
@@ -185,7 +189,8 @@ class Manager(Node):
                     # were provided in
                     for param_value, param_id in zip(response.values, param_ids):
                         self.thruster_params_backup[param_id] = Parameter(
-                            name=param_id, value=param_value
+                            name=param_id,
+                            value=param_value,
                         )
 
             future = self._request_ardusub_params(unsaved_params)
@@ -230,7 +235,30 @@ class Manager(Node):
 
             return response
 
-        # TODO(evan): Send a set request and record the result
+        self.get_logger().info(
+            "Attempting to restore the BlueROV2 backup thruster parameters."
+        )
+
+        def handle_restore_backup_result(future):
+            try:
+                response = future.result()
+            except Exception:
+                ...
+            else:
+                if all([result.successful for result in response.results]):
+                    # TODO(evan): Do something smarter here
+                    self.get_logger().info("whooooooooooooooooooooooooo")
+
+        # We would actually prefer to set all of the parameters atomically, but
+        # this functionality is not currently supported by MAVROS
+        future = self._set_ardusub_params(list(self.thruster_params_backup.values()))
+        future.add_done_callback(handle_restore_backup_result)
+
+        # TODO(evan): Delay and then update the response
+
+        response.success = True
+
+        return response
 
     def set_pwm_passthrough_mode_cb(
         self, request: SetBool.Request, response: SetBool.Response
@@ -246,8 +274,7 @@ class Manager(Node):
 
             self.get_logger().warning(
                 "Attempting to switch to the PWM Passthrough flight mode. All ArduSub"
-                " arming and failsafe procedures will be disabled upon successful"
-                " connection."
+                " arming and failsafe procedures will be disabled upon success."
             )
 
             passthrough_params = deepcopy(self.thruster_params_backup)
@@ -266,6 +293,7 @@ class Manager(Node):
                     ...
                 else:
                     if all([result.successful for result in response.results]):
+                        # TODO(evan): Do something smarter here
                         self.get_logger().info("whooooooooooooooooooooooooo")
 
             # We would actually prefer to set all of the parameters atomically, but
@@ -273,7 +301,9 @@ class Manager(Node):
             future = self._set_ardusub_params(list(passthrough_params.values()))
             future.add_done_callback(get_mode_change_result)
 
-        # TODO(evan): Find a better way to get the result of the parameter setting
+            # TODO(evan): Find a better way to get the result of the parameter setting
+        else:
+            self.restore_backup_params_cb(Trigger.Request(), Trigger.Response())
 
         response.success = True
 
