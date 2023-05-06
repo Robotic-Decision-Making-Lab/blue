@@ -4,7 +4,7 @@ package_name = "blue_manager"
 
 setup(
     name=package_name,
-    version="0.0.0",
+    version="0.0.1",
     packages=[package_name],
     data_files=[
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
@@ -14,7 +14,7 @@ setup(
     zip_safe=True,
     maintainer="Evan Palmer",
     maintainer_email="evanp922@gmail.com",
-    description="TODO: Package description",
+    description="An interface for enabling PWM passthrough on the BlueROV2.",
     license="MIT",
     tests_require=["pytest"],
     entry_points={

@@ -94,6 +94,17 @@ class Manager(Node):
                 name=event.param_id, value=event.value
             )
 
+            # Log this to the terminal in case the backup fails and the user didn't
+            # record the default values
+            self.get_logger().info(
+                f"Saved thruster parameter {event.param_id} with value {event.value}."
+            )
+
+            if None not in self.thruster_params_backup.values():
+                self.get_logger().info(
+                    "Successfully backed up the thruster parameters!"
+                )
+
     def _set_ardusub_params(self, params: list[Parameter]) -> Future:
         """Set ArduSub parameters using MAVROS.
 
@@ -111,7 +122,7 @@ class Manager(Node):
         self, request: SetBool.Request, response: SetBool.Response
     ) -> SetBool.Response:
         if request.data:
-            if not self.thruster_params_backed_up:
+            if None in self.thruster_params_backup.values():
                 response.success = False
                 response.message = (
                     "The thrusters cannot be set to PWM Passthrough mode without first"
@@ -140,8 +151,15 @@ class Manager(Node):
                     ...
                 else:
                     if all([result.successful for result in response.results]):
-                        # TODO(evan): Do something smarter here
-                        self.get_logger().info("whooooooooooooooooooooooooo")
+                        self.get_logger().info(
+                            "Successfully switched to PWM Passthrough mode!"
+                        )
+                        self.passthrough_enabled = True
+                    else:
+                        self.get_logger().warning(
+                            "Failed to switch to PWM Passthrough mode."
+                        )
+                        self.passthrough_enabled = False
 
             # We would actually prefer to set all of the parameters atomically, but
             # this functionality is not currently supported by MAVROS
@@ -151,43 +169,6 @@ class Manager(Node):
             # TODO(evan): Find a better way to get the result of the parameter setting
         else:
             self.restore_backup_params_cb(Trigger.Request(), Trigger.Response())
-
-        response.success = True
-
-        return response
-
-    def restore_backup_params_cb(
-        self, request: Trigger.Request, response: Trigger.Response
-    ) -> Trigger.Response:
-        if not self.thruster_params_backed_up:
-            response.success = False
-            response.message = (
-                "The thruster parameters have not yet been successfully backed up."
-                " No backup to restore."
-            )
-
-            return response
-
-        self.get_logger().info(
-            "Attempting to restore the BlueROV2 backup thruster parameters."
-        )
-
-        def handle_restore_backup_result(future):
-            try:
-                response = future.result()
-            except Exception:
-                ...
-            else:
-                if all([result.successful for result in response.results]):
-                    # TODO(evan): Do something smarter here
-                    self.get_logger().info("whooooooooooooooooooooooooo")
-
-        # We would actually prefer to set all of the parameters atomically, but
-        # this functionality is not currently supported by MAVROS
-        future = self._set_ardusub_params(list(self.thruster_params_backup.values()))
-        future.add_done_callback(handle_restore_backup_result)
-
-        # TODO(evan): Delay and then update the response
 
         response.success = True
 
