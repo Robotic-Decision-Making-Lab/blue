@@ -84,7 +84,7 @@ class Manager(Node):
 
         def wait_for_service(client, timeout=1.0) -> None:
             while not client.wait_for_service(timeout_sec=timeout):
-                ...
+                self.get_logger().warning("Waiting for service to become available.")
 
         # Service clients
         self.set_param_srv_client = self.create_client(
@@ -94,10 +94,10 @@ class Manager(Node):
         )
         wait_for_service(self.set_param_srv_client)
 
-        self.command_long_srv_client = self.create_client(
-            CommandLong, "/mavros/cmd/long", callback_group=reentrant_callback_group
-        )
-        wait_for_service(self.command_long_srv_client)
+        # self.command_long_srv_client = self.create_client(
+        #     CommandLong, "/mavros/cmd/long", callback_group=reentrant_callback_group
+        # )
+        # wait_for_service(self.command_long_srv_client)
 
     def backup_thruster_params_cb(self, event: ParamEvent) -> None:
         """Backup the default thruster parameter values.
@@ -140,7 +140,7 @@ class Manager(Node):
 
     def stop_thrusters(self) -> None:
         """Stop all thrusters."""
-        self.get_logger().warning("Stopping all BlueROV2 thrusters.")
+        self.get_logger().warning("Attempting to stop all BlueROV2 thrusters.")
         for i in range(1, self.num_thrusters + 1):
             for _ in range(self.retries):
                 if self.set_pwm(i, self.STOPPED_PWM):
@@ -188,7 +188,7 @@ class Manager(Node):
                 )
                 return response
 
-            self.stop_thrusters()
+            # self.stop_thrusters()
 
             self.get_logger().warning(
                 "Attempting to switch to the PWM Passthrough flight mode. All ArduSub"
@@ -224,7 +224,7 @@ class Manager(Node):
                 )
                 return response
 
-            self.stop_thrusters()
+            # self.stop_thrusters()
 
             self.get_logger().warning("Attempting to disable PWM Passthrough mode.")
 
