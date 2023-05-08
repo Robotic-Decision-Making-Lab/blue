@@ -20,19 +20,18 @@
 
 import time
 from copy import deepcopy
-from functools import partial
 
 import rclpy
 from mavros_msgs.msg import ParamEvent
+from mavros_msgs.srv import CommandLong
 from rcl_interfaces.msg import Parameter, ParameterType
 from rcl_interfaces.srv import SetParameters
 from rclpy.node import Node
-from rclpy.task import Future
-from std_srvs.srv import SetBool, Trigger
+from std_srvs.srv import SetBool
 
 
 class Manager(Node):
-    """Provides custom controllers with an interface to the BlueROV2 thrusters."""
+    """Provides an interface between custom controllers and the BlueROV2."""
 
     STOPPED_PWM = 1500
 
@@ -40,19 +39,29 @@ class Manager(Node):
         """Create a new control manager."""
         super().__init__("blue_manager")
 
+        self.declare_parameters(
+            "",
+            [
+                ("num_thrusters", 8),
+                ("mode_change_timeout", 1.0),
+                ("mode_change_retries", 3),
+            ],
+        )
+
         self.passthrough_enabled = False
-
-        self.declare_parameters("", [("num_thrusters", 8)])
-
-        # Maintain a backup of the thruster parameters so that we can restore them when
-        # switching modes
+        self.num_thrusters = (
+            self.get_parameter("num_thrusters").get_parameter_value().integer_value
+        )
+        self.timeout = (
+            self.get_parameter("mode_change_timeout").get_parameter_value().double_value
+        )
+        self.retries = (
+            self.get_parameter("mode_change_retries")
+            .get_parameter_value()
+            .integer_value
+        )
         self.thruster_params_backup: dict[str, Parameter | None] = {
-            f"SERVO{i}_FUNCTION": None
-            for i in range(
-                1,
-                self.get_parameter("num_thrusters").get_parameter_value().integer_value
-                + 1,
-            )
+            f"SERVO{i}_FUNCTION": None for i in range(1, self.num_thrusters + 1)
         }
 
         # Subscribers
@@ -67,13 +76,20 @@ class Manager(Node):
             self.set_pwm_passthrough_mode_cb,
         )
 
+        def wait_for_service(client, timeout=1.0) -> None:
+            while not client.wait_for_service(timeout_sec=timeout):
+                ...
+
         # Service clients
         self.set_param_srv_client = self.create_client(
             SetParameters, "/mavros/param/set_parameters"
         )
+        wait_for_service(self.set_param_srv_client)
 
-        while not self.set_param_srv_client.wait_for_service(timeout_sec=1.0):
-            ...
+        self.command_long_srv_client = self.create_client(
+            CommandLong, "/mavros/cmd/long"
+        )
+        wait_for_service(self.command_long_srv_client)
 
     def backup_thruster_params_cb(self, event: ParamEvent) -> None:
         """Backup the default thruster parameter values.
@@ -94,83 +110,187 @@ class Manager(Node):
                 name=event.param_id, value=event.value
             )
 
-            # Log this to the terminal in case the backup fails and the user didn't
-            # record the default values
-            self.get_logger().info(
-                f"Saved thruster parameter {event.param_id} with value {event.value}."
-            )
-
             if None not in self.thruster_params_backup.values():
                 self.get_logger().info(
-                    "Successfully backed up the thruster parameters!"
+                    "Successfully backed up the thruster parameters."
                 )
 
-    def _set_ardusub_params(self, params: list[Parameter]) -> Future:
-        """Set ArduSub parameters using MAVROS.
+    def set_pwm(self, thruster: int, pwm: int) -> None:
+        """Set the PWM value of a thruster.
 
         Args:
-            params: The parameter values that should be set.
+            thruster: The thruster number to set the PWM value of.
+            pwm: The PWM value to set the thruster to.
+        """
+        self.command_long_srv_client.call_async(
+            CommandLong(command=183, confirmation=0, param1=thruster, param2=pwm)
+        )
+
+    def stop_thrusters(self) -> None:
+        """Stop all thrusters."""
+        for i in range(1, self.num_thrusters + 1):
+            self.set_pwm(i, self.STOPPED_PWM)
+
+    def enable_pwm_passthrough_mode(self, timeout: float) -> bool:
+        """Enable PWM Passthrough mode.
+
+        Args:
+            timeout: The maximum amount of time to wait for the mode to be enabled.
 
         Returns:
-            A future object which provides access to the parameter setting result.
+            True if the mode was successfully enabled, False otherwise.
         """
-        return self.set_param_srv_client.call_async(
-            SetParameters.Request(parameters=params)
+        self.get_logger().warning(
+            "Attempting to switch to the PWM Passthrough flight mode. All ArduSub"
+            " arming and failsafe procedures will be disabled upon success."
         )
+
+        passthrough_params = deepcopy(self.thruster_params_backup)
+
+        # Set the servo mode to "DISABLED"
+        # This disables the arming and failsafe features, but now lets us send PWM
+        # values to the thrusters without any mixing
+        for param in passthrough_params.values():
+            param.value.integer_value = 0  # type: ignore
+
+        def get_enable_passthrough_result(future):
+            try:
+                response = future.result()
+            except Exception:
+                ...
+            else:
+                if all([result.successful for result in response.results]):
+                    self.passthrough_enabled = True
+                else:
+                    self.passthrough_enabled = False
+
+        # We would actually prefer to set all of the parameters atomically, but
+        # this functionality is not currently supported by MAVROS
+        future = self.set_param_srv_client.call_async(
+            SetParameters.Request(parameters=list(passthrough_params.values()))
+        )
+        future.add_done_callback(get_enable_passthrough_result)
+
+        start_t = time.time()
+
+        while time.time() - start_t < timeout:
+            if self.passthrough_enabled:
+                break
+
+            time.sleep(0.1)
+
+        return self.passthrough_enabled
+
+    def disable_pwm_passthrough_mode(self, timeout: float) -> bool:
+        """Disable PWM Passthrough mode.
+
+        NOTE: This fails when the original thruster parameters could not be restored.
+
+        Args:
+            timeout: The maximum amount of time to wait for the mode to be disabled.
+
+        Returns:
+            True if the mode was successfully disabled, False otherwise.
+        """
+        self.get_logger().info("Attempting to disable PWM Passthrough mode.")
+
+        def get_restore_backup_result(future):
+            try:
+                response = future.result()
+            except Exception:
+                ...
+            else:
+                if all([result.successful for result in response.results]):
+                    self.passthrough_enabled = False
+                else:
+                    self.get_logger().warning(
+                        "Failed to leave the PWM Passthrough mode. If failure persists,"
+                        " the following backup parameters may be restored manually:"
+                        f" {self.thruster_params_backup}"
+                    )
+                    self.passthrough_enabled = False
+
+        future = self.set_param_srv_client.call_async(
+            SetParameters.Request(parameters=list(self.thruster_params_backup.values()))
+        )
+        future.add_done_callback(get_restore_backup_result)
+
+        start_t = time.time()
+
+        while time.time() - start_t < timeout:
+            if not self.passthrough_enabled:
+                break
+
+            time.sleep(0.1)
+
+        return not self.passthrough_enabled
 
     def set_pwm_passthrough_mode_cb(
         self, request: SetBool.Request, response: SetBool.Response
     ) -> SetBool.Response:
+        """Set the PWM Passthrough mode.
+
+        Args:
+            request: The request to enable/disable PWM passthrough mode.
+            response: The result of the request.
+
+        Returns:
+            The result of the request.
+        """
         if request.data:
+            if self.passthrough_enabled:
+                response.success = True
+                response.message = "The system is already in PWM Passthrough mode."
+                return response
+
             if None in self.thruster_params_backup.values():
                 response.success = False
                 response.message = (
                     "The thrusters cannot be set to PWM Passthrough mode without first"
-                    " being successfully backed up!"
+                    " being successfully backed up."
                 )
                 return response
 
-            self.get_logger().warning(
-                "Attempting to switch to the PWM Passthrough flight mode. All ArduSub"
-                " arming and failsafe procedures will be disabled upon success."
-            )
+            # Make sure to stop all of the thrusters before-hand to prevent damaging the
+            # thrusters when the custom controller takes over
+            self.stop_thrusters()
 
-            passthrough_params = deepcopy(self.thruster_params_backup)
+            for _ in range(self.retries):
+                response.success = self.enable_pwm_passthrough_mode(
+                    timeout=self.timeout
+                )
+                if response.success:
+                    break
 
-            # Set the servo mode to "DISABLED"
-            # This disables the arming and failsafe features, but now lets us send PWM
-            # values to the thrusters without any mixing
-            for param in passthrough_params.values():
-                param.value.type = ParameterType.PARAMETER_INTEGER  # type: ignore
-                param.value.integer_value = 0  # type: ignore
-
-            def get_mode_change_result(future):
-                try:
-                    response = future.result()
-                except Exception:
-                    ...
-                else:
-                    if all([result.successful for result in response.results]):
-                        self.get_logger().info(
-                            "Successfully switched to PWM Passthrough mode!"
-                        )
-                        self.passthrough_enabled = True
-                    else:
-                        self.get_logger().warning(
-                            "Failed to switch to PWM Passthrough mode."
-                        )
-                        self.passthrough_enabled = False
-
-            # We would actually prefer to set all of the parameters atomically, but
-            # this functionality is not currently supported by MAVROS
-            future = self._set_ardusub_params(list(passthrough_params.values()))
-            future.add_done_callback(get_mode_change_result)
-
-            # TODO(evan): Find a better way to get the result of the parameter setting
+            if response.success:
+                response.message = "Successfully switched to PWM Passthrough mode."
+            else:
+                response.message = "Failed to switch to PWM Passthrough mode."
         else:
-            self.restore_backup_params_cb(Trigger.Request(), Trigger.Response())
+            if not self.passthrough_enabled:
+                response.success = True
+                response.message = (
+                    "The system was already not in the PWM Passthrough mode."
+                )
+                return response
 
-        response.success = True
+            # Stop the thrusters to prevent any damage to the thrusters when ArduSub
+            # takes back control
+            self.stop_thrusters()
+
+            for _ in range(self.retries):
+                response.success = self.disable_pwm_passthrough_mode(
+                    timeout=self.timeout
+                )
+                if response.success:
+                    break
+
+            if response.success:
+                response.message = "Successfully left PWM Passthrough mode."
+            else:
+                response.message = (
+                    "Failed to leave PWM Passthrough mode. Good luck soldier."
+                )
 
         return response
 
