@@ -117,7 +117,7 @@ public:
    * Control" in Equation 3.57. Note that, in this model, we define the body frame to be coincident
    * with the center of mass, such that r_g^b = 0.
    *
-   * @remark The preferred entrypoint for calculating the Coriolis matrix is to through the
+   * @remark The preferred entrypoint for calculating the Coriolis matrix is through the
    * `calculateCoriolis` method; however, this method is made accessible for advanced users who wish
    * to calculate the rigid body Coriolis matrix directly (which may be necessary when calculating
    * the dynamics using the relative velocity).
@@ -134,7 +134,7 @@ public:
    * @note The definition of the added Coriolis-centripetal matrix `C_A` used in this work is
    * provided by Gianluca Antonelli's "Underwater Robots" in Section 2.4.1.
    *
-   * @remark The preferred entrypoint for calculating the Coriolis matrix is to through the
+   * @remark The preferred entrypoint for calculating the Coriolis matrix is through the
    * `calculateCoriolis` method; however, this method is made accessible for advanced users who wish
    * to calculate the added Coriolis matrix directly (which may be necessary when calculating
    * the dynamics using the relative velocity).
