@@ -14,7 +14,9 @@ setup(
     zip_safe=True,
     maintainer="Evan Palmer",
     maintainer_email="evanp922@gmail.com",
-    description="An interface for enabling PWM passthrough on the BlueROV2.",
+    description=(
+        "An interface for enabling individual thruster control on the BlueROV2."
+    ),
     license="MIT",
     tests_require=["pytest"],
     entry_points={

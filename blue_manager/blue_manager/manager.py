@@ -106,6 +106,15 @@ class Manager(Node):
             .integer_value
         )
 
+    @property
+    def params_successfully_backed_up(self) -> bool:
+        """Whether or not the thruster parameters are backed up.
+
+        Returns:
+            Whether or not the parameters are backed up.
+        """
+        return None not in self.thruster_params_backup.values()
+
     def backup_thruster_params_cb(self, event: ParamEvent) -> None:
         """Backup the default thruster parameter values.
 
@@ -125,7 +134,7 @@ class Manager(Node):
                 name=event.param_id, value=event.value
             )
 
-            if None not in self.thruster_params_backup.values():
+            if self.params_successfully_backed_up:
                 self.get_logger().info(
                     "Successfully backed up the thruster parameters."
                 )
@@ -159,7 +168,7 @@ class Manager(Node):
         """Set the thruster parameters.
 
         Args:
-            params: The parameters to set.
+            params: The ArduSub parameters to set.
 
         Returns:
             True if the parameters were successfully set, False otherwise.
@@ -194,7 +203,7 @@ class Manager(Node):
                 response.message = "The system is already in RC Passthrough mode."
                 return response
 
-            if None in self.thruster_params_backup.values():
+            if not self.thruster_params_backup:
                 response.success = False
                 response.message = (
                     "The thrusters cannot be set to RC Passthrough mode without first"
@@ -231,6 +240,12 @@ class Manager(Node):
             else:
                 response.message = "Failed to switch to RC Passthrough mode."
         else:
+            if not self.thruster_params_backup:
+                response.success = False
+                response.message = (
+                    "The thruster backup parameters have not yet been stored."
+                )
+
             if not self.passthrough_enabled:
                 response.success = True
                 response.message = (
