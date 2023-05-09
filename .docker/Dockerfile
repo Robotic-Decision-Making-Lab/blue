@@ -102,7 +102,8 @@ RUN pip3 install \
     mypy \
     isort \
     flake8 \
-    black
+    black \
+    setuptools==58.2.0
 
 # Configure a new non-root user
 ARG USERNAME=dev
