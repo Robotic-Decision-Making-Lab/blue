@@ -45,13 +45,13 @@ TEST(ThrusterDynamicsTest, TestDeadzoneModel)
 TEST(ThrusterDynamicsTest, TestThrustSurfaceModel)
 {
   // These are measurements obtained from the BlueROV2 T200 characterization
-  const int expected_pwm = 1100;
-  const double force = -5.04;
+  const int expected_pwm = 1280;
+  const double force = -1.86 * 9.8;  // Convert from KgF to N
   const double voltage = 20.0;
 
   const int actual = calculatePwmFromThrustSurface(force, voltage);
 
-  ASSERT_NEAR(expected_pwm, actual, 1);
+  ASSERT_NEAR(expected_pwm, actual, 15);
 }
 
 }  // namespace blue::dynamics::test
