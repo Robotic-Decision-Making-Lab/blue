@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "thruster_dynamics.hpp"
+#include "blue_dynamics/thruster_dynamics.hpp"
 
 #include <cmath>
 
@@ -41,8 +41,26 @@ namespace blue::dynamics
   return std::tuple<int, int>(min_deadzone, max_deadzone);
 }
 
-[[nodiscard]] int calculatePwmFromThrustCurve(double force) {}
+[[nodiscard]] int calculatePwmFromThrustSurface(double force, double voltage)
+{
+  // Coefficients for the surface identified by fitting a surface to the thrust curves for the
+  // voltages 10, 12, 14, 16, 18, 20 using Matlab's `fit` function with the `Poly23` surface
+  const double p00 = 1439;
+  const double p10 = 7.621;
+  const double p01 = 42.06;
+  const double p20 = -0.2692;
+  const double p11 = -3.278;
+  const double p02 = -0.1122;
+  const double p21 = 0.08778;
+  const double p12 = 0.006153;
+  const double p03 = -0.001667;
 
-[[nodiscard]] double calculateForceFromThrustCurve(double force) {}
+  const double pwm = p00 + p10 * voltage + p01 * force + p20 * std::pow(voltage, 2) +
+                     p11 * voltage * force + p02 * std::pow(force, 2) +
+                     p21 * std::pow(voltage, 2) * force + p12 * voltage * std::pow(force, 2) +
+                     p03 * std::pow(force, 3);
+
+  return static_cast<int>(std::round(pwm));
+}
 
 }  // namespace blue::dynamics

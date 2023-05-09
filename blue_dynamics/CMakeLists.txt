@@ -32,6 +32,7 @@ include_directories(
 
 add_library(${PROJECT_NAME} SHARED
   src/hydrodynamics.cpp
+  src/thruster_dynamics.cpp
 )
 
 target_link_libraries(${PROJECT_NAME} ${rclcpp_LIBRARIES})
@@ -68,6 +69,13 @@ if(BUILD_TESTING)
     test/test_hydrodynamics.cpp
   )
   target_link_libraries(test_hydrodynamics ${PROJECT_NAME})
+
+  ament_add_gtest(
+    test_thruster_dynamics
+    test/test_thruster_dynamics.cpp
+  )
+  target_link_libraries(test_thruster_dynamics ${PROJECT_NAME})
+
 endif()
 
 ament_export_targets(${PROJECT_NAME} HAS_LIBRARY_TARGET)

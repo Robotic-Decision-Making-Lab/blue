@@ -18,14 +18,48 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#pragma once
+#include <gtest/gtest.h>
 
-#include <tuple>
+#include "blue_dynamics/thruster_dynamics.hpp"
 
-namespace blue::dynamics
+namespace blue::dynamics::test
 {
 
-[[nodiscard]] std::tuple<int, int> calculateDeadZone(double voltage);
-[[nodiscard]] int calculatePwmFromThrustSurface(double force, double voltage);
+using blue::dynamics::calculateDeadZone;
+using blue::dynamics::calculatePwmFromThrustSurface;
 
-}  // namespace blue::dynamics
+TEST(ThrusterDynamicsTest, TestDeadzoneModel)
+{
+  // These are measurements obtained from the BlueROV2 T200 characterization
+  const int expected_min = 1476;
+  const int expected_max = 1528;
+
+  const double voltage = 20.0;
+
+  const std::tuple<int, int> actual = calculateDeadZone(voltage);
+
+  ASSERT_NEAR(expected_min, std::get<0>(actual), 1);
+  ASSERT_NEAR(expected_max, std::get<1>(actual), 1);
+}
+
+TEST(ThrusterDynamicsTest, TestThrustSurfaceModel)
+{
+  // These are measurements obtained from the BlueROV2 T200 characterization
+  const int expected_pwm = 1100;
+  const double force = -5.04;
+  const double voltage = 20.0;
+
+  const int actual = calculatePwmFromThrustSurface(force, voltage);
+
+  ASSERT_NEAR(expected_pwm, actual, 1);
+}
+
+}  // namespace blue::dynamics::test
+
+int main(int argc, char ** argv)
+{
+  ::testing::InitGoogleTest(&argc, argv);
+  const int result = RUN_ALL_TESTS();
+
+  return result;
+}
