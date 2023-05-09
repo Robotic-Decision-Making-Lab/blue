@@ -25,9 +25,8 @@
 namespace blue::dynamics
 {
 
-struct ThrusterDynamics
-{
-  [[nodiscard]] static Eigen::MatrixXd calculateSingleStateThrusterDynamics(double force);
-};
+[[nodiscard]] std::tuple<int, int> calculateDeadZone(double voltage);
+[[nodiscard]] int calculatePwmFromThrustCurve(double force);
+[[nodiscard]] double calculateForceFromThrustCurve(double force);
 
 }  // namespace blue::dynamics
