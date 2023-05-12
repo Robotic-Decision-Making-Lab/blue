@@ -50,6 +50,10 @@ class Inertia
 {
 public:
   /**
+   * @brief Default constructor for the inertia object.
+   */
+  Inertia() = default;
+  /**
    * @brief Construct a new Inertia object.
    *
    * @param mass The total mass of the vehicle (kg).
@@ -86,6 +90,11 @@ private:
 class Coriolis
 {
 public:
+  /**
+   * @brief Default constructor for the Coriolis object.
+   */
+  Coriolis() = default;
+
   /**
    * @brief Construct a new Coriolis object.
    *
@@ -145,7 +154,7 @@ public:
   [[nodiscard]] Eigen::MatrixXd calculateAddedCoriolis(const Eigen::VectorXd & velocity) const;
 
 private:
-  double mass_;
+  double mass_{0.0};
   Eigen::Matrix3d moments_;
   Eigen::VectorXd added_mass_coeff_;
 };
@@ -156,6 +165,11 @@ private:
 class Damping
 {
 public:
+  /**
+   * @brief Default constructor for the Damping object.
+   */
+  Damping() = default;
+
   /**
    * @brief Construct a new Damping object.
    *
@@ -198,6 +212,11 @@ class RestoringForces
 {
 public:
   /**
+   * @brief Default constructor for the RestoringForces object.
+   */
+  RestoringForces() = default;
+
+  /**
    * @brief Construct a new RestoringForces object.
    *
    * @note The gravitational force vector `g` is given as [0, 0, 9.81]^T m/s^2.
@@ -223,8 +242,8 @@ public:
   [[nodiscard]] Eigen::VectorXd calculateRestoringForces(const Eigen::Matrix3d & rotation) const;
 
 private:
-  double weight_;
-  double buoyancy_;
+  double weight_{0.0};
+  double buoyancy_{0.0};
   Eigen::Vector3d center_of_buoyancy_;
   Eigen::Vector3d center_of_gravity_;
 };
@@ -235,6 +254,11 @@ private:
 class CurrentEffects
 {
 public:
+  /**
+   * @brief Default constructor for the CurrentEffects object.
+   */
+  CurrentEffects() = default;
+
   /**
    * @brief Construct a new CurrentEffects object
    *
@@ -270,9 +294,11 @@ struct HydrodynamicParameters
   RestoringForces restoring_forces;
   CurrentEffects current_effects;
 
+  HydrodynamicParameters() = default;
+
   HydrodynamicParameters(
-    const Inertia & inertia, const Coriolis & coriolis, const Damping & damping,
-    const RestoringForces & restoring_forces, const CurrentEffects & current_effects);
+    Inertia inertia, Coriolis coriolis, Damping damping, RestoringForces restoring_forces,
+    CurrentEffects current_effects);
 };
 
 }  // namespace blue::dynamics

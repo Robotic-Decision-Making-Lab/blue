@@ -164,13 +164,13 @@ CurrentEffects::CurrentEffects(const Eigen::VectorXd & current_velocity)
 }
 
 HydrodynamicParameters::HydrodynamicParameters(
-  const Inertia & inertia, const Coriolis & coriolis, const Damping & damping,
-  const RestoringForces & restoring_forces, const CurrentEffects & current_effects)
-: inertia(inertia),
-  coriolis(coriolis),
-  damping(damping),
-  restoring_forces(restoring_forces),
-  current_effects(current_effects)
+  Inertia inertia, Coriolis coriolis, Damping damping, RestoringForces restoring_forces,
+  CurrentEffects current_effects)
+: inertia(std::move(inertia)),
+  coriolis(std::move(coriolis)),
+  damping(std::move(damping)),
+  restoring_forces(std::move(restoring_forces)),
+  current_effects(std::move(current_effects))
 {
 }
 
