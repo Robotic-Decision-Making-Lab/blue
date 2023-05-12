@@ -17,3 +17,35 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+
+#include <Eigen/Dense>
+
+#include "blue_control/base_controller.hpp"
+#include "mavros_msgs/msg/override_rc_in.hpp"
+
+namespace blue::control
+{
+
+class ISMC : public BaseController
+{
+public:
+  ISMC();
+
+protected:
+  mavros_msgs::msg::OverrideRCIn update() override;
+
+private:
+  Eigen::VectorXd total_velocity_error_;
+  Eigen::MatrixXd convergence_rate_;
+  double sliding_gain_;
+  double boundary_thickness_;
+
+  static Eigen::VectorXd calculateError(
+    const Eigen::VectorXd & desired, const Eigen::VectorXd & actual);
+  static Eigen::VectorXd calculateSlidingSurface(
+    const Eigen::VectorXd & velocity_error, const Eigen::VectorXd & velocity_error_integral,
+    const Eigen::MatrixXd & convergence_rate);
+  static void applySignFunction(std::shared_ptr<Eigen::VectorXd> surface);
+};
+
+}  // namespace blue::control

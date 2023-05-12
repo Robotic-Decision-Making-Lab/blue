@@ -36,9 +36,24 @@ include_directories(
 
 add_library(${PROJECT_NAME} SHARED
   src/base_controller.cpp
+  src/ismc.cpp
 )
 target_include_directories(${PROJECT_NAME} PRIVATE include)
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+
+install(
+  DIRECTORY include/
+  DESTINATION include
+)
+
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT ${PROJECT_NAME}
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  INCLUDES DESTINATION include
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -49,5 +64,8 @@ if(BUILD_TESTING)
 
   ament_lint_auto_find_test_dependencies()
 endif()
+
+ament_export_targets(${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 ament_package()

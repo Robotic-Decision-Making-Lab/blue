@@ -55,6 +55,7 @@ BaseController::BaseController(const std::string & node_name)
   this->declare_parameter("center_of_gravity", std::vector<double>{0.0, 0.0, 0.0});
   this->declare_parameter("center_of_buoyancy", std::vector<double>{0.0, 0.0, 0.0});
   this->declare_parameter("ocean_current", std::vector<double>{0.0, 0.0, 0.0, 0.0, 0.0, 0.0});
+  this->declare_parameter("num_thrusters", 8);
 
   // I'm so sorry for this
   // You can blame the ROS devs for not supporting nested arrays for parameters
@@ -65,9 +66,6 @@ BaseController::BaseController(const std::string & node_name)
                                0.06,    -0.06,  0.06,   -0.06,   -0.218, -0.218, 0.218, 0.218,
                                0.06,    0.06,   -0.06,  -0.06,   0.120,  -0.120, 0.120, -0.120,
                                -0.1888, 0.1888, 0.1888, -0.1888, 0.0,    0.0,    0.0,   0.0});
-
-  // Default to the BlueROV2 Heavy configuration
-  this->declare_parameter("num_thrusters", 8);
 
   // Get the parameter values
   const double mass = this->get_parameter("mass").as_double();
@@ -89,8 +87,7 @@ BaseController::BaseController(const std::string & node_name)
     convertVectorToEigenVector(this->get_parameter("ocean_current").as_double_array());
 
   // Get the thruster configuration matrix
-  std::vector<double> tcm_vec =
-    this->get_parameter("thruster_configuration_matrix").as_double_array();
+  std::vector<double> tcm_vec = this->get_parameter("tcm").as_double_array();
   size_t num_thrusters = this->get_parameter("num_thrusters").as_int();
 
   tcm_ = convertVectorToEigenMatrix(tcm_vec, tcm_vec.size() / num_thrusters, num_thrusters);
