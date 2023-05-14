@@ -47,18 +47,14 @@ protected:
 
   blue::dynamics::HydrodynamicParameters hydrodynamics_;
   Eigen::MatrixXd tcm_;
-  sensor_msgs::msg::BatteryState::SharedPtr battery_state_;
+  sensor_msgs::msg::BatteryState battery_state_;
 
   // It is important to note here that the pose information is provided in the inertial frame
   // and the twist is provided in the body frame. For more information on this see:
   // https://github.com/mavlink/mavros/issues/1251
-  nav_msgs::msg::Odometry::SharedPtr odom_;
+  nav_msgs::msg::Odometry odom_;
 
 private:
-  void runControlLoopCb();
-  void saveBatteryCb(const sensor_msgs::msg::BatteryState::SharedPtr msg);
-  void saveOdomCb(const nav_msgs::msg::Odometry::SharedPtr msg);
-
   // Publishers
   rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_pub_;
 

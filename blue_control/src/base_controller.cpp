@@ -89,7 +89,6 @@ BaseController::BaseController(const std::string & node_name)
   // Get the thruster configuration matrix
   std::vector<double> tcm_vec = this->get_parameter("tcm").as_double_array();
   size_t num_thrusters = this->get_parameter("num_thrusters").as_int();
-
   tcm_ = convertVectorToEigenMatrix(tcm_vec, tcm_vec.size() / num_thrusters, num_thrusters);
 
   // Initialize the hydrodynamic parameters
@@ -105,24 +104,17 @@ BaseController::BaseController(const std::string & node_name)
 
   battery_state_sub_ = this->create_subscription<sensor_msgs::msg::BatteryState>(
     "/mavros/battery", 1,
-    [this](const sensor_msgs::msg::BatteryState::SharedPtr msg) { this->saveBatteryCb(msg); });
+    [this](sensor_msgs::msg::BatteryState::ConstSharedPtr msg) { battery_state_ = *msg; });
 
   odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
     "/mavros/local_position/odom", 1,
-    [this](const nav_msgs::msg::Odometry::SharedPtr msg) { this->saveOdomCb(msg); });
+    [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) { odom_ = *msg; });
 
   // Run at a control rate of 200 Hz
+  // ArduSub only runs at a rate of 100 Hz, but we want to make sure to run the controller at
+  // a faster rate than the autopilot
   control_loop_timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(5), std::bind(&BaseController::runControlLoopCb, this));
+    std::chrono::milliseconds(5), [this]() { rc_override_pub_->publish(update()); });
 }
-
-void BaseController::saveBatteryCb(const sensor_msgs::msg::BatteryState::SharedPtr msg)
-{
-  battery_state_ = msg;
-}
-
-void BaseController::saveOdomCb(const nav_msgs::msg::Odometry::SharedPtr msg) { odom_ = msg; }
-
-void BaseController::runControlLoopCb() { rc_override_pub_->publish(update()); }
 
 }  // namespace blue::control

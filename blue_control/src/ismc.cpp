@@ -20,6 +20,8 @@
 
 #include "blue_control/ismc.hpp"
 
+#include <cmath>
+
 #include "blue_dynamics/thruster_dynamics.hpp"
 
 namespace blue::control
@@ -41,47 +43,72 @@ ISMC::ISMC()
   sliding_gain_ = this->get_parameter("sliding_gain").as_double();
   boundary_thickness_ = this->get_parameter("boundary_thickness").as_double();
   total_velocity_error_ = Eigen::VectorXd::Zero(6);
+
+  // Update the reference signal when a new command is received
+  cmd_sub_ = this->create_subscription<blue_msgs::msg::Reference>(
+    "/blue/ismc/cmd", 1, [this](blue_msgs::msg::Reference::ConstSharedPtr msg) { cmd_ = *msg; });
 }
 
 mavros_msgs::msg::OverrideRCIn ISMC::update()
 {
   Eigen::VectorXd velocity(6);  // NOLINT
-  velocity << odom_->twist.twist.linear.x, odom_->twist.twist.linear.y, odom_->twist.twist.linear.z,
-    odom_->twist.twist.angular.x, odom_->twist.twist.angular.y, odom_->twist.twist.angular.z;
+  velocity << odom_.twist.twist.linear.x, odom_.twist.twist.linear.y, odom_.twist.twist.linear.z,
+    odom_.twist.twist.angular.x, odom_.twist.twist.angular.y, odom_.twist.twist.angular.z;
 
+  // Calculate the velocity error
+  Eigen::VectorXd velocity_error(6);
+  velocity_error << cmd_.twist.linear.x, cmd_.twist.linear.y, cmd_.twist.linear.z,
+    cmd_.twist.angular.x, cmd_.twist.angular.y, cmd_.twist.angular.z;
+  velocity_error -= velocity;
+
+  Eigen::VectorXd desired_accel(6);  // NOLINT
+  desired_accel << cmd_.accel.linear.x, cmd_.accel.linear.y, cmd_.accel.linear.z,
+    cmd_.accel.angular.x, cmd_.accel.angular.y, cmd_.accel.angular.z;
+
+  // Get the current rotation of the vehicle in the inertial frame
   Eigen::Quaterniond orientation = Eigen::Quaterniond(
-    odom_->pose.pose.orientation.w, odom_->pose.pose.orientation.x, odom_->pose.pose.orientation.y,
-    odom_->pose.pose.orientation.z);
+    odom_.pose.pose.orientation.w, odom_.pose.pose.orientation.x, odom_.pose.pose.orientation.y,
+    odom_.pose.pose.orientation.z);
 
-  // TODO(evan): Include inertia -> need desired acceleration and velocity error
-  // TODO(evan): Calculate s and apply the sign function
+  // Make sure to update the velocity error integral term BEFORE calculating the sliding surface
+  // The integral is up to time "t"
+  total_velocity_error_ += velocity_error;
+
+  // Calculate the sliding surface
+  Eigen::VectorXd surface = velocity_error + convergence_rate_ * total_velocity_error_;  // NOLINT
+
+  // Apply the sign function to the surface
+  surface.unaryExpr([this](double x) { return tanh(x / boundary_thickness_); });
+
   // TODO(evan): Include the current effects
-  const Eigen::VectorXd pwms =
+  const Eigen::VectorXd forces =
+    hydrodynamics_.inertia.getInertia() * (desired_accel + convergence_rate_ * velocity_error) +
     hydrodynamics_.coriolis.calculateCoriolis(velocity) * velocity +
     hydrodynamics_.damping.calculateDamping(velocity) * velocity +
-    hydrodynamics_.restoring_forces.calculateRestoringForces(orientation.toRotationMatrix());
+    hydrodynamics_.restoring_forces.calculateRestoringForces(orientation.toRotationMatrix()) +
+    sliding_gain_ * surface;
 
-  // TODO(evan): convert the pwms to an std::array
-  // TODO(evan): convert to an OverrideRCIn message
+  // Multiply the desired forces by the pseudoinverse of the thruster configuration matrix
+  const Eigen::VectorXd pwms = tcm_.completeOrthogonalDecomposition().pseudoInverse() * forces;
 
-  return mavros_msgs::msg::OverrideRCIn();
-}
+  // Convert the thruster forces to PWM values
+  pwms.unaryExpr([this](double x) {
+    return blue::dynamics::calculatePwmFromThrustSurface(x, battery_state_.voltage);
+  });
 
-Eigen::VectorXd ISMC::calculateError(
-  const Eigen::VectorXd & desired, const Eigen::VectorXd & actual)
-{
-  return desired - actual;
-}
+  mavros_msgs::msg::OverrideRCIn msg;
 
-Eigen::VectorXd ISMC::calculateSlidingSurface(
-  const Eigen::VectorXd & velocity_error, const Eigen::VectorXd & velocity_error_integral,
-  const Eigen::MatrixXd & convergence_rate)
-{
-  return velocity_error + convergence_rate * velocity_error_integral;
-}
+  // We only modify the first "n" channels where "n" is the total number of thrusters
+  for (uint16_t & channel : msg.channels) {
+    channel = mavros_msgs::msg::OverrideRCIn::CHAN_NOCHANGE;
+  }
 
-void ISMC::applySignFunction(std::shared_ptr<Eigen::VectorXd> surface)
-{ /* data */
+  // TODO(evan): clamp the PWM values to 1500 if they fall in the deadband zone
+  for (uint16_t i = 0; i < pwms.size(); i++) {
+    msg.channels[i] = static_cast<uint16_t>(pwms[i]);
+  }
+
+  return msg;
 }
 
 }  // namespace blue::control

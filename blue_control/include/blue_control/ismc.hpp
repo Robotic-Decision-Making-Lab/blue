@@ -21,6 +21,7 @@
 #include <Eigen/Dense>
 
 #include "blue_control/base_controller.hpp"
+#include "blue_msgs/msg/reference.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 
 namespace blue::control
@@ -35,17 +36,14 @@ protected:
   mavros_msgs::msg::OverrideRCIn update() override;
 
 private:
+  // Hyperparameters used by the ISMC
   Eigen::VectorXd total_velocity_error_;
   Eigen::MatrixXd convergence_rate_;
   double sliding_gain_;
   double boundary_thickness_;
 
-  static Eigen::VectorXd calculateError(
-    const Eigen::VectorXd & desired, const Eigen::VectorXd & actual);
-  static Eigen::VectorXd calculateSlidingSurface(
-    const Eigen::VectorXd & velocity_error, const Eigen::VectorXd & velocity_error_integral,
-    const Eigen::MatrixXd & convergence_rate);
-  static void applySignFunction(std::shared_ptr<Eigen::VectorXd> surface);
+  blue_msgs::msg::Reference cmd_;
+  rclcpp::Subscription<blue_msgs::msg::Reference>::SharedPtr cmd_sub_;
 };
 
 }  // namespace blue::control

@@ -19,6 +19,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
   ament_cmake
   blue_dynamics
+  blue_msgs
   nav_msgs
   sensor_msgs
   mavros_msgs
