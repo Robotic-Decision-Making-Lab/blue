@@ -32,30 +32,43 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
+set(CUSTOM_CONTROLLER_HEADERS
+  include/blue_control/ismc.hpp
+)
+
+set(CUSTOM_CONTROLLER_SOURCES
+  src/ismc.cpp
+)
+
 include_directories(
   include
 )
 
-add_library(${PROJECT_NAME} SHARED
-  src/base_controller.cpp
-  src/ismc.cpp
-)
-target_include_directories(${PROJECT_NAME} PRIVATE include)
-ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
+# Create a library for the base_controller class
+add_library(base_controller include/blue_control/base_controller.hpp src/base_controller.cpp)
+ament_target_dependencies(base_controller ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
+# Create a library for the custom controllers; link this to the base controller
+add_library(custom_controllers ${CUSTOM_CONTROLLER_HEADERS} ${CUSTOM_CONTROLLER_SOURCES})
+ament_target_dependencies(custom_controllers ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(custom_controllers base_controller)
+
+# Add executables for the custom controllers
+add_executable(ismc src/ismc.cpp)
+ament_target_dependencies(ismc ${THIS_PACKAGE_INCLUDE_DEPENDS})
+target_link_libraries(ismc custom_controllers)
+
+# Install
 install(
-  DIRECTORY include/
+  TARGETS base_controller custom_controllers ismc
+  DESTINATION lib/${PROJECT_NAME}
+)
+
+install(DIRECTORY
+  include/
   DESTINATION include
 )
 
-install(
-  TARGETS ${PROJECT_NAME}
-  EXPORT ${PROJECT_NAME}
-  RUNTIME DESTINATION bin
-  LIBRARY DESTINATION lib
-  ARCHIVE DESTINATION lib
-  INCLUDES DESTINATION include
-)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -66,8 +79,5 @@ if(BUILD_TESTING)
 
   ament_lint_auto_find_test_dependencies()
 endif()
-
-ament_export_targets(${PROJECT_NAME} HAS_LIBRARY_TARGET)
-ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 ament_package()
