@@ -22,6 +22,7 @@
 
 #include <Eigen/Dense>
 #include <atomic>
+#include <memory>
 #include <string>
 #include <vector>
 

@@ -15,7 +15,6 @@ Checks: >
   -misc-non-private-member-variables-in-classes,
   -modernize-return-braced-init-list,
   -modernize-use-trailing-return-type,
-  -performance-move-const-arg,
   -readability-braces-around-statements,
   -readability-identifier-length,
   -readability-magic-numbers,
@@ -25,7 +24,6 @@ Checks: >
   -bugprone-narrowing-conversions,
   -bugprone-easily-swappable-parameters,
   -bugprone-implicit-widening-of-multiplication-result,
-  -modernize-avoid-bind
 WarningsAsErrors: "*"
 CheckOptions:
   - key: readability-braces-around-statements.ShortStatementLines
