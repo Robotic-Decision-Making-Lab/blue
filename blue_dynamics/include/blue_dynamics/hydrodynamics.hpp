@@ -68,9 +68,9 @@ public:
   /**
    * @brief Get the vehicle's inertia matrix.
    *
-   * @note The inertia matrix `M` is the sum of the rigid body mass `M_RB` and the added mass `M_A`
-   * such that `M = M_RB + M_A`. The definition used for the rigid body inertia matrix `M_RB` is
-   * provided by Thor I. Fossen's textbook "Handbook of Marine Craft Hydrodynamics and Motion
+   * @details The inertia matrix `M` is the sum of the rigid body mass `M_RB` and the added mass
+   * `M_A` such that `M = M_RB + M_A`. The definition used for the rigid body inertia matrix `M_RB`
+   * is provided by Thor I. Fossen's textbook "Handbook of Marine Craft Hydrodynamics and Motion
    * Control" in Equation 3.44. Note that, in this model, we define the body frame to be coincident
    * with the center of mass, such that r_g^b = 0. The result is that `M_RB` is a diagonal matrix.
    * The definition used for the added mass inertia matrix `M_A` is provided by Gianluca Antonelli's
@@ -110,7 +110,7 @@ public:
   /**
    * @brief Calculate the Coriolis and centripetal forces for the vehicle.
    *
-   * @note The Coriolis and centripetal force matrix `C` is the sum of the rigid body Coriolis
+   * @details The Coriolis and centripetal force matrix `C` is the sum of the rigid body Coriolis
    * forces `C_RB` and the added Coriolis forces `C_A` such that `C = C_RB + C_A`.
    *
    * @param velocity The current velocity of the vehicle in the body frame.
@@ -121,12 +121,12 @@ public:
   /**
    * @brief Calculate the rigid body Coriolis matrix.
    *
-   * @note The definition of the rigid body Coriolis-centripetal matrix `C_RB` used in this work is
-   * provided by Thor I. Fossen's textbook "Handbook of Marine Craft Hydrodynamics and Motion
+   * @details The definition of the rigid body Coriolis-centripetal matrix `C_RB` used in this work
+   * is provided by Thor I. Fossen's textbook "Handbook of Marine Craft Hydrodynamics and Motion
    * Control" in Equation 3.57. Note that, in this model, we define the body frame to be coincident
    * with the center of mass, such that r_g^b = 0.
    *
-   * @remark The preferred entrypoint for calculating the Coriolis matrix is through the
+   * @note The preferred entrypoint for calculating the Coriolis matrix is through the
    * `calculateCoriolis` method; however, this method is made accessible for advanced users who wish
    * to calculate the rigid body Coriolis matrix directly (which may be necessary when calculating
    * the dynamics using the relative velocity).
@@ -140,10 +140,10 @@ public:
   /**
    * @brief Calculate the added Coriolis matrix.
    *
-   * @note The definition of the added Coriolis-centripetal matrix `C_A` used in this work is
+   * @details The definition of the added Coriolis-centripetal matrix `C_A` used in this work is
    * provided by Gianluca Antonelli's "Underwater Robots" in Section 2.4.1.
    *
-   * @remark The preferred entrypoint for calculating the Coriolis matrix is through the
+   * @note The preferred entrypoint for calculating the Coriolis matrix is through the
    * `calculateCoriolis` method; however, this method is made accessible for advanced users who wish
    * to calculate the added Coriolis matrix directly (which may be necessary when calculating
    * the dynamics using the relative velocity).
@@ -183,7 +183,7 @@ public:
   /**
    * @brief Calculate the damping forces for the vehicle.
    *
-   * @note The rigid body damping matrix `D` is defined as the sum of the linear and nonlinear
+   * @details The rigid body damping matrix `D` is defined as the sum of the linear and nonlinear
    * damping coefficients. The definition of the linear and nonlinear damping matrices used in this
    * work is provided by Gianluca Antonelli's "Underwater Robots" in Section 2.4.2.
    *

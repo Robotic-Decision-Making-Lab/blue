@@ -20,10 +20,19 @@
 
 #pragma once
 
+#include <cstdint>
 #include <tuple>
 
 namespace blue::dynamics
 {
+
+/**
+ * @brief A standard PWM value for no thrust.
+ *
+ * @note This can be used when the thruster is not being used, or when the desired thrust falls
+ * within the deadband zone.
+ */
+const uint16_t kNoThrustPwm = 1500;
 
 /**
  * @brief Calculates the T200 deadzone band for a given voltage.

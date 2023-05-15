@@ -71,7 +71,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
     odom_.pose.pose.orientation.z);
 
   // Make sure to update the velocity error integral term BEFORE calculating the sliding surface
-  // The integral is up to time "t"
+  // (the integral is up to time "t")
   total_velocity_error_ += velocity_error;
 
   // Calculate the sliding surface
@@ -80,7 +80,6 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
   // Apply the sign function to the surface
   surface.unaryExpr([this](double x) { return tanh(x / boundary_thickness_); });
 
-  // TODO(evan): Include the current effects
   const Eigen::VectorXd forces =
     hydrodynamics_.inertia.getInertia() * (desired_accel + convergence_rate_ * velocity_error) +
     hydrodynamics_.coriolis.calculateCoriolis(velocity) * velocity +
@@ -103,12 +102,29 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
     channel = mavros_msgs::msg::OverrideRCIn::CHAN_NOCHANGE;
   }
 
-  // TODO(evan): clamp the PWM values to 1500 if they fall in the deadband zone
+  // Apply the deadband to the PWM values
+  const std::tuple<int, int> deadband = blue::dynamics::calculateDeadZone(battery_state_.voltage);
+
   for (uint16_t i = 0; i < pwms.size(); i++) {
-    msg.channels[i] = static_cast<uint16_t>(pwms[i]);
+    uint16_t pwm = static_cast<uint16_t>(pwms[i]);
+
+    if (pwm > std::get<0>(deadband) && pwm < std::get<1>(deadband)) {
+      pwm = blue::dynamics::kNoThrustPwm;
+    }
+
+    msg.channels[i] = pwm;
   }
 
   return msg;
 }
 
 }  // namespace blue::control
+
+int main(int argc, char ** argv)
+{
+  rclcpp::init(argc, argv);
+  auto node = std::make_shared<blue::control::ISMC>();
+  rclcpp::spin(node);
+  rclcpp::shutdown();
+  return 0;
+}

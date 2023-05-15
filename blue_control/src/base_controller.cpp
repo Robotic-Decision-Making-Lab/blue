@@ -39,7 +39,8 @@ Eigen::MatrixXd convertVectorToEigenMatrix(
 }
 
 BaseController::BaseController(const std::string & node_name)
-: Node(std::move(node_name))
+: Node(std::move(node_name)),
+  armed_(false)
 {
   // Declare ROS parameters
   this->declare_parameter("mass", 11.5);
@@ -110,11 +111,40 @@ BaseController::BaseController(const std::string & node_name)
     "/mavros/local_position/odom", 1,
     [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) { odom_ = *msg; });
 
-  // Run at a control rate of 200 Hz
+  arm_srv_ = this->create_service<std_srvs::srv::SetBool>(
+    "blue/control/arm", [this](
+                          const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+                          std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
+      armController(request, response);
+    });
+
+  // Run the controller at a rate of 200 Hz
   // ArduSub only runs at a rate of 100 Hz, but we want to make sure to run the controller at
   // a faster rate than the autopilot
-  control_loop_timer_ = this->create_wall_timer(
-    std::chrono::milliseconds(5), [this]() { rc_override_pub_->publish(update()); });
+  control_loop_timer_ = this->create_wall_timer(std::chrono::milliseconds(5), [this]() {
+    if (armed_) {
+      rc_override_pub_->publish(update());
+    }
+  });
+}
+
+void BaseController::armController(
+  const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+  std::shared_ptr<std_srvs::srv::SetBool::Response> response)
+{
+  if (request->data) {
+    // Arm the controller
+    armed_ = true;
+    response->success = true;
+    response->message = "Controller armed.";
+    RCLCPP_WARN(this->get_logger(), "Custom BlueROV2 controller armed.");
+  } else {
+    // Disarm the controller
+    armed_ = false;
+    response->success = true;
+    response->message = "Controller disarmed.";
+    RCLCPP_WARN(this->get_logger(), "Custom BlueROV2 controller disarmed.");
+  }
 }
 
 }  // namespace blue::control

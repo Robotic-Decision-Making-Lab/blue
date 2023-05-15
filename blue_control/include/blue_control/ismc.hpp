@@ -18,6 +18,8 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#pragma once
+
 #include <Eigen/Dense>
 
 #include "blue_control/base_controller.hpp"
@@ -27,9 +29,15 @@
 namespace blue::control
 {
 
+/**
+ * @brief Integral sliding mode controller for the BlueROV2.
+ */
 class ISMC : public BaseController
 {
 public:
+  /**
+   * @brief Construct a new ISMC object.
+   */
   ISMC();
 
 protected:

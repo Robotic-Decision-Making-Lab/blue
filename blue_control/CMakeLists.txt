@@ -23,6 +23,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   nav_msgs
   sensor_msgs
   mavros_msgs
+  std_srvs
   eigen3_cmake_module
   Eigen3
 )
