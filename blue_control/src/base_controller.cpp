@@ -115,7 +115,7 @@ BaseController::BaseController(const std::string & node_name)
     "blue/control/arm", [this](
                           const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
                           std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
-      armController(request, response);
+      armControllerCb(request, response);
     });
 
   // Run the controller at a rate of 200 Hz
@@ -128,7 +128,7 @@ BaseController::BaseController(const std::string & node_name)
   });
 }
 
-void BaseController::armController(
+void BaseController::armControllerCb(
   const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
   std::shared_ptr<std_srvs::srv::SetBool::Response> response)
 {

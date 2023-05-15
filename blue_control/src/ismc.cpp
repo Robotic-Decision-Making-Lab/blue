@@ -20,6 +20,7 @@
 
 #include "blue_control/ismc.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 #include "blue_dynamics/thruster_dynamics.hpp"
@@ -102,17 +103,18 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
     channel = mavros_msgs::msg::OverrideRCIn::CHAN_NOCHANGE;
   }
 
-  // Apply the deadband to the PWM values
   const std::tuple<int, int> deadband = blue::dynamics::calculateDeadZone(battery_state_.voltage);
 
   for (uint16_t i = 0; i < pwms.size(); i++) {
     uint16_t pwm = static_cast<uint16_t>(pwms[i]);
 
+    // Apply the deadband to the PWM values
     if (pwm > std::get<0>(deadband) && pwm < std::get<1>(deadband)) {
       pwm = blue::dynamics::kNoThrustPwm;
     }
 
-    msg.channels[i] = pwm;
+    // Clamp the PWM to the valid PWM range
+    msg.channels[i] = std::clamp(pwm, blue::dynamics::kMinPwm, blue::dynamics::kMaxPwm);
   }
 
   return msg;

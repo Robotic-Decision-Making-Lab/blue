@@ -51,6 +51,9 @@ Eigen::VectorXd convertVectorToEigenVector(const std::vector<double> & vec);
 /**
  * @brief Convert an `std::vector` to an `Eigen::MatrixXd`.
  *
+ * @note This method is useful when converting a ROS parameter that has been read as a `std::vector`
+ * to an `Eigen::MatrixXd`.
+ *
  * @param vec The `std::vector` to convert.
  * @param rows The total number of rows in the resulting matrix.
  * @param cols The total number of columns in the resulting matrix.
@@ -95,17 +98,29 @@ protected:
    *
    * @note This can be used to approximate the thrust curve according to the current battery
    * voltage.
-   *
    */
   sensor_msgs::msg::BatteryState battery_state_;
 
-  // It is important to note here that the pose information is provided in the inertial frame
-  // and the twist is provided in the body frame. For more information on this see:
-  // https://github.com/mavlink/mavros/issues/1251
+  //
+  /**
+   * @brief The current pose and twist of the BlueROV2.
+   *
+   * @note It is important to note here that the pose information is provided in the inertial frame
+   * and the twist is provided in the body frame. For more information on this see:
+   * https://github.com/mavlink/mavros/issues/1251
+   */
   nav_msgs::msg::Odometry odom_;
 
 private:
-  void armController(
+  /**
+   * @brief Enable the controller.
+   *
+   * @details This method enables/disables sending RC Override messages to the BlueROV2.
+   *
+   * @param request The request to enable/disable the controller.
+   * @param response The result of the arming request.
+   */
+  void armControllerCb(
     std::shared_ptr<std_srvs::srv::SetBool::Request> request,
     std::shared_ptr<std_srvs::srv::SetBool::Response> response);
 
