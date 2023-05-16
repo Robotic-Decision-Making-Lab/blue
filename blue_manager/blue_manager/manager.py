@@ -29,6 +29,8 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from std_srvs.srv import SetBool
 
+# TODO(evan): Add message requests for pose, attitude, and battery
+
 
 class Manager(Node):
     """Provides an interface between custom controllers and the BlueROV2."""

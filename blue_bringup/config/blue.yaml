@@ -1,0 +1,47 @@
+blue_manager:
+  ros__parameters:
+    num_thrusters: 8
+    mode_change_timeout: 1.0
+    mode_change_retries: 3
+
+ismc:
+  ros__parameters:
+    mass: 11.5
+    buoyancy: 112.80
+    weight: 114.80
+    inertia_tensor_coeff: [0.16, 0.16, 0.16]
+    added_mass_coeff: [-5.50, -12.70, -14.60, -0.12, -0.12, -0.12]
+    linear_damping_coeff: [-4.03, -6.22, -5.18, -0.07, -0.07, -0.07]
+    quadratic_damping_coeff: [-18.18, -21.66, -36.99, -1.55, -1.55, -1.55]
+    center_of_gravity: [0.0, 0.0, 0.0]
+    center_of_buoyancy: [0.0, 0.0, 0.0]
+    ocean_current: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    num_thrusters: 8
+    tcm: [0.707,   0.707,  -0.707, -0.707,  0.0,    0.0,    0.0,   0.0,
+          -0.707,  0.707,  -0.707, 0.707,   0.0,    0.0,    0.0,   0.0,
+          0.0,     0.0,    0.0,    0.0,     -1.0,   1.0,    1.0,   -1.0,
+          0.06,    -0.06,  0.06,   -0.06,   -0.218, -0.218, 0.218, 0.218,
+          0.06,    0.06,   -0.06,  -0.06,   0.120,  -0.120, 0.120, -0.120,
+          -0.1888, 0.1888, 0.1888, -0.1888, 0.0,    0.0,    0.0,   0.0]
+
+mavros:
+  ros__parameters:
+    system_id: 255
+    plugin_allowlist:
+      - sys_status
+      - command
+      - imu
+      - local_position
+      - rc_io
+      - param
+
+mavros_node:
+  ros__parameters:
+    fcu_url: "tcp://localhost"
+    gcs_url: "udp://@localhost:14550"
+
+mavros/local_position:
+  ros__parameters:
+    frame_id: "map"
+    tf:
+      send: false

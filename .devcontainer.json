@@ -7,7 +7,7 @@
       "ROS_DISTRO": "humble"
     }
   },
-  "remoteUser": "dev",
+  "remoteUser": "blue",
   "runArgs": [
     "--network=host",
     "--cap-add=SYS_PTRACE",
@@ -90,9 +90,6 @@
         },
         "[xml]": {
           "editor.defaultFormatter": "redhat.vscode-xml"
-        },
-        "[yaml]": {
-          "editor.defaultFormatter": "redhat.vscode-yaml"
         },
         "[markdown]": {
           "editor.rulers": [80],
