@@ -85,11 +85,6 @@ class Manager(Node):
         )
         wait_for_client(self.set_param_srv_client)
 
-        self.arm_controller_srv_client = self.create_client(
-            SetBool, "blue/control/arm", callback_group=reentrant_callback_group
-        )
-        wait_for_client(self.arm_controller_srv_client)
-
     def _get_ros_params(self) -> None:
         """Get the ROS parameters from the parameter server."""
         self.declare_parameters(
@@ -187,20 +182,6 @@ class Manager(Node):
         )
         return all([result.successful for result in response.results])
 
-    def arm_controller(self, arm: bool) -> bool:
-        """Arm/disarm the custom BlueROV2 controller.
-
-        Args:
-            arm: Arm/disarm the controller.
-
-        Returns:
-            True if the controller was successfully armed/disarmed, False otherwise.
-        """
-        response: SetBool.Response = self.arm_controller_srv_client.call(
-            SetBool.Request(data=arm)
-        )
-        return response.success
-
     def set_rc_passthrough_mode_cb(
         self, request: SetBool.Request, response: SetBool.Response
     ) -> SetBool.Response:
@@ -248,8 +229,7 @@ class Manager(Node):
             for _ in range(self.retries):
                 self.passthrough_enabled = self.set_thruster_params(
                     list(passthrough_params.values())
-                ) and self.arm_controller(True)
-
+                )
                 response.success = self.passthrough_enabled
 
                 if response.success:
@@ -282,7 +262,7 @@ class Manager(Node):
             for _ in range(self.retries):
                 self.passthrough_enabled = not self.set_thruster_params(
                     list(self.thruster_params_backup.values())
-                ) and self.arm_controller(False)
+                )
 
                 response.success = not self.passthrough_enabled
 
