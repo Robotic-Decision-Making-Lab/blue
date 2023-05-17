@@ -50,20 +50,20 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
+    config_filepath = PathJoinSubstitution(
+        [
+            FindPackageShare("blue_bringup"),
+            "config",
+            LaunchConfiguration("config"),
+        ]
+    )
+
     nodes = [
         Node(
             package="mavros",
             executable="mavros_node",
             output="screen",
-            parameters=[
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare("blue_bringup"),
-                        "config",
-                        LaunchConfiguration("config"),
-                    ]
-                ),
-            ],
+            parameters=[config_filepath],
         ),
     ]
 
@@ -75,15 +75,7 @@ def generate_launch_description() -> LaunchDescription:
                     [FindPackageShare("blue_manager"), "manager.launch.py"]
                 )
             ),
-            launch_arguments={
-                "config_filepath": PathJoinSubstitution(
-                    [
-                        FindPackageShare("blue_bringup"),
-                        "config",
-                        LaunchConfiguration("config"),
-                    ]
-                ),
-            }.items(),
+            launch_arguments={"config_filepath": config_filepath}.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -92,13 +84,7 @@ def generate_launch_description() -> LaunchDescription:
                 )
             ),
             launch_arguments={
-                "config_filepath": PathJoinSubstitution(
-                    [
-                        FindPackageShare("blue_bringup"),
-                        "config",
-                        LaunchConfiguration("config"),
-                    ]
-                ),
+                "config_filepath": config_filepath,
                 "controller": LaunchConfiguration("controller"),
             }.items(),
         ),
