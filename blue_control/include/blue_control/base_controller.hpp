@@ -125,7 +125,23 @@ private:
     std::shared_ptr<std_srvs::srv::SetBool::Request> request,
     std::shared_ptr<std_srvs::srv::SetBool::Response> response);
 
+  /**
+   * @brief Set custom MAVLink message rates.
+   *
+   * @note This is inspired by the Orca4 project:
+   * https://github.com/clydemcqueen/orca4/tree/main
+   *
+   * @param msg_ids The message IDs to set the rates for.
+   * @param rates The frequencies that the FCU should send the messages at.
+   */
   void setMessageRates(const std::vector<int64_t> & msg_ids, const std::vector<float> & rates);
+
+  /**
+   * @brief Set the rate of a MAVLink message.
+   *
+   * @param msg_id The message ID to set the rate for.
+   * @param rate The frequency that the FCU should send the message at.
+   */
   void setMessageRate(int64_t msg_id, float rate);
 
   bool armed_;
