@@ -21,7 +21,27 @@ RUN apt-get -q update \
     clang-format-14 \
     clang-tidy \
     clang-tools \
+    python3-pip \
     software-properties-common \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Qualisys Python SDK
+RUN python3 -m pip install qtm
+
+# Install gstreamer
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
+    && apt-get -q install --no-install-recommends -y \
+    python3-gi \
+    gstreamer1.0-tools \
+    gir1.2-gstreamer-1.0 \
+    gir1.2-gst-plugins-base-1.0 \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-libav \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
@@ -120,7 +140,7 @@ RUN apt-get -q update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install debugging/linting Python packages
-RUN pip3 install \
+RUN python3 -m pip install \
     pre-commit \
     mypy \
     isort \

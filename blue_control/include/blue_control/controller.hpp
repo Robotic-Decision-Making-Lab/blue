@@ -102,7 +102,6 @@ protected:
    */
   sensor_msgs::msg::BatteryState battery_state_;
 
-  //
   /**
    * @brief The current pose and twist of the BlueROV2.
    *
@@ -111,6 +110,13 @@ protected:
    * https://github.com/mavlink/mavros/issues/1251
    */
   nav_msgs::msg::Odometry odom_;
+
+  /**
+   * @brief The total time (s) between control loop iterations
+   *
+   * @note This can be useful when calculating integral terms for the controller.
+   */
+  double dt_{0.0};
 
 private:
   /**

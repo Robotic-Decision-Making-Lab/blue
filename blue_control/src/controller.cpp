@@ -59,6 +59,7 @@ Controller::Controller(const std::string & node_name)
   this->declare_parameter("num_thrusters", 8);
   this->declare_parameter("msg_ids", std::vector<int>({31, 32}));
   this->declare_parameter("msg_rates", std::vector<double>({100, 100}));
+  this->declare_parameter("control_loop_freq", 200.0);
 
   // I'm so sorry for this
   // You can blame the ROS devs for not supporting nested arrays for parameters
@@ -149,14 +150,18 @@ Controller::Controller(const std::string & node_name)
     std::chrono::seconds(10),
     [this, msg_ids, msg_rates]() -> void { setMessageRates(msg_ids, msg_rates); });
 
+  // Convert the control loop frequency to seconds
+  dt_ = 1 / this->get_parameter("control_loop_freq").as_double();
+
   // Run the controller at a rate of 200 Hz
-  // ArduSub only runs at a rate of 100 Hz, but we want to make sure to run the controller at
-  // a faster rate than the autopilot
-  control_loop_timer_ = this->create_wall_timer(std::chrono::milliseconds(5), [this]() -> void {
-    if (armed_) {
-      rc_override_pub_->publish(update());
-    }
-  });
+  // ArduSub only runs at a rate of 100 Hz, but we want to make sure to run the controller
+  // at a faster rate than the autopilot
+  control_loop_timer_ =
+    this->create_wall_timer(std::chrono::duration<double>(dt_), [this]() -> void {
+      if (armed_) {
+        rc_override_pub_->publish(update());
+      }
+    });
 }
 
 void Controller::armControllerCb(

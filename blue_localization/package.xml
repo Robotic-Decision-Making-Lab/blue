@@ -17,6 +17,7 @@
   <depend>std_msgs</depend>
   <depend>python3-opencv</depend>
   <depend>python3-numpy</depend>
+  <depend>python3-scipy</depend>
   <depend>python3-transforms3d</depend>
   <depend>mavros_msgs</depend>
   <depend>tf2</depend>

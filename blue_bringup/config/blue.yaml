@@ -25,6 +25,7 @@ ismc:
           -0.1888, 0.1888, 0.1888, -0.1888, 0.0,    0.0,    0.0,   0.0]
     msg_ids: [31, 32]
     msg_rates: [100.0, 100.0]
+    control_loop_freq: 200.0
 
 aruco_marker_localizer:
   ros__parameters:
