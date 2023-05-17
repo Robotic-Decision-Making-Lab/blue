@@ -36,6 +36,7 @@ mavros:
       - local_position
       - rc_io
       - param
+      - vision_pose
 
 mavros_node:
   ros__parameters:
