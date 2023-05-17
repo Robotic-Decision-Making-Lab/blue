@@ -29,6 +29,7 @@
 #include "blue_dynamics/hydrodynamics.hpp"
 #include "blue_dynamics/thruster_dynamics.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
+#include "mavros_msgs/srv/message_interval.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/battery_state.hpp"
@@ -124,6 +125,9 @@ private:
     std::shared_ptr<std_srvs::srv::SetBool::Request> request,
     std::shared_ptr<std_srvs::srv::SetBool::Response> response);
 
+  void setMessageRates(const std::vector<int64_t> & msg_ids, const std::vector<float> & rates);
+  void setMessageRate(int64_t msg_id, float rate);
+
   bool armed_;
 
   // Publishers
@@ -135,9 +139,13 @@ private:
 
   // Timers
   rclcpp::TimerBase::SharedPtr control_loop_timer_;
+  rclcpp::TimerBase::SharedPtr set_message_rate_timer_;
 
   // Services
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr arm_srv_;
+
+  // Service clients
+  rclcpp::Client<mavros_msgs::srv::MessageInterval>::SharedPtr set_msg_interval_client_;
 };
 
 }  // namespace blue::control

@@ -29,8 +29,6 @@ from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from std_srvs.srv import SetBool
 
-# TODO(evan): Add message requests for pose, attitude, and battery
-
 
 class Manager(Node):
     """Provides an interface between custom controllers and the BlueROV2."""
@@ -78,7 +76,7 @@ class Manager(Node):
         # Service clients
         def wait_for_client(client) -> None:
             while not client.wait_for_service(timeout_sec=1.0):
-                ...
+                self.get_logger().info(f"Waiting for {client.srv_name}...")
 
         self.set_param_srv_client = self.create_client(
             SetParameters,

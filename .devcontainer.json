@@ -4,7 +4,7 @@
   "build": {
     "args": {
       "WORKSPACE": "${containerWorkspaceFolder}",
-      "ROS_DISTRO": "humble"
+      "ROS_DISTRO": "rolling"
     }
   },
   "remoteUser": "blue",
