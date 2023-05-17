@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "blue_control/base_controller.hpp"
+#include "blue_control/controller.hpp"
 
 namespace blue::control
 {
@@ -38,7 +38,7 @@ Eigen::MatrixXd convertVectorToEigenMatrix(
   return mat;
 }
 
-BaseController::BaseController(const std::string & node_name)
+Controller::Controller(const std::string & node_name)
 : Node(std::move(node_name)),
   armed_(false)
 {
@@ -159,7 +159,7 @@ BaseController::BaseController(const std::string & node_name)
   });
 }
 
-void BaseController::armControllerCb(
+void Controller::armControllerCb(
   const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
   std::shared_ptr<std_srvs::srv::SetBool::Response> response)
 {
@@ -178,7 +178,7 @@ void BaseController::armControllerCb(
   }
 }
 
-void BaseController::setMessageRates(
+void Controller::setMessageRates(
   const std::vector<int64_t> & msg_ids, const std::vector<float> & rates)
 {
   // Check that the message IDs and rates are the same length
@@ -196,7 +196,7 @@ void BaseController::setMessageRates(
   }
 }
 
-void BaseController::setMessageRate(int64_t msg_id, float rate)
+void Controller::setMessageRate(int64_t msg_id, float rate)
 {
   auto request = std::make_shared<mavros_msgs::srv::MessageInterval::Request>();
 

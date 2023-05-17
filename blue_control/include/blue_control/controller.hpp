@@ -66,15 +66,15 @@ Eigen::MatrixXd convertVectorToEigenMatrix(
 /**
  * @brief A base class for custom BlueROV2 controllers.
  */
-class BaseController : public rclcpp::Node
+class Controller : public rclcpp::Node
 {
 public:
   /**
-   * @brief Construct a new BaseController object.
+   * @brief Construct a new Controller object.
    *
    * @param node_name The name of the ROS node.
    */
-  explicit BaseController(const std::string & node_name);
+  explicit Controller(const std::string & node_name);
 
 protected:
   /**

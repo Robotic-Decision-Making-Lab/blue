@@ -45,7 +45,7 @@ include_directories(
 )
 
 # Create a library for the base_controller class
-add_library(base_controller include/blue_control/base_controller.hpp src/base_controller.cpp)
+add_library(base_controller include/blue_control/controller.hpp src/controller.cpp)
 ament_target_dependencies(base_controller ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 # Create a library for the custom controllers; link this to the base controller
