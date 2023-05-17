@@ -29,6 +29,7 @@
 #include "blue_dynamics/hydrodynamics.hpp"
 #include "blue_dynamics/thruster_dynamics.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
+#include "mavros_msgs/srv/message_interval.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/battery_state.hpp"
@@ -124,6 +125,25 @@ private:
     std::shared_ptr<std_srvs::srv::SetBool::Request> request,
     std::shared_ptr<std_srvs::srv::SetBool::Response> response);
 
+  /**
+   * @brief Set custom MAVLink message rates.
+   *
+   * @note This is inspired by the Orca4 project:
+   * https://github.com/clydemcqueen/orca4/tree/main
+   *
+   * @param msg_ids The message IDs to set the rates for.
+   * @param rates The frequencies that the FCU should send the messages at.
+   */
+  void setMessageRates(const std::vector<int64_t> & msg_ids, const std::vector<float> & rates);
+
+  /**
+   * @brief Set the rate of a MAVLink message.
+   *
+   * @param msg_id The message ID to set the rate for.
+   * @param rate The frequency that the FCU should send the message at.
+   */
+  void setMessageRate(int64_t msg_id, float rate);
+
   bool armed_;
 
   // Publishers
@@ -135,9 +155,13 @@ private:
 
   // Timers
   rclcpp::TimerBase::SharedPtr control_loop_timer_;
+  rclcpp::TimerBase::SharedPtr set_message_rate_timer_;
 
   // Services
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr arm_srv_;
+
+  // Service clients
+  rclcpp::Client<mavros_msgs::srv::MessageInterval>::SharedPtr set_msg_interval_client_;
 };
 
 }  // namespace blue::control

@@ -18,34 +18,34 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-import os
-from glob import glob
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
+from launch_ros.actions import Node
 
-from setuptools import setup
 
-package_name = "blue_manager"
+def generate_launch_description() -> LaunchDescription:
+    """Generate a launch description for the Blue manager interface.
 
-setup(
-    name=package_name,
-    version="0.0.1",
-    packages=[package_name],
-    data_files=[
-        ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
-        ("share/" + package_name, ["package.xml"]),
-        (os.path.join("share", package_name), glob("launch/*.launch.py")),
-    ],
-    install_requires=["setuptools"],
-    zip_safe=True,
-    maintainer="Evan Palmer",
-    maintainer_email="evanp922@gmail.com",
-    description=(
-        "An interface for enabling individual thruster control on the BlueROV2."
-    ),
-    license="MIT",
-    tests_require=["pytest"],
-    entry_points={
-        "console_scripts": [
-            "blue_manager = blue_manager.manager:main",
-        ],
-    },
-)
+    Returns:
+        LaunchDescription: The Blue manager launch description.
+    """
+    args = [
+        DeclareLaunchArgument(
+            "config_filepath",
+            default_value=None,
+            description="The path to the configuration YAML file",
+        ),
+    ]
+
+    nodes = [
+        Node(
+            package="blue_manager",
+            executable="blue_manager",
+            name="blue_manager",
+            output="screen",
+            parameters=[LaunchConfiguration("config_filepath")],
+        ),
+    ]
+
+    return LaunchDescription(args + nodes)

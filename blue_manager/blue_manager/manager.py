@@ -76,7 +76,7 @@ class Manager(Node):
         # Service clients
         def wait_for_client(client) -> None:
             while not client.wait_for_service(timeout_sec=1.0):
-                ...
+                self.get_logger().info(f"Waiting for {client.srv_name}...")
 
         self.set_param_srv_client = self.create_client(
             SetParameters,

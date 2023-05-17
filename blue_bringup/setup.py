@@ -23,7 +23,7 @@ from glob import glob
 
 from setuptools import setup
 
-package_name = "blue_manager"
+package_name = "blue_bringup"
 
 setup(
     name=package_name,
@@ -33,19 +33,16 @@ setup(
         ("share/ament_index/resource_index/packages", ["resource/" + package_name]),
         ("share/" + package_name, ["package.xml"]),
         (os.path.join("share", package_name), glob("launch/*.launch.py")),
+        (os.path.join("share", package_name, "config"), glob("config/*.yaml")),
     ],
     install_requires=["setuptools"],
     zip_safe=True,
     maintainer="Evan Palmer",
     maintainer_email="evanp922@gmail.com",
-    description=(
-        "An interface for enabling individual thruster control on the BlueROV2."
-    ),
+    description="Entrypoints for the Blue project.",
     license="MIT",
     tests_require=["pytest"],
     entry_points={
-        "console_scripts": [
-            "blue_manager = blue_manager.manager:main",
-        ],
+        "console_scripts": [],
     },
 )
