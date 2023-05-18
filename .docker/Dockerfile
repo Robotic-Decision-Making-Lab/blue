@@ -47,6 +47,25 @@ RUN apt-get -q update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Gazebo Garden: https://gazebosim.org/docs/garden/install_ubuntu
+RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+RUN apt-get update \
+    && apt-get -y --quiet --no-install-recommends install \
+    gz-garden \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ArduPilot and ardupilot_gazebo dependencies
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
+    && apt-get -q install --no-install-recommends -y \
+    python3-wxgtk4.0 \
+    rapidjson-dev \
+    xterm \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install all ROS dependencies
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
@@ -81,6 +100,36 @@ WORKDIR /home/$USERNAME
 RUN wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/install_geographiclib_datasets.sh \
     && chmod +x install_geographiclib_datasets.sh \
     && sudo ./install_geographiclib_datasets.sh
+
+# Clone ArduSub
+WORKDIR /home/$USERNAME
+RUN git clone https://github.com/ArduPilot/ardupilot.git --recurse-submodules
+
+# Install ArduSub prereqs (this also appends to .bashrc)
+WORKDIR /home/$USERNAME/ardupilot
+ENV SKIP_AP_EXT_ENV=1 SKIP_AP_GRAPHIC_ENV=1 SKIP_AP_COV_ENV=1 SKIP_AP_GIT_CHECK=1
+RUN Tools/environment_install/install-prereqs-ubuntu.sh -y
+
+# Build ArduSub
+# Note: waf will capture all of the environment variables in ardupilot/.lock-waf_linux_build.
+# Any change to enviroment variables will cause a re-build.
+# To avoid this call sim_vehicle.py with the "--no-rebuild" option.
+WORKDIR /home/$USERNAME/ardupilot
+RUN modules/waf/waf-light configure --board sitl \
+    && modules/waf/waf-light build --target bin/ardusub
+
+# Clone ardupilot_gazebo code
+WORKDIR /home/$USERNAME
+RUN git clone https://github.com/ArduPilot/ardupilot_gazebo.git
+
+# Build ardupilot_gazebo
+RUN [ "/bin/bash" , "-c" , " \
+    cd ardupilot_gazebo \
+    && mkdir build \
+    && cd build \
+    && cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    && make -j4" ]
+
 
 # Switch back to root user
 USER root
