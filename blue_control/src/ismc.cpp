@@ -29,12 +29,12 @@ namespace blue::control
 {
 
 ISMC::ISMC()
-: BaseController("ismc")
+: Controller("ismc")
 {
   // Declare the ROS parameters specific to this controller
   // There are additional parameters defined by the base controller as well
   this->declare_parameter(
-    "convergence_rate", std::vector<double>{100.0, 100.0, 100.0, 100.0, 100.0, 100.0});
+    "convergence_rate", std::vector<double>({100.0, 100.0, 100.0, 100.0, 100.0, 100.0}));
   this->declare_parameter("sliding_gain", 0.0);
   this->declare_parameter("boundary_thickness", 0.0);
 
@@ -73,7 +73,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
 
   // Make sure to update the velocity error integral term BEFORE calculating the sliding surface
   // (the integral is up to time "t")
-  total_velocity_error_ += velocity_error;
+  total_velocity_error_ += velocity_error * dt_;
 
   // Calculate the sliding surface
   Eigen::VectorXd surface = velocity_error + convergence_rate_ * total_velocity_error_;  // NOLINT

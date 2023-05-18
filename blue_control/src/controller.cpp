@@ -18,7 +18,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include "blue_control/base_controller.hpp"
+#include "blue_control/controller.hpp"
 
 namespace blue::control
 {
@@ -38,7 +38,7 @@ Eigen::MatrixXd convertVectorToEigenMatrix(
   return mat;
 }
 
-BaseController::BaseController(const std::string & node_name)
+Controller::Controller(const std::string & node_name)
 : Node(std::move(node_name)),
   armed_(false)
 {
@@ -59,6 +59,7 @@ BaseController::BaseController(const std::string & node_name)
   this->declare_parameter("num_thrusters", 8);
   this->declare_parameter("msg_ids", std::vector<int>({31, 32}));
   this->declare_parameter("msg_rates", std::vector<double>({100, 100}));
+  this->declare_parameter("control_loop_freq", 200.0);
 
   // I'm so sorry for this
   // You can blame the ROS devs for not supporting nested arrays for parameters
@@ -149,17 +150,18 @@ BaseController::BaseController(const std::string & node_name)
     std::chrono::seconds(10),
     [this, msg_ids, msg_rates]() -> void { setMessageRates(msg_ids, msg_rates); });
 
-  // Run the controller at a rate of 200 Hz
-  // ArduSub only runs at a rate of 100 Hz, but we want to make sure to run the controller at
-  // a faster rate than the autopilot
-  control_loop_timer_ = this->create_wall_timer(std::chrono::milliseconds(5), [this]() -> void {
-    if (armed_) {
-      rc_override_pub_->publish(update());
-    }
-  });
+  // Convert the control loop frequency to seconds
+  dt_ = 1 / this->get_parameter("control_loop_freq").as_double();
+
+  control_loop_timer_ =
+    this->create_wall_timer(std::chrono::duration<double>(dt_), [this]() -> void {
+      if (armed_) {
+        rc_override_pub_->publish(update());
+      }
+    });
 }
 
-void BaseController::armControllerCb(
+void Controller::armControllerCb(
   const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
   std::shared_ptr<std_srvs::srv::SetBool::Response> response)
 {
@@ -178,7 +180,7 @@ void BaseController::armControllerCb(
   }
 }
 
-void BaseController::setMessageRates(
+void Controller::setMessageRates(
   const std::vector<int64_t> & msg_ids, const std::vector<float> & rates)
 {
   // Check that the message IDs and rates are the same length
@@ -196,7 +198,7 @@ void BaseController::setMessageRates(
   }
 }
 
-void BaseController::setMessageRate(int64_t msg_id, float rate)
+void Controller::setMessageRate(int64_t msg_id, float rate)
 {
   auto request = std::make_shared<mavros_msgs::srv::MessageInterval::Request>();
 

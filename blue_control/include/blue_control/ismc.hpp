@@ -22,7 +22,7 @@
 
 #include <Eigen/Dense>
 
-#include "blue_control/base_controller.hpp"
+#include "blue_control/controller.hpp"
 #include "blue_msgs/msg/reference.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 
@@ -32,7 +32,7 @@ namespace blue::control
 /**
  * @brief Integral sliding mode controller for the BlueROV2.
  */
-class ISMC : public BaseController
+class ISMC : public Controller
 {
 public:
   /**
