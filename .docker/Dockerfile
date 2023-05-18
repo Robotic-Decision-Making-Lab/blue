@@ -22,6 +22,7 @@ RUN apt-get -q update \
     clang-tidy \
     clang-tools \
     python3-pip \
+    python3-dev \
     software-properties-common \
     && apt-get autoremove -y \
     && apt-get clean -y \
@@ -130,8 +131,6 @@ RUN apt-get -q update \
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
     && apt-get -q install --no-install-recommends -y \
-    python3-dev \
-    python3-pip \
     iputils-ping \
     net-tools \
     gdb \
