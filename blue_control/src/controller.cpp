@@ -153,9 +153,6 @@ Controller::Controller(const std::string & node_name)
   // Convert the control loop frequency to seconds
   dt_ = 1 / this->get_parameter("control_loop_freq").as_double();
 
-  // Run the controller at a rate of 200 Hz
-  // ArduSub only runs at a rate of 100 Hz, but we want to make sure to run the controller
-  // at a faster rate than the autopilot
   control_loop_timer_ =
     this->create_wall_timer(std::chrono::duration<double>(dt_), [this]() -> void {
       if (armed_) {

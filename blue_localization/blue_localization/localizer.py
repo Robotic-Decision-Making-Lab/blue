@@ -51,7 +51,7 @@ class Localizer(Node, ABC):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        # SLAM poses are sent to the ArduPilot EKF
+        # Poses are sent to the ArduPilot EKF
         self.localization_pub = self.create_publisher(
             PoseStamped, "/mavros/vision_pose/pose", 1
         )
