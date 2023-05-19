@@ -14,7 +14,8 @@
     "--security-opt=seccomp:unconfined",
     "--security-opt=apparmor:unconfined",
     "--volume=/dev:/dev",
-    "--privileged"
+    "--privileged",
+    "--volume=/run/user/1000:/run/user/1000"
   ],
   "containerEnv": {
     "DISPLAY": "${localEnv:DISPLAY}",
