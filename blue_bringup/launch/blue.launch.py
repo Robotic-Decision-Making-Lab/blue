@@ -76,18 +76,26 @@ def generate_launch_description() -> LaunchDescription:
             ),
         ),
         DeclareLaunchArgument(
+            "use_sim",
+            default_value="false",
+            description="Automatically start Gazebo.",
+        ),
+        DeclareLaunchArgument(
+            "use_ardusub",
+            default_value="false",
+            description=(
+                "Automatically start ArduSub. This is automatically set to true"
+                " when running Gazebo."
+            ),
+        ),
+        DeclareLaunchArgument(
             "description_package",
             default_value="blue_description",
             description=(
                 "The description package with the BlueROV2 models. This is typically"
                 " not set, but is available in case another description package has"
-                " been defined"
+                " been defined."
             ),
-        ),
-        DeclareLaunchArgument(
-            "use_sim",
-            default_value="false",
-            description="Automatically start Gazebo.",
         ),
         DeclareLaunchArgument(
             "gazebo_world_file",
