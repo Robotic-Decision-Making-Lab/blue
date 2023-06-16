@@ -29,7 +29,7 @@ if(BUILD_TESTING)
 endif()
 
 install(
-  DIRECTORY models worlds
+  DIRECTORY gazebo
   DESTINATION share/${PROJECT_NAME}
 )
 

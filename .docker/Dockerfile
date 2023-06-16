@@ -214,5 +214,4 @@ RUN python3 -m pip install \
 ARG WORKSPACE
 RUN echo "if [ -f ${WORKSPACE}/install/setup.bash ]; then source ${WORKSPACE}/install/setup.bash; fi" >> /home/$USERNAME/.bashrc \
     && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc \
-    && echo "export GZ_SIM_SYSTEM_PLUGIN_PATH=/home/$USERNAME/ardupilot_gazebo/build" >> /home/$USERNAME/.bashrc \
-    && echo "export GZ_SIM_RESOURCE_PATH=${WORKSPACE}/" >> /home/$USERNAME/.bashrc
+    && echo "source ${WORKSPACE}/env.sh" >> /home/$USERNAME/.bashrc

@@ -8,14 +8,22 @@
     }
   },
   "remoteUser": "blue",
+  // "runArgs": [
+  //   "--network=host",
+  //   "--cap-add=SYS_PTRACE",
+  //   "--security-opt=seccomp:unconfined",
+  //   "--security-opt=apparmor:unconfined",
+  //   "--volume=/dev:/dev",
+  //   "--privileged",
+  //   "--volume=/run/user/1000:/run/user/1000"
+  // ],
   "runArgs": [
     "--network=host",
     "--cap-add=SYS_PTRACE",
     "--security-opt=seccomp:unconfined",
     "--security-opt=apparmor:unconfined",
     "--volume=/dev:/dev",
-    "--privileged",
-    "--volume=/run/user/1000:/run/user/1000"
+    "--privileged"
   ],
   "containerEnv": {
     "DISPLAY": "${localEnv:DISPLAY}",
