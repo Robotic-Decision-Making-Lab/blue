@@ -119,5 +119,6 @@
         "ms-python.flake8"
       ]
     }
-  }
+  },
+  "postStartCommand": "vcs import < workspace.repos"
 }
