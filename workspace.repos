@@ -1,6 +1,0 @@
-repositories:
-
-  bluerov2_ignition:
-    type: git
-    url: https://github.com/evan-palmer/bluerov2_ignition
-    version: feature-bluerov2-heavy-model

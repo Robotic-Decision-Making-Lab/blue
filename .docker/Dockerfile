@@ -52,7 +52,6 @@ RUN apt-get -q update \
 # Install all ROS dependencies
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
-    && vcs import < ./src/blue/workspace.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
     && rm -rf src \
@@ -161,7 +160,6 @@ COPY . src/blue
 
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
-    && vcs import < ./src/blue/workspace.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9" \
     && apt-get autoremove -y \
@@ -186,7 +184,6 @@ COPY . src/blue
 
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
-    && vcs import < ./src/blue/workspace.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9" \
     && rm -rf src \
@@ -216,4 +213,6 @@ RUN python3 -m pip install \
 
 ARG WORKSPACE
 RUN echo "if [ -f ${WORKSPACE}/install/setup.bash ]; then source ${WORKSPACE}/install/setup.bash; fi" >> /home/$USERNAME/.bashrc \
-    && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc
+    && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc \
+    && echo "export GZ_SIM_SYSTEM_PLUGIN_PATH=/home/$USERNAME/ardupilot_gazebo/build" >> /home/$USERNAME/.bashrc \
+    && echo "export GZ_SIM_RESOURCE_PATH=${WORKSPACE}/" >> /home/$USERNAME/.bashrc

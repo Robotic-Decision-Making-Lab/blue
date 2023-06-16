@@ -31,7 +31,9 @@
           "*.world": "xml",
           "*.xacro": "xml",
           "*.srdf": "xml",
-          "*.rviz": "yaml"
+          "*.rviz": "yaml",
+          "*.config": "xml",
+          "*.sdf": "xml"
         },
         "terminal.integrated.defaultProfile.linux": "bash",
         "files.insertFinalNewline": true,
@@ -119,6 +121,5 @@
         "ms-python.flake8"
       ]
     }
-  },
-  "postStartCommand": "vcs import < workspace.repos"
+  }
 }

@@ -19,7 +19,12 @@
 # THE SOFTWARE.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.actions import (
+    DeclareLaunchArgument,
+    ExecuteProcess,
+    IncludeLaunchDescription,
+)
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -37,14 +42,14 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "config",
             default_value="blue.yaml",
-            description="The ROS 2 parameters configuration file",
+            description="The ROS 2 parameters configuration file.",
         ),
         DeclareLaunchArgument(
             "controller",
             default_value="ismc",
             description=(
                 "The controller to use; this should be the same name as the"
-                " controller's executable"
+                " controller's executable."
             ),
             choices=["ismc"],
         ),
@@ -70,7 +75,30 @@ def generate_launch_description() -> LaunchDescription:
                 " set to true when using the motion capture system for localization."
             ),
         ),
+        DeclareLaunchArgument(
+            "description_package",
+            default_value="blue_description",
+            description=(
+                "The description package with the BlueROV2 models. This is typically"
+                " not set, but is available in case another description package has"
+                " been defined"
+            ),
+        ),
+        DeclareLaunchArgument(
+            "use_sim",
+            default_value="false",
+            description="Automatically start Gazebo.",
+        ),
+        DeclareLaunchArgument(
+            "gazebo_world_file",
+            default_value="bluerov2_heavy_underwater.world",
+            description="The world configuration to load if using Gazebo.",
+        ),
     ]
+
+    description_package = LaunchConfiguration("description_package")
+    use_sim = LaunchConfiguration("use_sim")
+    gazebo_world_file = LaunchConfiguration("gazebo_world_file")
 
     config_filepath = PathJoinSubstitution(
         [
@@ -86,6 +114,28 @@ def generate_launch_description() -> LaunchDescription:
             executable="mavros_node",
             output="screen",
             parameters=[config_filepath],
+        ),
+    ]
+
+    processes = [
+        ExecuteProcess(
+            cmd=[
+                "gz",
+                "sim",
+                "-v",
+                "3",
+                "-r",
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare(description_package),
+                        "gazebo",
+                        "worlds",
+                        gazebo_world_file,
+                    ]
+                ),
+            ],
+            output="screen",
+            condition=IfCondition(use_sim),
         ),
     ]
 
@@ -125,4 +175,4 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
-    return LaunchDescription(args + nodes + includes)
+    return LaunchDescription(args + nodes + processes + includes)
