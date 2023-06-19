@@ -1,0 +1,79 @@
+blue_manager:
+  ros__parameters:
+    num_thrusters: 8
+    mode_change_timeout: 1.0
+    mode_change_retries: 3
+
+ismc:
+  ros__parameters:
+    mass: 11.5
+    buoyancy: 112.80
+    weight: 114.80
+    inertia_tensor_coeff: [0.16, 0.16, 0.16]
+    added_mass_coeff: [-5.50, -12.70, -14.60, -0.12, -0.12, -0.12]
+    linear_damping_coeff: [-4.03, -6.22, -5.18, -0.07, -0.07, -0.07]
+    quadratic_damping_coeff: [-18.18, -21.66, -36.99, -1.55, -1.55, -1.55]
+    center_of_gravity: [0.0, 0.0, 0.0]
+    center_of_buoyancy: [0.0, 0.0, 0.0]
+    ocean_current: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    num_thrusters: 8
+    tcm: [0.707,   0.707,  -0.707, -0.707,  0.0,    0.0,    0.0,   0.0,
+          -0.707,  0.707,  -0.707, 0.707,   0.0,    0.0,    0.0,   0.0,
+          0.0,     0.0,    0.0,    0.0,     -1.0,   1.0,    1.0,   -1.0,
+          0.06,    -0.06,  0.06,   -0.06,   -0.218, -0.218, 0.218, 0.218,
+          0.06,    0.06,   -0.06,  -0.06,   0.120,  -0.120, 0.120, -0.120,
+          -0.1888, 0.1888, 0.1888, -0.1888, 0.0,    0.0,    0.0,   0.0]
+    msg_ids: [31, 32]
+    msg_rates: [100.0, 100.0]
+    control_loop_freq: 200.0
+
+aruco_marker_localizer:
+  ros__parameters:
+    camera_matrix:
+      [1078.17559, 0.0,        1010.57086,
+       0.0,        1076.46176, 463.06243,
+       0.0,        0.0,        1.0]
+    distortion_coefficients:
+      [0.019645, 0.007271, -0.004324, -0.001628, 0.000000]
+    projection_matrix:
+      [1108.25366, 0.0,        1003.75555, 0.0,
+       0.0,        1108.39001, 456.92861,  0.0,
+       0.0,        0.0,        1.0,        0.0]
+
+camera:
+  ros__parameters:
+    port: 5600
+
+qualisys_mocap:
+  ros__parameters:
+    ip: "192.168.0.0"
+    port: 22223
+    version: "1.22"
+    body: "bluerov"
+
+qualisys_localizer:
+  ros__parameters:
+    body: "bluerov" # This should be the same as the body parameter setting for the qualisys_mocap node
+
+mavros:
+  ros__parameters:
+    system_id: 255
+    plugin_allowlist:
+      - sys_status
+      - command
+      - imu
+      - local_position
+      - rc_io
+      - param
+      - vision_pose
+
+mavros_node:
+  ros__parameters:
+    fcu_url: "tcp://localhost"
+    gcs_url: "udp://@localhost:14550"
+
+mavros/local_position:
+  ros__parameters:
+    frame_id: "map"
+    tf:
+      send: false

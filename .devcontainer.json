@@ -14,7 +14,8 @@
     "--security-opt=seccomp:unconfined",
     "--security-opt=apparmor:unconfined",
     "--volume=/dev:/dev",
-    "--privileged"
+    "--privileged",
+    "--volume=/run/user/1000:/run/user/1000"
   ],
   "containerEnv": {
     "DISPLAY": "${localEnv:DISPLAY}",
@@ -30,7 +31,9 @@
           "*.world": "xml",
           "*.xacro": "xml",
           "*.srdf": "xml",
-          "*.rviz": "yaml"
+          "*.rviz": "yaml",
+          "*.config": "xml",
+          "*.sdf": "xml"
         },
         "terminal.integrated.defaultProfile.linux": "bash",
         "files.insertFinalNewline": true,
@@ -118,5 +121,6 @@
         "ms-python.flake8"
       ]
     }
-  }
+  },
+  "postStartCommand": "vcs import < blue.repos"
 }
