@@ -162,7 +162,7 @@ COPY . src/blue
 
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
-    && vcs import src < src/blue/workspace.repos \
+    && vcs import src < src/blue/blue.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9" \
     && apt-get autoremove -y \
@@ -188,7 +188,7 @@ COPY . src/blue
 
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
-    && vcs import src < src/blue/workspace.repos \
+    && vcs import src < src/blue/blue.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9" \
     && rm -rf src \
