@@ -45,8 +45,8 @@ protected:
 
 private:
   // Hyperparameters used by the ISMC
-  Eigen::VectorXd total_velocity_error_;
-  Eigen::MatrixXd convergence_rate_;
+  blue::dynamics::Vector6d total_velocity_error_;
+  blue::dynamics::Matrix6d convergence_rate_;
   double sliding_gain_;
   double boundary_thickness_;
 

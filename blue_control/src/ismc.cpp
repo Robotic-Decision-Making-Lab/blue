@@ -22,6 +22,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <tf2_eigen/tf2_eigen.hpp>
 
 #include "blue_dynamics/thruster_dynamics.hpp"
 
@@ -43,7 +44,7 @@ ISMC::ISMC()
   convergence_rate_ = convergence_diag.asDiagonal().toDenseMatrix();
   sliding_gain_ = this->get_parameter("sliding_gain").as_double();
   boundary_thickness_ = this->get_parameter("boundary_thickness").as_double();
-  total_velocity_error_ = Eigen::VectorXd::Zero(6);
+  total_velocity_error_ = blue::dynamics::Vector6d::Zero();
 
   // Update the reference signal when a new command is received
   cmd_sub_ = this->create_subscription<blue_msgs::msg::Reference>(
@@ -52,36 +53,35 @@ ISMC::ISMC()
 
 mavros_msgs::msg::OverrideRCIn ISMC::update()
 {
-  Eigen::VectorXd velocity(6);  // NOLINT
-  velocity << odom_.twist.twist.linear.x, odom_.twist.twist.linear.y, odom_.twist.twist.linear.z,
-    odom_.twist.twist.angular.x, odom_.twist.twist.angular.y, odom_.twist.twist.angular.z;
+  blue::dynamics::Vector6d velocity;
+  tf2::fromMsg(odom_.twist.twist, velocity);
 
   // Calculate the velocity error
-  Eigen::VectorXd velocity_error(6);
-  velocity_error << cmd_.twist.linear.x, cmd_.twist.linear.y, cmd_.twist.linear.z,
-    cmd_.twist.angular.x, cmd_.twist.angular.y, cmd_.twist.angular.z;
+  blue::dynamics::Vector6d velocity_error;
+  tf2::fromMsg(cmd_.twist, velocity_error);
   velocity_error -= velocity;
 
-  Eigen::VectorXd desired_accel(6);  // NOLINT
+  // There is no suitable tf2_eigen function for Accel types :(
+  blue::dynamics::Vector6d desired_accel;  // NOLINT
   desired_accel << cmd_.accel.linear.x, cmd_.accel.linear.y, cmd_.accel.linear.z,
     cmd_.accel.angular.x, cmd_.accel.angular.y, cmd_.accel.angular.z;
 
   // Get the current rotation of the vehicle in the inertial frame
-  Eigen::Quaterniond orientation = Eigen::Quaterniond(
-    odom_.pose.pose.orientation.w, odom_.pose.pose.orientation.x, odom_.pose.pose.orientation.y,
-    odom_.pose.pose.orientation.z);
+  Eigen::Quaterniond orientation;
+  tf2::fromMsg(odom_.pose.pose.orientation, orientation);
 
   // Make sure to update the velocity error integral term BEFORE calculating the sliding surface
   // (the integral is up to time "t")
   total_velocity_error_ += velocity_error * dt_;
 
   // Calculate the sliding surface
-  Eigen::VectorXd surface = velocity_error + convergence_rate_ * total_velocity_error_;  // NOLINT
+  blue::dynamics::Vector6d surface =
+    velocity_error + convergence_rate_ * total_velocity_error_;  // NOLINT
 
   // Apply the sign function to the surface
   surface.unaryExpr([this](double x) { return tanh(x / boundary_thickness_); });
 
-  const Eigen::VectorXd forces =
+  const blue::dynamics::Vector6d forces =
     hydrodynamics_.inertia.getInertia() * (desired_accel + convergence_rate_ * velocity_error) +
     hydrodynamics_.coriolis.calculateCoriolis(velocity) * velocity +
     hydrodynamics_.damping.calculateDamping(velocity) * velocity +
@@ -89,6 +89,8 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
     sliding_gain_ * surface;
 
   // Multiply the desired forces by the pseudoinverse of the thruster configuration matrix
+  // The size of this vector will depend on the number of thrusters so we don't assign it to a
+  // fixed-size matrix
   const Eigen::VectorXd pwms = tcm_.completeOrthogonalDecomposition().pseudoInverse() * forces;
 
   // Convert the thruster forces to PWM values
@@ -106,7 +108,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
   const std::tuple<int, int> deadband = blue::dynamics::calculateDeadZone(battery_state_.voltage);
 
   for (uint16_t i = 0; i < pwms.size(); i++) {
-    uint16_t pwm = static_cast<uint16_t>(pwms[i]);
+    auto pwm = static_cast<uint16_t>(pwms[i]);
 
     // Apply the deadband to the PWM values
     if (pwm > std::get<0>(deadband) && pwm < std::get<1>(deadband)) {

@@ -26,6 +26,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   std_srvs
   eigen3_cmake_module
   Eigen3
+  tf2_eigen
 )
 
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
