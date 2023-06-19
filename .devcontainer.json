@@ -122,5 +122,5 @@
       ]
     }
   },
-  "postStartCommand": "vcs import < workspace.repos"
+  "postStartCommand": "vcs import < blue.repos"
 }

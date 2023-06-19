@@ -19,11 +19,6 @@ toward closing.
 
 - Fixes # (issue)
 
-## Files Changed
-
-Please provide a list of all files changed and a summary of the changes made to
-the respective files.
-
 ## Testing
 
 Please provide a clear and concise description of the testing performed.

@@ -144,9 +144,6 @@ RUN [ "/bin/bash" , "-c" , " \
 RUN echo 'export GZ_SIM_SYSTEM_PLUGIN_PATH=$HOME/ardupilot_gazebo/build:${GZ_SIM_SYSTEM_PLUGIN_PATH}' >> /home/$USERNAME/.bashrc \
     && echo 'export GZ_SIM_RESOURCE_PATH=$HOME/ardupilot_gazebo/models:$HOME/ardupilot_gazebo/worlds:${GZ_SIM_RESOURCE_PATH}' >> /home/$USERNAME/.bashrc
 
-# Set the build version to Garden
-ENV GZ_VERSION=garden
-
 # Switch back to the root user
 USER root
 ENV USER=root
