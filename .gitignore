@@ -44,4 +44,7 @@ log/
 __pycache__
 
 # workspace.repos
-bluerov2_ignition
+ros_gz/
+
+# ArduSub Sim
+eeprom.bin

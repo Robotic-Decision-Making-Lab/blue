@@ -1,11 +1,18 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
+
   <name>blue_bringup</name>
   <version>0.0.1</version>
-  <description>Entrypoints for the Blue project.</description>
+  <description>Entrypoints for the Blue project</description>
+
   <maintainer email="evanp922@gmail.com">Evan Palmer</maintainer>
   <license>MIT</license>
+
+  <url type="repository">https://github.com/evan-palmer/blue.git</url>
+  <url type="bugtracker">https://github.com/evan-palmer/blue/issues</url>
+
+  <author>Evan Palmer</author>
 
   <exec_depend>mavros</exec_depend>
   <exec_depend>mavros_extras</exec_depend>

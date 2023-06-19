@@ -37,11 +37,10 @@ def generate_launch_description() -> LaunchDescription:
     Returns:
         The Blue ROS 2 launch description.
     """
-    # Declare the launch arguments
     args = [
         DeclareLaunchArgument(
             "config",
-            default_value="blue.yaml",
+            default_value="bluerov2_heavy.yaml",
             description="The ROS 2 parameters configuration file.",
         ),
         DeclareLaunchArgument(
@@ -81,14 +80,6 @@ def generate_launch_description() -> LaunchDescription:
             description="Automatically start Gazebo.",
         ),
         DeclareLaunchArgument(
-            "use_ardusub",
-            default_value="false",
-            description=(
-                "Automatically start ArduSub. This is automatically set to true"
-                " when running Gazebo."
-            ),
-        ),
-        DeclareLaunchArgument(
             "description_package",
             default_value="blue_description",
             description=(
@@ -101,6 +92,14 @@ def generate_launch_description() -> LaunchDescription:
             "gazebo_world_file",
             default_value="bluerov2_heavy_underwater.world",
             description="The world configuration to load if using Gazebo.",
+        ),
+        DeclareLaunchArgument(
+            "ardusub_params_file",
+            default_value="bluerov2_heavy.parm",
+            description=(
+                "The ArduSub parameters that the BlueROV2 should use if running in"
+                " simulation."
+            ),
         ),
     ]
 
@@ -116,6 +115,14 @@ def generate_launch_description() -> LaunchDescription:
         ]
     )
 
+    ardusub_params_filepath = PathJoinSubstitution(
+        [
+            FindPackageShare("blue_description"),
+            "config",
+            LaunchConfiguration("ardusub_params_file"),
+        ]
+    )
+
     nodes = [
         Node(
             package="mavros",
@@ -123,9 +130,18 @@ def generate_launch_description() -> LaunchDescription:
             output="screen",
             parameters=[config_filepath],
         ),
+        Node(
+            package="ros_gz_bridge",
+            executable="parameter_bridge",
+            arguments=[
+                "/model/bluerov2_heavy/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
+            ],
+            output="screen",
+        ),
     ]
 
     processes = [
+        # Launch Ignition Gazebo - this launches Garden (what ardupilot_gazebo uses)
         ExecuteProcess(
             cmd=[
                 "gz",
@@ -145,9 +161,25 @@ def generate_launch_description() -> LaunchDescription:
             output="screen",
             condition=IfCondition(use_sim),
         ),
+        # Launch ArduSub for simulation purposes
+        ExecuteProcess(
+            cmd=[
+                "ardusub",
+                "-S",
+                "-w",
+                "-M",
+                "JSON",
+                "--defaults",
+                ardusub_params_filepath,
+                "-I0",
+                "--home",
+                "44.65870,-124.06556,0.0,270.0",  # my not-so-secrect surf spot
+            ],
+            output="screen",
+            condition=IfCondition(use_sim),
+        ),
     ]
 
-    # Declare additional launch files to run
     includes = [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(

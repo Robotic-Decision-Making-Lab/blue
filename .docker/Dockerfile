@@ -144,6 +144,7 @@ RUN [ "/bin/bash" , "-c" , " \
 RUN echo 'export GZ_SIM_SYSTEM_PLUGIN_PATH=$HOME/ardupilot_gazebo/build:${GZ_SIM_SYSTEM_PLUGIN_PATH}' >> /home/$USERNAME/.bashrc \
     && echo 'export GZ_SIM_RESOURCE_PATH=$HOME/ardupilot_gazebo/models:$HOME/ardupilot_gazebo/worlds:${GZ_SIM_RESOURCE_PATH}' >> /home/$USERNAME/.bashrc
 
+# Set the build version to Garden
 ENV GZ_VERSION=garden
 
 # Switch back to the root user
@@ -152,6 +153,7 @@ ENV USER=root
 
 FROM sim as source
 
+ENV GZ_VERSION=garden
 ENV ROS_UNDERLAY /root/ws_blue/install
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR $ROS_UNDERLAY/..
@@ -160,6 +162,7 @@ COPY . src/blue
 
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
+    && vcs import src < src/blue/workspace.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9" \
     && apt-get autoremove -y \
@@ -176,6 +179,7 @@ RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
 
 FROM sim as develop
 
+ENV GZ_VERSION=garden
 ENV ROS_UNDERLAY /root/ws_blue/install
 ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR $ROS_UNDERLAY/..
@@ -184,6 +188,7 @@ COPY . src/blue
 
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
+    && vcs import src < src/blue/workspace.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9" \
     && rm -rf src \
