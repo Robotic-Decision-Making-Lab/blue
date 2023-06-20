@@ -25,10 +25,10 @@
 namespace blue::dynamics
 {
 
-// Used to represent a 6x6 matrix: commonly used to represent hydrodynamic parameters.
+// Used to represent a 6x6 matrix: commonly used in hydrodynamics.
 using Matrix6d = Eigen::Matrix<double, 6, 6>;
 
-// Used to represent a 6x1 matrix: commonly used to represent hydrodynamic parameters.
+// Used to represent a 6x1 matrix: commonly used in hydrodynamics.
 using Vector6d = Eigen::Matrix<double, 6, 1>;
 
 /**
