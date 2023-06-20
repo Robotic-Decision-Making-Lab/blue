@@ -25,7 +25,7 @@
 namespace blue::dynamics
 {
 
-[[nodiscard]] std::tuple<int, int> calculateDeadZone(double voltage)
+[[nodiscard]] inline std::tuple<int, int> calculateDeadZone(double voltage)
 {
   // The minimum PWM in the deadzone increases as the voltage increases
   // This is best represented by a 3rd order polynomial
@@ -41,7 +41,9 @@ namespace blue::dynamics
   return std::tuple<int, int>(min_deadzone, max_deadzone);
 }
 
-[[nodiscard]] int calculatePwmFromThrustSurface(double force, double voltage)
+[[nodiscard]] inline std::tuple<int, int> calculateDeadZone() {}
+
+[[nodiscard]] inline int calculatePwmFromThrustSurface(double force, double voltage)
 {
   // Coefficients for the surface identified by fitting a surface to the thrust curves for the
   // voltages 10, 12, 14, 16, 18, 20 using Matlab's `fit` function with the `Poly23` surface
@@ -62,5 +64,7 @@ namespace blue::dynamics
 
   return static_cast<int>(std::round(pwm));
 }
+
+[[nodiscard]] inline int calculatePwmFromThrustCurve(double force) {}
 
 }  // namespace blue::dynamics
