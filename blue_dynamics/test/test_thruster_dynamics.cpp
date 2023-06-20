@@ -36,20 +36,27 @@ TEST(ThrusterDynamicsTest, TestDeadzoneModel)
 
   const double voltage = 20.0;
 
-  const std::tuple<int, int> actual = calculateDeadZone(voltage);
+  // Calculate the deadzone using the battery voltage
+  std::tuple<int, int> actual = calculateDeadZone(voltage);
 
   ASSERT_NEAR(expected_min, std::get<0>(actual), 1);
   ASSERT_NEAR(expected_max, std::get<1>(actual), 1);
 }
 
-TEST(ThrusterDynamicsTest, TestThrustSurfaceModel)
+TEST(ThrusterDynamicsTest, TestThrustModel)
 {
   // These are measurements obtained from the BlueROV2 T200 characterization
   const int expected_pwm = 1280;
   const double force = -1.86 * 9.8;  // Convert from KgF to N
   const double voltage = 20.0;
 
-  const int actual = calculatePwmFromThrustSurface(force, voltage);
+  // Calculate the PWM values using the battery voltage
+  int actual = calculatePwmFromThrustSurface(force, voltage);
+
+  ASSERT_NEAR(expected_pwm, actual, 15);
+
+  // Now calculate the PWM values without the battery voltage
+  actual = calculatePwmFromThrustCurve(force);
 
   ASSERT_NEAR(expected_pwm, actual, 15);
 }

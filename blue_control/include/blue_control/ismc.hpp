@@ -50,6 +50,7 @@ private:
   double sliding_gain_;
   double boundary_thickness_;
 
+  bool use_battery_state_;
   blue_msgs::msg::Reference cmd_;
   rclcpp::Subscription<blue_msgs::msg::Reference>::SharedPtr cmd_sub_;
 };

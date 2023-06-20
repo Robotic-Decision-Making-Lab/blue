@@ -38,6 +38,7 @@ ISMC::ISMC()
     "convergence_rate", std::vector<double>({100.0, 100.0, 100.0, 100.0, 100.0, 100.0}));
   this->declare_parameter("sliding_gain", 0.0);
   this->declare_parameter("boundary_thickness", 0.0);
+  this->declare_parameter("use_battery_state", false);
 
   Eigen::VectorXd convergence_diag =
     convertVectorToEigenVector(this->get_parameter("convergence_rate").as_double_array());
@@ -45,6 +46,7 @@ ISMC::ISMC()
   sliding_gain_ = this->get_parameter("sliding_gain").as_double();
   boundary_thickness_ = this->get_parameter("boundary_thickness").as_double();
   total_velocity_error_ = blue::dynamics::Vector6d::Zero();
+  use_battery_state_ = this->get_parameter("use_battery_state").as_bool();
 
   // Update the reference signal when a new command is received
   cmd_sub_ = this->create_subscription<blue_msgs::msg::Reference>(
@@ -94,9 +96,13 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
   const Eigen::VectorXd pwms = tcm_.completeOrthogonalDecomposition().pseudoInverse() * forces;
 
   // Convert the thruster forces to PWM values
-  pwms.unaryExpr([this](double x) {
-    return blue::dynamics::calculatePwmFromThrustSurface(x, battery_state_.voltage);
-  });
+  if (use_battery_state_) {
+    pwms.unaryExpr([this](double x) {
+      return blue::dynamics::calculatePwmFromThrustSurface(x, battery_state_.voltage);
+    });
+  } else {
+    pwms.unaryExpr([this](double x) { return blue::dynamics::calculatePwmFromThrustCurve(x); });
+  }
 
   mavros_msgs::msg::OverrideRCIn msg;
 
@@ -105,8 +111,16 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
     channel = mavros_msgs::msg::OverrideRCIn::CHAN_NOCHANGE;
   }
 
-  const std::tuple<int, int> deadband = blue::dynamics::calculateDeadZone(battery_state_.voltage);
+  // Calculate the deadzone band
+  std::tuple<int, int> deadband;
 
+  if (use_battery_state_) {
+    deadband = blue::dynamics::calculateDeadZone(battery_state_.voltage);
+  } else {
+    deadband = blue::dynamics::calculateDeadZone();
+  }
+
+  // Set the PWM values
   for (uint16_t i = 0; i < pwms.size(); i++) {
     auto pwm = static_cast<uint16_t>(pwms[i]);
 
