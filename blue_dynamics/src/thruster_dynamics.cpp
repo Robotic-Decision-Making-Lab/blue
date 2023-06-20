@@ -20,12 +20,13 @@
 
 #include "blue_dynamics/thruster_dynamics.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 namespace blue::dynamics
 {
 
-[[nodiscard]] inline std::tuple<int, int> calculateDeadZone(double voltage)
+[[nodiscard]] std::tuple<int, int> calculateDeadZone(double voltage)
 {
   // The minimum PWM in the deadzone increases as the voltage increases
   // This is best represented by a 3rd order polynomial
@@ -41,9 +42,13 @@ namespace blue::dynamics
   return std::tuple<int, int>(min_deadzone, max_deadzone);
 }
 
-[[nodiscard]] inline std::tuple<int, int> calculateDeadZone() {}
+[[nodiscard]] std::tuple<int, int> calculateDeadZone()
+{
+  // The deadband zone was identified using the thrust curve data with an 18v battery
+  return std::tuple<int, int>(1470, 1530);
+}
 
-[[nodiscard]] inline int calculatePwmFromThrustSurface(double force, double voltage)
+[[nodiscard]] int calculatePwmFromThrustSurface(double force, double voltage)
 {
   // Coefficients for the surface identified by fitting a surface to the thrust curves for the
   // voltages 10, 12, 14, 16, 18, 20 using Matlab's `fit` function with the `Poly23` surface
@@ -65,6 +70,27 @@ namespace blue::dynamics
   return static_cast<int>(std::round(pwm));
 }
 
-[[nodiscard]] inline int calculatePwmFromThrustCurve(double force) {}
+[[nodiscard]] int calculatePwmFromThrustCurve(double force)
+{
+  // The thrust curve is only accurate over the following force range, so we restrict the input
+  // forces to that range
+  const double min_force = -40.0;
+  const double max_force = 60.0;
+
+  force = std::clamp(force, min_force, max_force);
+
+  // Coefficients for the 4th-degree polynomial fit to the thrust curve for the T200 run using
+  // a battery at 18v. The polynomial was identified using Matlab's `fit` function.
+  const double p00 = 1498;
+  const double p01 = 12.01;
+  const double p02 = -0.04731;
+  const double p03 = -0.002098;
+  const double p04 = 0.00002251;
+
+  const double pwm = p00 + p01 * force + p02 * std::pow(force, 2) + p03 * std::pow(force, 3) +
+                     p04 * std::pow(force, 4);
+
+  return static_cast<int>(std::round(pwm));
+}
 
 }  // namespace blue::dynamics

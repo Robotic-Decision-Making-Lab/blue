@@ -26,6 +26,7 @@ ismc:
     msg_ids: [31, 32]
     msg_rates: [100.0, 100.0]
     control_loop_freq: 200.0
+    use_battery_state: false
 
 aruco_marker_localizer:
   ros__parameters:
