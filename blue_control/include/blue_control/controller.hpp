@@ -28,6 +28,7 @@
 
 #include "blue_dynamics/hydrodynamics.hpp"
 #include "blue_dynamics/thruster_dynamics.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 #include "mavros_msgs/srv/message_interval.hpp"
 #include "nav_msgs/msg/odometry.hpp"
@@ -39,29 +40,55 @@ namespace blue::control
 {
 
 /**
- * @brief Convert an `std::vector` to an `Eigen::VectorXd`.
+ * @brief Convert an std::vector into an Eigen::Matrix.
  *
- * @note This method is useful when converting a ROS parameter that has been read as a `std::vector`
- * to an `Eigen::VectorXd`.
+ * @note The elements are copied over column-wise because Eigen defaults to column major.
  *
- * @param vec The `std::vector` to convert.
- * @return An `Eigen::VectorXd` with the same values as `vec`.
+ * @note While it would be preferable to define the rows and cols as template parameters, the
+ * primary use-case for this method within the scope of this implementation is to use it with ROS 2
+ * parameters which are not known at compile time. Therefore, the rows and cols are made to be
+ * function parameters.
+ *
+ * @tparam T The type of values held by the vector.
+ * @param rows The number of rows in the resulting matrix.
+ * @param cols The number of columns in the resulting matrix.
+ * @param vec The vector to convert into a matrix.
+ * @return The converted Eigen matrix.
  */
-Eigen::VectorXd convertVectorToEigenVector(const std::vector<double> & vec);
+template <typename T>
+inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> convertVectorToEigenMatrix(
+  const std::vector<T> & vec, int rows, int cols)
+{
+  typedef const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> M;
+  Eigen::Map<M> mat(vec.data(), rows, cols);
+
+  return mat;
+}
 
 /**
- * @brief Convert an `std::vector` to an `Eigen::MatrixXd`.
+ * @brief Convert an std::vector into an Eigen::Matrix
  *
- * @note This method is useful when converting a ROS parameter that has been read as a `std::vector`
- * to an `Eigen::MatrixXd`.
+ * @note While it would be preferable to define the rows and cols as template parameters, the
+ * primary use-case for this method within the scope of this implementation is to use it with ROS 2
+ * parameters which are not known at compile time. Therefore, the rows and cols are made to be
+ * function parameters.
  *
- * @param vec The `std::vector` to convert.
- * @param rows The total number of rows in the resulting matrix.
- * @param cols The total number of columns in the resulting matrix.
- * @return An `Eigen::MatrixXd` with the same values as `vec`.
+ * @tparam T The type of values held by the vector.
+ * @tparam major The order to copy over the elements in (e.g., ``Eigen::RowMajor``)
+ * @param rows The number of rows in the resulting matrix.
+ * @param cols The number of columns in the resulting matrix.
+ * @param vec The vector to convert into a matrix.
+ * @return The converted Eigen matrix.
  */
-Eigen::MatrixXd convertVectorToEigenMatrix(
-  const std::vector<double> & vec, size_t rows, size_t cols);
+template <typename T, int major>
+inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> convertVectorToEigenMatrix(
+  const std::vector<T> & vec, int rows, int cols)
+{
+  typedef const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, major> M;
+  Eigen::Map<M> mat(vec.data(), rows, cols);
+
+  return mat;
+}
 
 /**
  * @brief A base class for custom BlueROV2 controllers.
@@ -105,8 +132,8 @@ protected:
   /**
    * @brief The current pose and twist of the BlueROV2.
    *
-   * @note It is important to note here that the pose information is provided in the inertial frame
-   * and the twist is provided in the body frame. For more information on this see:
+   * @note It is important to note here that the pose information is provided in the inertial
+   * frame and the twist is provided in the body frame. For more information on this see:
    * https://github.com/mavlink/mavros/issues/1251
    */
   nav_msgs::msg::Odometry odom_;
@@ -158,8 +185,10 @@ private:
   // Subscribers
   rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr battery_state_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr ardu_pose_sub_;
 
   // Timers
+  rclcpp::CallbackGroup::SharedPtr timer_cb_group_;
   rclcpp::TimerBase::SharedPtr control_loop_timer_;
   rclcpp::TimerBase::SharedPtr set_message_rate_timer_;
 

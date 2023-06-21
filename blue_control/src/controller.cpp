@@ -23,21 +23,6 @@
 namespace blue::control
 {
 
-Eigen::VectorXd convertVectorToEigenVector(const std::vector<double> & vec)
-{
-  Eigen::VectorXd eigen_vec(vec.size());
-  eigen_vec = Eigen::Map<const Eigen::VectorXd>(vec.data(), vec.size());
-
-  return eigen_vec;
-}
-
-Eigen::MatrixXd convertVectorToEigenMatrix(
-  const std::vector<double> & vec, size_t rows, size_t cols)
-{
-  Eigen::Map<const Eigen::MatrixXd> mat(vec.data(), rows, cols);
-  return mat;
-}
-
 Controller::Controller(const std::string & node_name)
 : Node(std::move(node_name)),
   armed_(false)
@@ -75,25 +60,26 @@ Controller::Controller(const std::string & node_name)
   const double mass = this->get_parameter("mass").as_double();
   const double buoyancy = this->get_parameter("buoyancy").as_double();
   const double weight = this->get_parameter("weight").as_double();
-  const Eigen::Vector3d inertia_tensor_coeff =
-    convertVectorToEigenVector(this->get_parameter("inertia_tensor_coeff").as_double_array());
-  const Eigen::VectorXd added_mass_coeff =
-    convertVectorToEigenVector(this->get_parameter("added_mass_coeff").as_double_array());
-  const Eigen::VectorXd linear_damping_coeff =
-    convertVectorToEigenVector(this->get_parameter("linear_damping_coeff").as_double_array());
-  const Eigen::VectorXd quadratic_damping_coeff =
-    convertVectorToEigenVector(this->get_parameter("quadratic_damping_coeff").as_double_array());
-  const Eigen::Vector3d center_of_gravity =
-    convertVectorToEigenVector(this->get_parameter("center_of_gravity").as_double_array());
-  const Eigen::Vector3d center_of_buoyancy =
-    convertVectorToEigenVector(this->get_parameter("center_of_buoyancy").as_double_array());
-  const Eigen::VectorXd ocean_current =
-    convertVectorToEigenVector(this->get_parameter("ocean_current").as_double_array());
+  const Eigen::Vector3d inertia_tensor_coeff = convertVectorToEigenMatrix<double>(
+    this->get_parameter("inertia_tensor_coeff").as_double_array(), 3, 1);
+  const Eigen::Matrix<double, 6, 1> added_mass_coeff = convertVectorToEigenMatrix<double>(
+    this->get_parameter("added_mass_coeff").as_double_array(), 6, 1);
+  const Eigen::Matrix<double, 6, 1> linear_damping_coeff = convertVectorToEigenMatrix<double>(
+    this->get_parameter("linear_damping_coeff").as_double_array(), 6, 1);
+  const Eigen::Matrix<double, 6, 1> quadratic_damping_coeff = convertVectorToEigenMatrix<double>(
+    this->get_parameter("quadratic_damping_coeff").as_double_array(), 6, 1);
+  const Eigen::Vector3d center_of_gravity = convertVectorToEigenMatrix<double>(
+    this->get_parameter("center_of_gravity").as_double_array(), 3, 1);
+  const Eigen::Vector3d center_of_buoyancy = convertVectorToEigenMatrix<double>(
+    this->get_parameter("center_of_buoyancy").as_double_array(), 3, 1);
+  const Eigen::Matrix<double, 6, 1> ocean_current = convertVectorToEigenMatrix<double>(
+    this->get_parameter("ocean_current").as_double_array(), 6, 1);
 
   // Get the thruster configuration matrix
   std::vector<double> tcm_vec = this->get_parameter("tcm").as_double_array();
-  size_t num_thrusters = this->get_parameter("num_thrusters").as_int();
-  tcm_ = convertVectorToEigenMatrix(tcm_vec, tcm_vec.size() / num_thrusters, num_thrusters);
+  const int num_thrusters = this->get_parameter("num_thrusters").as_int();
+  tcm_ = convertVectorToEigenMatrix<double, Eigen::RowMajor>(
+    tcm_vec, static_cast<int>(tcm_vec.size() / num_thrusters), num_thrusters);
 
   // Initialize the hydrodynamic parameters
   hydrodynamics_ = blue::dynamics::HydrodynamicParameters(
@@ -108,11 +94,11 @@ Controller::Controller(const std::string & node_name)
     this->create_publisher<mavros_msgs::msg::OverrideRCIn>("mavros/rc/override", 1);
 
   battery_state_sub_ = this->create_subscription<sensor_msgs::msg::BatteryState>(
-    "/mavros/battery", 1,
+    "/mavros/battery", rclcpp::SensorDataQoS(),
     [this](sensor_msgs::msg::BatteryState::ConstSharedPtr msg) { battery_state_ = *msg; });
 
   odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
-    "/mavros/local_position/odom", 1,
+    "/mavros/local_position/odom", rclcpp::SensorDataQoS(),
     [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) { odom_ = *msg; });
 
   arm_srv_ = this->create_service<std_srvs::srv::SetBool>(

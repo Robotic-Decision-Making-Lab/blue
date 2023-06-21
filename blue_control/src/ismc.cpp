@@ -40,8 +40,8 @@ ISMC::ISMC()
   this->declare_parameter("boundary_thickness", 0.0);
   this->declare_parameter("use_battery_state", false);
 
-  Eigen::VectorXd convergence_diag =
-    convertVectorToEigenVector(this->get_parameter("convergence_rate").as_double_array());
+  Eigen::VectorXd convergence_diag = convertVectorToEigenMatrix<double>(
+    this->get_parameter("convergence_rate").as_double_array(), 6, 1);
   convergence_rate_ = convergence_diag.asDiagonal().toDenseMatrix();
   sliding_gain_ = this->get_parameter("sliding_gain").as_double();
   boundary_thickness_ = this->get_parameter("boundary_thickness").as_double();
@@ -81,7 +81,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
     velocity_error + convergence_rate_ * total_velocity_error_;  // NOLINT
 
   // Apply the sign function to the surface
-  surface.unaryExpr([this](double x) { return tanh(x / boundary_thickness_); });
+  surface = surface.unaryExpr([this](double x) { return tanh(x / boundary_thickness_); });
 
   const blue::dynamics::Vector6d forces =
     hydrodynamics_.inertia.getInertia() * (desired_accel + convergence_rate_ * velocity_error) +
@@ -93,16 +93,25 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
   // Multiply the desired forces by the pseudoinverse of the thruster configuration matrix
   // The size of this vector will depend on the number of thrusters so we don't assign it to a
   // fixed-size matrix
-  const Eigen::VectorXd pwms = tcm_.completeOrthogonalDecomposition().pseudoInverse() * forces;
+  Eigen::VectorXd thruster_forces = tcm_.completeOrthogonalDecomposition().pseudoInverse() * forces;
 
   // Convert the thruster forces to PWM values
+  Eigen::VectorXi pwms;
+
   if (use_battery_state_) {
-    pwms.unaryExpr([this](double x) {
+    pwms = thruster_forces.unaryExpr([this](double x) {
       return blue::dynamics::calculatePwmFromThrustSurface(x, battery_state_.voltage);
     });
   } else {
-    pwms.unaryExpr([this](double x) { return blue::dynamics::calculatePwmFromThrustCurve(x); });
+    pwms = thruster_forces.unaryExpr(
+      [this](double x) { return blue::dynamics::calculatePwmFromThrustCurve(x); });
   }
+
+  std::string sep = "\n----------------------------------------\n";
+  std::stringstream ss;
+  ss << std::endl << velocity_error << sep << forces << sep << pwms << sep;
+  std::string sad = ss.str();
+  RCLCPP_WARN(this->get_logger(), "pwms: %s", sad.c_str());
 
   mavros_msgs::msg::OverrideRCIn msg;
 
@@ -142,7 +151,9 @@ int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<blue::control::ISMC>();
-  rclcpp::spin(node);
+  rclcpp::executors::MultiThreadedExecutor executor;
+  executor.add_node(node);
+  executor.spin();
   rclcpp::shutdown();
   return 0;
 }
