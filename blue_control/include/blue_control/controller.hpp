@@ -28,6 +28,7 @@
 
 #include "blue_dynamics/hydrodynamics.hpp"
 #include "blue_dynamics/thruster_dynamics.hpp"
+#include "geometry_msgs/msg/accel.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 #include "mavros_msgs/srv/message_interval.hpp"
@@ -38,32 +39,6 @@
 
 namespace blue::control
 {
-
-/**
- * @brief Convert an std::vector into an Eigen::Matrix.
- *
- * @note The elements are copied over column-wise because Eigen defaults to column major.
- *
- * @note While it would be preferable to define the rows and cols as template parameters, the
- * primary use-case for this method within the scope of this implementation is to use it with ROS 2
- * parameters which are not known at compile time. Therefore, the rows and cols are made to be
- * function parameters.
- *
- * @tparam T The type of values held by the vector.
- * @param rows The number of rows in the resulting matrix.
- * @param cols The number of columns in the resulting matrix.
- * @param vec The vector to convert into a matrix.
- * @return The converted Eigen matrix.
- */
-template <typename T>
-inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> convertVectorToEigenMatrix(
-  const std::vector<T> & vec, int rows, int cols)
-{
-  typedef const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> M;
-  Eigen::Map<M> mat(vec.data(), rows, cols);
-
-  return mat;
-}
 
 /**
  * @brief Convert an std::vector into an Eigen::Matrix
@@ -80,7 +55,7 @@ inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> convertVectorToEigenMatr
  * @param vec The vector to convert into a matrix.
  * @return The converted Eigen matrix.
  */
-template <typename T, int major>
+template <typename T, int major = Eigen::ColMajor>
 inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> convertVectorToEigenMatrix(
   const std::vector<T> & vec, int rows, int cols)
 {
@@ -104,6 +79,16 @@ public:
   explicit Controller(const std::string & node_name);
 
 protected:
+  /**
+   * @brief Function executed when the controller is armed.
+   */
+  virtual void onArm() = 0;
+
+  /**
+   * @brief Function executed when the controller is disarmed.
+   */
+  virtual void onDisarm() = 0;
+
   /**
    * @brief Update the current control inputs to the thrusters
    *
@@ -137,6 +122,13 @@ protected:
    * https://github.com/mavlink/mavros/issues/1251
    */
   nav_msgs::msg::Odometry odom_;
+
+  /**
+   * @brief The current acceleration of the BlueROV2.
+   *
+   * @note This is not provided by the system directly and is calculated using finite differencing.
+   */
+  geometry_msgs::msg::Accel accel_;
 
   /**
    * @brief The total time (s) between control loop iterations

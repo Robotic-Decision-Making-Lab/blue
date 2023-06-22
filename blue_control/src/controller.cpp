@@ -44,7 +44,7 @@ Controller::Controller(const std::string & node_name)
   this->declare_parameter("num_thrusters", 8);
   this->declare_parameter("msg_ids", std::vector<int>({31, 32}));
   this->declare_parameter("msg_rates", std::vector<double>({100, 100}));
-  this->declare_parameter("control_loop_freq", 200.0);
+  this->declare_parameter("control_rate", 200.0);
 
   // I'm so sorry for this
   // You can blame the ROS devs for not supporting nested arrays for parameters
@@ -99,7 +99,10 @@ Controller::Controller(const std::string & node_name)
 
   odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
     "/mavros/local_position/odom", rclcpp::SensorDataQoS(),
-    [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) { odom_ = *msg; });
+    [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) {
+      // TODO(evan): Calculate the current acceleration here
+      odom_ = *msg;
+    });
 
   arm_srv_ = this->create_service<std_srvs::srv::SetBool>(
     "blue/control/arm", [this](
@@ -137,7 +140,7 @@ Controller::Controller(const std::string & node_name)
     [this, msg_ids, msg_rates]() -> void { setMessageRates(msg_ids, msg_rates); });
 
   // Convert the control loop frequency to seconds
-  dt_ = 1 / this->get_parameter("control_loop_freq").as_double();
+  dt_ = 1 / this->get_parameter("control_rate").as_double();
 
   control_loop_timer_ =
     this->create_wall_timer(std::chrono::duration<double>(dt_), [this]() -> void {
@@ -152,6 +155,9 @@ void Controller::armControllerCb(
   std::shared_ptr<std_srvs::srv::SetBool::Response> response)
 {
   if (request->data) {
+    // Run the controller arming function prior to actually arming the controller
+    onArm();
+
     // Arm the controller
     armed_ = true;
     response->success = true;
@@ -163,6 +169,9 @@ void Controller::armControllerCb(
     response->success = true;
     response->message = "Controller disarmed.";
     RCLCPP_WARN(this->get_logger(), "Custom BlueROV2 controller disarmed.");
+
+    // Run the controller disarming function after the controller has been fully disarmed
+    onDisarm();
   }
 }
 

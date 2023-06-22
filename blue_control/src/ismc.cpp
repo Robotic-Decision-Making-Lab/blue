@@ -30,28 +30,77 @@ namespace blue::control
 {
 
 ISMC::ISMC()
-: Controller("ismc")
+: Controller("ismc"),
+  initial_velocity_error_(blue::dynamics::Vector6d::Zero()),
+  initial_acceleration_error_(blue::dynamics::Vector6d::Zero()),
+  total_velocity_error_(blue::dynamics::Vector6d::Zero())
 {
   // Declare the ROS parameters specific to this controller
-  // There are additional parameters defined by the base controller as well
-  this->declare_parameter(
-    "convergence_rate", std::vector<double>({100.0, 100.0, 100.0, 100.0, 100.0, 100.0}));
+  this->declare_parameter("integral_gain", std::vector<double>({1.0, 1.0, 1.0, 1.0, 1.0, 1.0}));
+  this->declare_parameter("proportional_gain", std::vector<double>({1.0, 1.0, 1.0, 1.0, 1.0, 1.0}));
   this->declare_parameter("sliding_gain", 0.0);
   this->declare_parameter("boundary_thickness", 0.0);
   this->declare_parameter("use_battery_state", false);
 
-  Eigen::VectorXd convergence_diag = convertVectorToEigenMatrix<double>(
-    this->get_parameter("convergence_rate").as_double_array(), 6, 1);
-  convergence_rate_ = convergence_diag.asDiagonal().toDenseMatrix();
+  // Get the gain matrices
+  Eigen::VectorXd integral_gain_coeff = convertVectorToEigenMatrix<double>(
+    this->get_parameter("integral_gain").as_double_array(), 6, 1);
+  Eigen::VectorXd proportional_gain_coeff = convertVectorToEigenMatrix<double>(
+    this->get_parameter("integral_gain").as_double_array(), 6, 1);
+
+  integral_gain_ = integral_gain_coeff.asDiagonal().toDenseMatrix();
+  proportional_gain_ = proportional_gain_coeff.asDiagonal().toDenseMatrix();
+
   sliding_gain_ = this->get_parameter("sliding_gain").as_double();
   boundary_thickness_ = this->get_parameter("boundary_thickness").as_double();
-  total_velocity_error_ = blue::dynamics::Vector6d::Zero();
   use_battery_state_ = this->get_parameter("use_battery_state").as_bool();
 
   // Update the reference signal when a new command is received
   cmd_sub_ = this->create_subscription<blue_msgs::msg::Reference>(
     "/blue/ismc/cmd", 1, [this](blue_msgs::msg::Reference::ConstSharedPtr msg) { cmd_ = *msg; });
 }
+
+void ISMC::onArm()
+{
+  // Reset the total velocity error
+  total_velocity_error_ = blue::dynamics::Vector6d::Zero();
+
+  // Reset the initial conditions
+  initial_velocity_error_ = blue::dynamics::Vector6d::Zero();
+  initial_acceleration_error_ = blue::dynamics::Vector6d::Zero();
+
+  // We need to calculate the initial conditions for the controller now. This includes the
+  // initial velocity and acceleration errors
+
+  // Start by calculating the velocity error i.c.
+  blue::dynamics::Vector6d velocity;
+  tf2::fromMsg(odom_.twist.twist, velocity);
+
+  tf2::fromMsg(cmd_.twist, initial_velocity_error_);
+  initial_velocity_error_ -= velocity;
+
+  // Now calculate the accleration error i.c.
+  blue::dynamics::Vector6d accel;
+  accel << accel_.linear.x, accel_.linear.y, accel_.linear.z, accel_.angular.x, accel_.angular.y,
+    accel_.angular.z;
+
+  // There is no suitable tf2_eigen function for Accel types :(
+  blue::dynamics::Vector6d accel_error;
+  accel_error << cmd_.accel.linear.x, cmd_.accel.linear.y, cmd_.accel.linear.z,
+    cmd_.accel.angular.x, cmd_.accel.angular.y, cmd_.accel.angular.z;
+  initial_acceleration_error_ = accel_error;
+  initial_acceleration_error_ -= accel;
+};
+
+void ISMC::onDisarm()
+{
+  // Reset the total velocity error on disarm just to be safe
+  total_velocity_error_ = blue::dynamics::Vector6d::Zero();
+
+  // Reset the intial conditions too
+  initial_velocity_error_ = blue::dynamics::Vector6d::Zero();
+  initial_acceleration_error_ = blue::dynamics::Vector6d::Zero();
+};
 
 mavros_msgs::msg::OverrideRCIn ISMC::update()
 {
@@ -63,7 +112,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
   tf2::fromMsg(cmd_.twist, velocity_error);
   velocity_error -= velocity;
 
-  // There is no suitable tf2_eigen function for Accel types :(
+  // :(
   blue::dynamics::Vector6d desired_accel;  // NOLINT
   desired_accel << cmd_.accel.linear.x, cmd_.accel.linear.y, cmd_.accel.linear.z,
     cmd_.accel.angular.x, cmd_.accel.angular.y, cmd_.accel.angular.z;
@@ -78,13 +127,15 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
 
   // Calculate the sliding surface
   blue::dynamics::Vector6d surface =
-    velocity_error + convergence_rate_ * total_velocity_error_;  // NOLINT
+    proportional_gain_ * velocity_error + integral_gain_ * total_velocity_error_ -
+    proportional_gain_ * initial_velocity_error_ - initial_acceleration_error_;  // NOLINT
 
   // Apply the sign function to the surface
   surface = surface.unaryExpr([this](double x) { return tanh(x / boundary_thickness_); });
 
   const blue::dynamics::Vector6d forces =
-    hydrodynamics_.inertia.getInertia() * (desired_accel + convergence_rate_ * velocity_error) +
+    hydrodynamics_.inertia.getInertia() *
+      (desired_accel + proportional_gain_.inverse() * integral_gain_ * velocity_error) +
     hydrodynamics_.coriolis.calculateCoriolis(velocity) * velocity +
     hydrodynamics_.damping.calculateDamping(velocity) * velocity +
     hydrodynamics_.restoring_forces.calculateRestoringForces(orientation.toRotationMatrix()) +
