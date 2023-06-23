@@ -89,7 +89,9 @@ Controller::Controller(const std::string & node_name)
     blue::dynamics::CurrentEffects(ocean_current));
 
   // Setup the ROS things
-  tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(get_clock());
+  tf_listener_ = std::make_unique<tf2_ros::TransformListener>(*tf_buffer_);
+  tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
 
   rc_override_pub_ =
     this->create_publisher<mavros_msgs::msg::OverrideRCIn>("mavros/rc/override", 1);

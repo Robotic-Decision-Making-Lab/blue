@@ -22,9 +22,10 @@
 
 #include <algorithm>
 #include <cmath>
-#include <tf2_eigen/tf2_eigen.hpp>
 
 #include "blue_dynamics/thruster_dynamics.hpp"
+#include "tf2_eigen/tf2_eigen.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
 namespace blue::control
 {
@@ -137,7 +138,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
   surface = surface.unaryExpr([this](double x) { return tanh(x / boundary_thickness_); });
 
   // Calculate the desired torques
-  const blue::dynamics::Vector6d forces =
+  blue::dynamics::Vector6d forces =
     hydrodynamics_.inertia.getInertia() *
       (desired_accel + proportional_gain_.inverse() * integral_gain_ * velocity_error) +
     hydrodynamics_.coriolis.calculateCoriolis(velocity) * velocity +
@@ -158,6 +159,13 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
 
   desired_wrench_pub_->publish(wrench);
 
+  mavros_msgs::msg::OverrideRCIn msg;
+
+  // Set all channels to "NOCHANGE" by default
+  for (uint16_t & channel : msg.channels) {
+    channel = mavros_msgs::msg::OverrideRCIn::CHAN_NOCHANGE;
+  }
+
   // Multiply the desired forces by the pseudoinverse of the thruster configuration matrix
   // The size of this vector will depend on the number of thrusters so we don't assign it to a
   // fixed-size matrix
@@ -173,13 +181,6 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
   } else {
     pwms = thruster_forces.unaryExpr(
       [this](double x) { return blue::dynamics::calculatePwmFromThrustCurve(x); });
-  }
-
-  mavros_msgs::msg::OverrideRCIn msg;
-
-  // We only modify the first "n" channels where "n" is the total number of thrusters
-  for (uint16_t & channel : msg.channels) {
-    channel = mavros_msgs::msg::OverrideRCIn::CHAN_NOCHANGE;
   }
 
   // Calculate the deadzone band

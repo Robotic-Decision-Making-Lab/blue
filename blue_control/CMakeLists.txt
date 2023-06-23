@@ -27,6 +27,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   eigen3_cmake_module
   Eigen3
   tf2_eigen
+  tf2_geometry_msgs
 )
 
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})

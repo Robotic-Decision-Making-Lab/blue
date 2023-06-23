@@ -38,7 +38,9 @@
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/battery_state.hpp"
 #include "std_srvs/srv/set_bool.hpp"
+#include "tf2_ros/buffer.h"
 #include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
 
 namespace blue::control
 {
@@ -84,7 +86,9 @@ public:
 protected:
   // Transform IDs
   const std::string kMapFrameId{"map"};
+  const std::string kMapNedFrameId{"map_ned"};
   const std::string kBaseFrameId{"base_link"};
+  const std::string kBaseNedFrameId{"base_link_frd"};
 
   /**
    * @brief Function executed when the controller is armed.
@@ -140,6 +144,16 @@ protected:
    */
   double dt_{0.0};
 
+  /**
+   * @brief A transform buffer to use for looking up transformations.
+   */
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+
+  /**
+   * @brief Transform broadcaster which can be used to broadcast transformations.
+   */
+  std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+
 private:
   /**
    * @brief Enable/disable the controller.
@@ -187,7 +201,7 @@ private:
   geometry_msgs::msg::TransformStamped tf_map_base_;
 
   // TF2
-  std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+  std::unique_ptr<tf2_ros::TransformListener> tf_listener_;
 
   // Publishers
   rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_pub_;
