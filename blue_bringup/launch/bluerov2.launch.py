@@ -24,7 +24,7 @@ from launch.actions import (
     ExecuteProcess,
     IncludeLaunchDescription,
 )
-from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -54,8 +54,8 @@ def generate_launch_description() -> LaunchDescription:
         ),
         DeclareLaunchArgument(
             "localization_source",
-            default_value="mocap",
-            choices=["mocap", "camera"],
+            default_value="gazebo",
+            choices=["mocap", "camera", "gazebo"],
             description="The localization source to stream from.",
         ),
         DeclareLaunchArgument(
@@ -118,7 +118,7 @@ def generate_launch_description() -> LaunchDescription:
     ardusub_params_filepath = PathJoinSubstitution(
         [
             FindPackageShare("blue_description"),
-            "config",
+            "params",
             LaunchConfiguration("ardusub_params_file"),
         ]
     )
@@ -212,7 +212,6 @@ def generate_launch_description() -> LaunchDescription:
                 "use_mocap": LaunchConfiguration("use_mocap"),
                 "use_camera": LaunchConfiguration("use_camera"),
             }.items(),
-            condition=UnlessCondition(use_sim),
         ),
     ]
 

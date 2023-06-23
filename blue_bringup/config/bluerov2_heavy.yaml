@@ -60,6 +60,10 @@ qualisys_localizer:
   ros__parameters:
     body: "bluerov" # This should be the same as the body parameter setting for the qualisys_mocap node
 
+gazebo_localizer:
+  ros__parameters:
+    gazebo_odom_topic: "/model/bluerov2_heavy/odometry"
+
 mavros:
   ros__parameters:
     system_id: 255

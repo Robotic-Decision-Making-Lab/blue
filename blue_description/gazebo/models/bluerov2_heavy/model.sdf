@@ -520,5 +520,15 @@
 
     </plugin>
 
+    <!-- Publish the ground-truth pose -->
+    <plugin
+      filename="gz-sim-odometry-publisher-system"
+      name="gz::sim::systems::OdometryPublisher">
+      <odom_frame>map</odom_frame>
+      <robot_base_frame>base_link</robot_base_frame>
+      <dimensions>3</dimensions>
+      <odom_publish_frequency>100</odom_publish_frequency>
+    </plugin>
+
   </model>
 </sdf>

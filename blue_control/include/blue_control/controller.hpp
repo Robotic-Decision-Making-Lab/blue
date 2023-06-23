@@ -29,13 +29,16 @@
 #include "blue_dynamics/hydrodynamics.hpp"
 #include "blue_dynamics/thruster_dynamics.hpp"
 #include "geometry_msgs/msg/accel.hpp"
+#include "geometry_msgs/msg/accel_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 #include "mavros_msgs/srv/message_interval.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/battery_state.hpp"
 #include "std_srvs/srv/set_bool.hpp"
+#include "tf2_ros/transform_broadcaster.h"
 
 namespace blue::control
 {
@@ -116,10 +119,6 @@ protected:
 
   /**
    * @brief The current pose and twist of the BlueROV2.
-   *
-   * @note It is important to note here that the pose information is provided in the inertial
-   * frame and the twist is provided in the body frame. For more information on this see:
-   * https://github.com/mavlink/mavros/issues/1251
    */
   nav_msgs::msg::Odometry odom_;
 
@@ -138,6 +137,10 @@ protected:
   double dt_{0.0};
 
 private:
+  // Transform IDs
+  const std::string kMapFrameId{"map"};
+  const std::string kBaseFrameId{"base_link"};
+
   /**
    * @brief Enable the controller.
    *
@@ -149,6 +152,15 @@ private:
   void armControllerCb(
     std::shared_ptr<std_srvs::srv::SetBool::Request> request,
     std::shared_ptr<std_srvs::srv::SetBool::Response> response);
+
+  /**
+   * @brief Handle the incoming odometry messages.
+   *
+   * @note This message will be published AFTER mavros and all of it's plugins are loaded.
+   *
+   * @param msg The current odometry message.
+   */
+  void updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg);
 
   /**
    * @brief Set custom MAVLink message rates.
@@ -171,8 +183,17 @@ private:
 
   bool armed_;
 
+  // Dynamic transforms
+  geometry_msgs::msg::TransformStamped tf_map_base_;
+
+  // TF2
+  std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+
   // Publishers
   rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_pub_;
+
+  // Visualizion Publishers
+  rclcpp::Publisher<geometry_msgs::msg::AccelStamped>::SharedPtr accel_vis_pub_;
 
   // Subscribers
   rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr battery_state_sub_;

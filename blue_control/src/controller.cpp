@@ -20,6 +20,8 @@
 
 #include "blue_control/controller.hpp"
 
+#include "tf2/transform_datatypes.h"
+
 namespace blue::control
 {
 
@@ -45,9 +47,6 @@ Controller::Controller(const std::string & node_name)
   this->declare_parameter("msg_ids", std::vector<int>({31, 32}));
   this->declare_parameter("msg_rates", std::vector<double>({100, 100}));
   this->declare_parameter("control_rate", 200.0);
-
-  // I'm so sorry for this
-  // You can blame the ROS devs for not supporting nested arrays for parameters
   this->declare_parameter(
     "tcm", std::vector<double>({0.707,   0.707,  -0.707, -0.707,  0.0,    0.0,    0.0,   0.0,
                                 -0.707,  0.707,  -0.707, 0.707,   0.0,    0.0,    0.0,   0.0,
@@ -90,6 +89,8 @@ Controller::Controller(const std::string & node_name)
     blue::dynamics::CurrentEffects(ocean_current));
 
   // Setup the ROS things
+  tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(*this);
+
   rc_override_pub_ =
     this->create_publisher<mavros_msgs::msg::OverrideRCIn>("mavros/rc/override", 1);
 
@@ -99,10 +100,7 @@ Controller::Controller(const std::string & node_name)
 
   odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
     "/mavros/local_position/odom", rclcpp::SensorDataQoS(),
-    [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) {
-      // TODO(evan): Calculate the current acceleration here
-      odom_ = *msg;
-    });
+    [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) { updateOdomCb(msg); });
 
   arm_srv_ = this->create_service<std_srvs::srv::SetBool>(
     "blue/control/arm", [this](
@@ -173,6 +171,48 @@ void Controller::armControllerCb(
     // Run the controller disarming function after the controller has been fully disarmed
     onDisarm();
   }
+}
+
+void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
+{
+  // Get the duration between the readings
+  rclcpp::Time prev_stamp(odom_.header.stamp.sec, odom_.header.stamp.nanosec);
+  rclcpp::Time current_stamp(msg->header.stamp.sec, msg->header.stamp.nanosec);
+
+  // Get the duration in seconds
+  const double dt = (current_stamp - prev_stamp).seconds();
+
+  // Calculate the current acceleration using finite differencing
+  geometry_msgs::msg::Accel accel;
+  accel.linear.x = (msg->twist.twist.linear.x - odom_.twist.twist.linear.x) / dt;
+  accel.linear.y = (msg->twist.twist.linear.y - odom_.twist.twist.linear.y) / dt;
+  accel.linear.z = (msg->twist.twist.linear.z - odom_.twist.twist.linear.z) / dt;
+  accel.angular.x = (msg->twist.twist.angular.x - odom_.twist.twist.angular.x) / dt;
+  accel.angular.y = (msg->twist.twist.angular.y - odom_.twist.twist.angular.y) / dt;
+  accel.angular.z = (msg->twist.twist.angular.z - odom_.twist.twist.angular.z) / dt;
+
+  // Update the current acceleration
+  accel_ = accel;
+
+  // Update the odom
+  odom_ = *msg;
+
+  // Publish the map -> base_link transform
+  tf_map_base_.header.stamp = this->get_clock()->now();
+  tf_map_base_.header.frame_id = kMapFrameId;
+  tf_map_base_.child_frame_id = kBaseFrameId;
+
+  tf_map_base_.transform.translation.x = odom_.pose.pose.position.x;
+  tf_map_base_.transform.translation.y = odom_.pose.pose.position.y;
+  tf_map_base_.transform.translation.z = odom_.pose.pose.position.z;
+
+  tf_map_base_.transform.rotation.x = odom_.pose.pose.orientation.x;
+  tf_map_base_.transform.rotation.y = odom_.pose.pose.orientation.y;
+  tf_map_base_.transform.rotation.z = odom_.pose.pose.orientation.z;
+  tf_map_base_.transform.rotation.w = odom_.pose.pose.orientation.w;
+
+  // Publish the transform
+  tf_broadcaster_->sendTransform(tf_map_base_);
 }
 
 void Controller::setMessageRates(

@@ -33,6 +33,7 @@ from sensor_msgs.msg import Image
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
+from nav_msgs.msg import Odometry
 
 
 class Localizer(Node, ABC):
@@ -278,6 +279,42 @@ class QualisysLocalizer(Localizer):
         self.localization_pub.publish(pose)
 
 
+class GazeboLocalizer(Localizer):
+    """Localize the BlueROV2 using the Gazebo ground-truth data."""
+
+    def __init__(self) -> None:
+        """Create a new Gazebo localizer."""
+        super().__init__("gazebo_localizer")
+
+        # We need to know the topic to stream from
+        self.declare_parameter("gazebo_odom_topic", "")
+
+        # Subscribe to that topic so that we can proxy messages to the ArduSub EKF
+        self.create_subscription(
+            Odometry,
+            self.get_parameter("gazebo_odom_topic").get_parameter_value().string_value,
+            self.proxy_odom_cb,
+            1,
+        )
+
+    def proxy_odom_cb(self, msg: Odometry) -> None:
+        """Proxy the pose data from the Gazebo odometry ground-truth data.
+
+        Args:
+            msg: The Gazebo ground-truth odometry for the BlueROV2.
+        """
+        pose = PoseStamped()
+
+        # Pose is provided in the parent header frame
+        pose.header.frame_id = msg.header.frame_id
+        pose.header.stamp = msg.header.stamp
+
+        # We only need the pose; we don't need the covariance
+        pose.pose = msg.pose.pose
+
+        self.localization_pub.publish(pose)
+
+
 def main_aruco(args: list[str] | None = None):
     """Run the ArUco marker detector."""
     rclpy.init(args=args)
@@ -294,6 +331,17 @@ def main_qualisys(args: list[str] | None = None):
     rclpy.init(args=args)
 
     node = QualisysLocalizer()
+    rclpy.spin(node)
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+def main_gazebo(args: list[str] | None = None):
+    """Run the Gazebo localizer."""
+    rclpy.init(args=args)
+
+    node = GazeboLocalizer()
     rclpy.spin(node)
 
     node.destroy_node()
