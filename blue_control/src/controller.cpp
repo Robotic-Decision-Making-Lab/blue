@@ -94,6 +94,8 @@ Controller::Controller(const std::string & node_name)
   rc_override_pub_ =
     this->create_publisher<mavros_msgs::msg::OverrideRCIn>("mavros/rc/override", 1);
 
+  accel_pub_ = this->create_publisher<geometry_msgs::msg::AccelStamped>("/blue/state/accel", 1);
+
   battery_state_sub_ = this->create_subscription<sensor_msgs::msg::BatteryState>(
     "/mavros/battery", rclcpp::SensorDataQoS(),
     [this](sensor_msgs::msg::BatteryState::ConstSharedPtr msg) { battery_state_ = *msg; });
@@ -191,8 +193,15 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
   accel.angular.y = (msg->twist.twist.angular.y - odom_.twist.twist.angular.y) / dt;
   accel.angular.z = (msg->twist.twist.angular.z - odom_.twist.twist.angular.z) / dt;
 
-  // Update the current acceleration
+  // Update the current acceleration and publish it
   accel_ = accel;
+
+  geometry_msgs::msg::AccelStamped accel_stamped;
+  accel_stamped.header.frame_id = kBaseFrameId;
+  accel_stamped.header.stamp = this->get_clock()->now();
+  accel_stamped.accel = accel_;
+
+  accel_pub_->publish(accel_stamped);
 
   // Update the odom
   odom_ = *msg;

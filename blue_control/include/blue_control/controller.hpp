@@ -82,6 +82,10 @@ public:
   explicit Controller(const std::string & node_name);
 
 protected:
+  // Transform IDs
+  const std::string kMapFrameId{"map"};
+  const std::string kBaseFrameId{"base_link"};
+
   /**
    * @brief Function executed when the controller is armed.
    */
@@ -137,10 +141,6 @@ protected:
   double dt_{0.0};
 
 private:
-  // Transform IDs
-  const std::string kMapFrameId{"map"};
-  const std::string kBaseFrameId{"base_link"};
-
   /**
    * @brief Enable the controller.
    *
@@ -191,9 +191,7 @@ private:
 
   // Publishers
   rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_pub_;
-
-  // Visualizion Publishers
-  rclcpp::Publisher<geometry_msgs::msg::AccelStamped>::SharedPtr accel_vis_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::AccelStamped>::SharedPtr accel_pub_;
 
   // Subscribers
   rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr battery_state_sub_;

@@ -55,6 +55,10 @@ ISMC::ISMC()
   boundary_thickness_ = this->get_parameter("boundary_thickness").as_double();
   use_battery_state_ = this->get_parameter("use_battery_state").as_bool();
 
+  // Publish the desired wrench to help with tuning and visualization
+  desired_wrench_pub_ =
+    this->create_publisher<geometry_msgs::msg::WrenchStamped>("/blue/ismc/desired_wrench", 1);
+
   // Update the reference signal when a new command is received
   cmd_sub_ = this->create_subscription<blue_msgs::msg::Reference>(
     "/blue/ismc/cmd", 1, [this](blue_msgs::msg::Reference::ConstSharedPtr msg) { cmd_ = *msg; });
@@ -141,6 +145,18 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
     hydrodynamics_.restoring_forces.calculateRestoringForces(orientation.toRotationMatrix()) +
     sliding_gain_ * surface;
 
+  geometry_msgs::msg::WrenchStamped wrench;
+  wrench.header.frame_id = kBaseFrameId;
+  wrench.header.stamp = this->get_clock()->now();
+  wrench.wrench.force.x = forces[0];
+  wrench.wrench.force.y = forces[1];
+  wrench.wrench.force.z = forces[2];
+  wrench.wrench.torque.x = forces[3];
+  wrench.wrench.torque.y = forces[4];
+  wrench.wrench.torque.z = forces[5];
+
+  desired_wrench_pub_->publish(wrench);
+
   // Multiply the desired forces by the pseudoinverse of the thruster configuration matrix
   // The size of this vector will depend on the number of thrusters so we don't assign it to a
   // fixed-size matrix
@@ -158,11 +174,11 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
       [this](double x) { return blue::dynamics::calculatePwmFromThrustCurve(x); });
   }
 
-  std::string sep = "\n----------------------------------------\n";
-  std::stringstream ss;
-  ss << std::endl << velocity_error << sep << forces << sep << pwms << sep;
-  std::string sad = ss.str();
-  RCLCPP_WARN(this->get_logger(), "pwms: %s", sad.c_str());
+  // std::string sep = "\n----------------------------------------\n";
+  // std::stringstream ss;
+  // ss << std::endl << velocity_error << sep << forces << sep << pwms << sep;
+  // std::string sad = ss.str();
+  // RCLCPP_WARN(this->get_logger(), "pwms: %s", sad.c_str());
 
   mavros_msgs::msg::OverrideRCIn msg;
 

@@ -30,7 +30,7 @@ ismc:
     proportional_gain: [10.0, 10.0, 10.0, 10.0, 10.0, 10.0]
     integral_gain: [3.0, 3.0, 3.0, 3.0, 3.0, 3.0]
     sliding_gain: 5.0
-    boundary_thickness: 1.0
+    boundary_thickness: 1000.0
     use_battery_state: false
 
 # Localization sources
