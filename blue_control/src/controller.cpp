@@ -30,16 +30,9 @@ Controller::Controller(const std::string & node_name)
   armed_(false)
 {
   // Declare ROS parameters
-  this->declare_parameter("mass", 11.5);
+  this->declare_parameter("mass", 13.5);
   this->declare_parameter("buoyancy", 112.80);
   this->declare_parameter("weight", 114.80);
-  this->declare_parameter("inertia_tensor_coeff", std::vector<double>({0.16, 0.16, 0.16}));
-  this->declare_parameter(
-    "added_mass_coeff", std::vector<double>({-5.50, -12.70, -14.60, -0.12, -0.12, -0.12}));
-  this->declare_parameter(
-    "linear_damping_coeff", std::vector<double>({-4.03, -6.22, -5.18, -0.07, -0.07, -0.07}));
-  this->declare_parameter(
-    "quadratic_damping_coeff", std::vector<double>({-18.18, -21.66, -36.99, -1.55, -1.55, -1.55}));
   this->declare_parameter("center_of_gravity", std::vector<double>({0.0, 0.0, 0.0}));
   this->declare_parameter("center_of_buoyancy", std::vector<double>({0.0, 0.0, 0.0}));
   this->declare_parameter("ocean_current", std::vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
@@ -47,13 +40,23 @@ Controller::Controller(const std::string & node_name)
   this->declare_parameter("msg_ids", std::vector<int>({31, 32}));
   this->declare_parameter("msg_rates", std::vector<double>({100, 100}));
   this->declare_parameter("control_rate", 200.0);
+  this->declare_parameter("inertia_tensor_coeff", std::vector<double>({0.16, 0.16, 0.16}));
   this->declare_parameter(
-    "tcm", std::vector<double>({0.707,   0.707,  -0.707, -0.707,  0.0,    0.0,    0.0,   0.0,
-                                -0.707,  0.707,  -0.707, 0.707,   0.0,    0.0,    0.0,   0.0,
-                                0.0,     0.0,    0.0,    0.0,     -1.0,   1.0,    1.0,   -1.0,
-                                0.06,    -0.06,  0.06,   -0.06,   -0.218, -0.218, 0.218, 0.218,
-                                0.06,    0.06,   -0.06,  -0.06,   0.120,  -0.120, 0.120, -0.120,
-                                -0.1888, 0.1888, 0.1888, -0.1888, 0.0,    0.0,    0.0,   0.0}));
+    "added_mass_coeff", std::vector<double>({-5.50, -12.70, -14.60, -0.12, -0.12, -0.12}));
+  this->declare_parameter(
+    "linear_damping_coeff", std::vector<double>({-4.03, -6.22, -5.18, -0.07, -0.07, -0.07}));
+  this->declare_parameter(
+    "quadratic_damping_coeff", std::vector<double>({-18.18, -21.66, -36.99, -1.55, -1.55, -1.55}));
+
+  // clang-format off
+  this->declare_parameter(
+    "tcm", std::vector<double>({  0.707,  0.707, -0.707,  -0.707,    0.0,   0.0,    0.0,    0.0,
+                                 -0.707,  0.707, -0.707,   0.707,    0.0,   0.0,    0.0,    0.0,
+                                    0.0,    0.0,    0.0,     0.0,   -1.0,   1.0,    1.0,   -1.0,
+                                    0.0,    0.0,    0.0,     0.0,  0.218, 0.218, -0.218, -0.218,
+                                    0.0,    0.0,    0.0,     0.0,   0.12, -0.12,   0.12,  -0.12,
+                                -0.1888, 0.1888, 0.1888, -0.1888,    0.0,   0.0,    0.0,    0.0}));
+  // clang-format on
 
   // Get hydrodynamic parameters
   const double mass = this->get_parameter("mass").as_double();
@@ -93,10 +96,9 @@ Controller::Controller(const std::string & node_name)
   tf_listener_ = std::make_unique<tf2_ros::TransformListener>(*tf_buffer_);
   tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
 
+  accel_pub_ = this->create_publisher<geometry_msgs::msg::AccelStamped>("/blue/state/accel", 1);
   rc_override_pub_ =
     this->create_publisher<mavros_msgs::msg::OverrideRCIn>("mavros/rc/override", 1);
-
-  accel_pub_ = this->create_publisher<geometry_msgs::msg::AccelStamped>("/blue/state/accel", 1);
 
   battery_state_sub_ = this->create_subscription<sensor_msgs::msg::BatteryState>(
     "/mavros/battery", rclcpp::SensorDataQoS(),
@@ -150,7 +152,7 @@ Controller::Controller(const std::string & node_name)
     std::chrono::duration<double>(dt_),
     [this]() -> void {
       if (armed_) {
-        rc_override_pub_->publish(update());
+        rc_override_pub_->publish(calculateControlInput());
       }
     },
     control_loop_cb_group_);
@@ -202,7 +204,7 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
   accel_ = accel;
 
   geometry_msgs::msg::AccelStamped accel_stamped;
-  accel_stamped.header.frame_id = kBaseFrameId;
+  accel_stamped.header.frame_id = blue::transforms::kBaseFrameId;
   accel_stamped.header.stamp = this->get_clock()->now();
   accel_stamped.accel = accel_;
 
@@ -212,8 +214,8 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
 
   // Publish the map -> base_link transform
   tf_map_base_.header.stamp = this->get_clock()->now();
-  tf_map_base_.header.frame_id = kMapFrameId;
-  tf_map_base_.child_frame_id = kBaseFrameId;
+  tf_map_base_.header.frame_id = blue::transforms::kMapFrameId;
+  tf_map_base_.child_frame_id = blue::transforms::kBaseFrameId;
 
   tf_map_base_.transform.translation.x = odom_.pose.pose.position.x;
   tf_map_base_.transform.translation.y = odom_.pose.pose.position.y;

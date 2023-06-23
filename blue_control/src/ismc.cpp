@@ -94,6 +94,10 @@ void ISMC::onArm()
     cmd_.accel.angular.x, cmd_.accel.angular.y, cmd_.accel.angular.z;
   initial_acceleration_error_ = accel_error;
   initial_acceleration_error_ -= accel;
+
+  // !TESTING PURPOSES ONLY
+  cmd_.twist.linear.x = -10.0;
+  cmd_.twist.linear.z = 10.0;
 };
 
 void ISMC::onDisarm()
@@ -106,7 +110,7 @@ void ISMC::onDisarm()
   initial_acceleration_error_ = blue::dynamics::Vector6d::Zero();
 };
 
-mavros_msgs::msg::OverrideRCIn ISMC::update()
+mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
 {
   blue::dynamics::Vector6d velocity;
   tf2::fromMsg(odom_.twist.twist, velocity);
@@ -148,7 +152,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
 
   // Publish the desired torques to help with debugging and visualization
   geometry_msgs::msg::WrenchStamped wrench;
-  wrench.header.frame_id = kBaseFrameId;
+  wrench.header.frame_id = blue::transforms::kBaseFrameId;
   wrench.header.stamp = this->get_clock()->now();
   wrench.wrench.force.x = forces[0];
   wrench.wrench.force.y = forces[1];

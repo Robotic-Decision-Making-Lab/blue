@@ -26,8 +26,8 @@
 #include <string>
 #include <vector>
 
+#include "blue_control/frames.hpp"
 #include "blue_dynamics/hydrodynamics.hpp"
-#include "blue_dynamics/thruster_dynamics.hpp"
 #include "geometry_msgs/msg/accel.hpp"
 #include "geometry_msgs/msg/accel_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -46,31 +46,6 @@ namespace blue::control
 {
 
 /**
- * @brief Convert an std::vector into an Eigen::Matrix
- *
- * @note While it would be preferable to define the rows and cols as template parameters, the
- * primary use-case for this method within the scope of this implementation is to use it with ROS 2
- * parameters which are not known at compile time. Therefore, the rows and cols are made to be
- * function parameters.
- *
- * @tparam T The type of values held by the vector.
- * @tparam major The order to copy over the elements in (e.g., ``Eigen::RowMajor``)
- * @param rows The number of rows in the resulting matrix.
- * @param cols The number of columns in the resulting matrix.
- * @param vec The vector to convert into a matrix.
- * @return The converted Eigen matrix.
- */
-template <typename T, int major = Eigen::ColMajor>
-inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> convertVectorToEigenMatrix(
-  const std::vector<T> & vec, int rows, int cols)
-{
-  typedef const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, major> M;
-  Eigen::Map<M> mat(vec.data(), rows, cols);
-
-  return mat;
-}
-
-/**
  * @brief A base class for custom BlueROV2 controllers.
  */
 class Controller : public rclcpp::Node
@@ -84,11 +59,29 @@ public:
   explicit Controller(const std::string & node_name);
 
 protected:
-  // Transform IDs
-  const std::string kMapFrameId{"map"};
-  const std::string kMapNedFrameId{"map_ned"};
-  const std::string kBaseFrameId{"base_link"};
-  const std::string kBaseNedFrameId{"base_link_frd"};
+  /**
+   * @brief Convert an std::vector into an Eigen::Matrix
+   *
+   * @tparam T The type of values held by the vector.
+   * @tparam major The order to copy over the elements in (e.g., ``Eigen::RowMajor``)
+   * @param rows The number of rows in the resulting matrix.
+   * @param cols The number of columns in the resulting matrix.
+   * @param vec The vector to convert into a matrix.
+   * @return The converted Eigen matrix.
+   */
+  template <typename T, int major = Eigen::ColMajor>
+  static inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> convertVectorToEigenMatrix(
+    const std::vector<T> & vec, int rows, int cols)
+  {
+    // While it would be preferable to define the rows and cols as template parameters, the
+    // primary use-case for this method within the scope of this implementation is to use it with
+    // ROS 2 parameters which are not always known at compile time (e.g., TCM). Therefore, the rows
+    // and cols are made to be function parameters.
+    typedef const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, major> M;
+    Eigen::Map<M> mat(vec.data(), rows, cols);
+
+    return mat;
+  }
 
   /**
    * @brief Function executed when the controller is armed.
@@ -105,7 +98,7 @@ protected:
    *
    * @return mavros_msgs::msg::OverrideRCIn
    */
-  virtual mavros_msgs::msg::OverrideRCIn update() = 0;
+  virtual mavros_msgs::msg::OverrideRCIn calculateControlInput() = 0;
 
   /**
    * @brief A collection of the hydrodynamic parameters for the BlueROV2.
@@ -144,14 +137,8 @@ protected:
    */
   double dt_{0.0};
 
-  /**
-   * @brief A transform buffer to use for looking up transformations.
-   */
+  // TF2
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-
-  /**
-   * @brief Transform broadcaster which can be used to broadcast transformations.
-   */
   std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
 
 private:
@@ -170,7 +157,7 @@ private:
   /**
    * @brief Handle the incoming odometry messages.
    *
-   * @note This message will be published AFTER mavros and all of it's plugins are loaded.
+   * @note This message will be published after MAVROS and all of it's plugins are loaded.
    *
    * @param msg The current odometry message.
    */
@@ -195,6 +182,7 @@ private:
    */
   void setMessageRate(int64_t msg_id, float rate);
 
+  // Manages whether or not control inputs are sent to ArduSub
   bool armed_;
 
   // Dynamic transforms

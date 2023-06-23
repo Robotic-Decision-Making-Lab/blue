@@ -23,6 +23,7 @@
 #include <Eigen/Dense>
 
 #include "blue_control/controller.hpp"
+#include "blue_dynamics/thruster_dynamics.hpp"
 #include "blue_msgs/msg/reference.hpp"
 #include "geometry_msgs/msg/wrench_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
@@ -44,7 +45,7 @@ public:
 protected:
   void onArm() override;
   void onDisarm() override;
-  mavros_msgs::msg::OverrideRCIn update() override;
+  mavros_msgs::msg::OverrideRCIn calculateControlInput() override;
 
 private:
   // ISMC gains
@@ -58,7 +59,10 @@ private:
   blue::dynamics::Vector6d initial_acceleration_error_;
   blue::dynamics::Vector6d total_velocity_error_;
 
+  // Control whether or not the battery state is used when converting thrust to PWM
   bool use_battery_state_;
+
+  // Reference signal
   blue_msgs::msg::Reference cmd_;
 
   // Publishers

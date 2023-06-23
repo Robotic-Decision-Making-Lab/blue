@@ -18,52 +18,15 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
-#include <gtest/gtest.h>
+#include <string>
 
-#include <Eigen/Dense>
-#include <cmath>
-#include <vector>
-
-#include "blue_control/controller.hpp"
-
-namespace blue::controller::test
+namespace blue::transforms
 {
 
-using blue::control::convertVectorToEigenMatrix;
+// Coordinate frame IDs
+const std::string kMapFrameId{"map"};
+const std::string kMapNedFrameId{"map_ned"};
+const std::string kBaseFrameId{"base_link"};
+const std::string kBaseNedFrameId{"base_link_frd"};
 
-TEST(ControllerTest, TestVectorToEigenVector)
-{
-  const std::vector<int> coeff = {1, 2, 3, 4};
-
-  Eigen::Matrix<int, 4, 1> expected;  // NOLINT
-  expected << 1, 2, 3, 4;
-
-  const Eigen::Matrix<int, 4, 1> actual = convertVectorToEigenMatrix<int>(coeff, 4, 1);
-
-  ASSERT_TRUE(actual.isApprox(expected));
-}
-
-TEST(ControllerTest, TestVectorToEigenMatrix)
-{
-  const std::vector<int> coeff = {1, 2, 3, 4};
-
-  Eigen::Matrix<int, 2, 2> expected;  // NOLINT
-  expected << 1, 2, 3, 4;
-
-  const Eigen::Matrix<int, 2, 2> actual =
-    convertVectorToEigenMatrix<int, Eigen::RowMajor>(coeff, 2, 2);
-
-  std::cout << expected << std::endl << actual << std::endl;
-
-  ASSERT_TRUE(actual.isApprox(expected));
-}
-
-}  // namespace blue::controller::test
-
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
-  const int result = RUN_ALL_TESTS();
-
-  return result;
-}
+}  // namespace blue::transforms

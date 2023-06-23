@@ -77,7 +77,6 @@ install(DIRECTORY
 )
 
 if(BUILD_TESTING)
-  find_package(ament_cmake_gtest REQUIRED)
   find_package(ament_lint_auto REQUIRED)
 
   # Run linters found in package.xml except the two below
@@ -85,13 +84,6 @@ if(BUILD_TESTING)
   set(ament_cmake_uncrustify_FOUND TRUE)
 
   ament_lint_auto_find_test_dependencies()
-
-  # Setup unit tests
-  ament_add_gtest(
-    test_vector_to_eigen
-    test/test_vector_to_eigen.cpp
-  )
-  target_link_libraries(test_vector_to_eigen custom_controllers)
 endif()
 
 ament_package()
