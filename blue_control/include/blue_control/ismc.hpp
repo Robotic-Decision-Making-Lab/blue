@@ -47,14 +47,16 @@ protected:
   mavros_msgs::msg::OverrideRCIn update() override;
 
 private:
-  // Hyperparameters used by the ISMC
-  blue::dynamics::Vector6d initial_velocity_error_;
-  blue::dynamics::Vector6d initial_acceleration_error_;
-  blue::dynamics::Vector6d total_velocity_error_;
+  // ISMC gains
   blue::dynamics::Matrix6d integral_gain_;
   blue::dynamics::Matrix6d proportional_gain_;
   double sliding_gain_;
   double boundary_thickness_;
+
+  // Error terms
+  blue::dynamics::Vector6d initial_velocity_error_;
+  blue::dynamics::Vector6d initial_acceleration_error_;
+  blue::dynamics::Vector6d total_velocity_error_;
 
   bool use_battery_state_;
   blue_msgs::msg::Reference cmd_;

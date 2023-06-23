@@ -55,7 +55,7 @@ Controller::Controller(const std::string & node_name)
                                 0.06,    0.06,   -0.06,  -0.06,   0.120,  -0.120, 0.120, -0.120,
                                 -0.1888, 0.1888, 0.1888, -0.1888, 0.0,    0.0,    0.0,   0.0}));
 
-  // Get the parameter values
+  // Get hydrodynamic parameters
   const double mass = this->get_parameter("mass").as_double();
   const double buoyancy = this->get_parameter("buoyancy").as_double();
   const double weight = this->get_parameter("weight").as_double();
@@ -142,12 +142,16 @@ Controller::Controller(const std::string & node_name)
   // Convert the control loop frequency to seconds
   dt_ = 1 / this->get_parameter("control_rate").as_double();
 
-  control_loop_timer_ =
-    this->create_wall_timer(std::chrono::duration<double>(dt_), [this]() -> void {
+  // Give the control loop its own callback group to avoid issues with long callbacks in the
+  // default callback group
+  control_loop_timer_ = this->create_wall_timer(
+    std::chrono::duration<double>(dt_),
+    [this]() -> void {
       if (armed_) {
         rc_override_pub_->publish(update());
       }
-    });
+    },
+    control_loop_cb_group_);
 }
 
 void Controller::armControllerCb(
@@ -156,6 +160,8 @@ void Controller::armControllerCb(
 {
   if (request->data) {
     // Run the controller arming function prior to actually arming the controller
+    // This makes sure that any processing that needs to happen before the controller is *actually*
+    // armed can occur
     onArm();
 
     // Arm the controller
@@ -180,11 +186,9 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
   // Get the duration between the readings
   rclcpp::Time prev_stamp(odom_.header.stamp.sec, odom_.header.stamp.nanosec);
   rclcpp::Time current_stamp(msg->header.stamp.sec, msg->header.stamp.nanosec);
-
-  // Get the duration in seconds
   const double dt = (current_stamp - prev_stamp).seconds();
 
-  // Calculate the current acceleration using finite differencing
+  // Calculate the current acceleration using finite differencing and publish it for debugging
   geometry_msgs::msg::Accel accel;
   accel.linear.x = (msg->twist.twist.linear.x - odom_.twist.twist.linear.x) / dt;
   accel.linear.y = (msg->twist.twist.linear.y - odom_.twist.twist.linear.y) / dt;
@@ -193,7 +197,6 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
   accel.angular.y = (msg->twist.twist.angular.y - odom_.twist.twist.angular.y) / dt;
   accel.angular.z = (msg->twist.twist.angular.z - odom_.twist.twist.angular.z) / dt;
 
-  // Update the current acceleration and publish it
   accel_ = accel;
 
   geometry_msgs::msg::AccelStamped accel_stamped;
@@ -203,7 +206,6 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
 
   accel_pub_->publish(accel_stamped);
 
-  // Update the odom
   odom_ = *msg;
 
   // Publish the map -> base_link transform
@@ -220,7 +222,6 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
   tf_map_base_.transform.rotation.z = odom_.pose.pose.orientation.z;
   tf_map_base_.transform.rotation.w = odom_.pose.pose.orientation.w;
 
-  // Publish the transform
   tf_broadcaster_->sendTransform(tf_map_base_);
 }
 

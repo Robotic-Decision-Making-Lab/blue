@@ -50,7 +50,6 @@ ISMC::ISMC()
 
   integral_gain_ = integral_gain_coeff.asDiagonal().toDenseMatrix();
   proportional_gain_ = proportional_gain_coeff.asDiagonal().toDenseMatrix();
-
   sliding_gain_ = this->get_parameter("sliding_gain").as_double();
   boundary_thickness_ = this->get_parameter("boundary_thickness").as_double();
   use_battery_state_ = this->get_parameter("use_battery_state").as_bool();
@@ -121,7 +120,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
   desired_accel << cmd_.accel.linear.x, cmd_.accel.linear.y, cmd_.accel.linear.z,
     cmd_.accel.angular.x, cmd_.accel.angular.y, cmd_.accel.angular.z;
 
-  // Get the current rotation of the vehicle in the inertial frame
+  // Get the current rotation of the vehicle in the inertial (map) frame
   Eigen::Quaterniond orientation;
   tf2::fromMsg(odom_.pose.pose.orientation, orientation);
 
@@ -137,6 +136,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
   // Apply the sign function to the surface
   surface = surface.unaryExpr([this](double x) { return tanh(x / boundary_thickness_); });
 
+  // Calculate the desired torques
   const blue::dynamics::Vector6d forces =
     hydrodynamics_.inertia.getInertia() *
       (desired_accel + proportional_gain_.inverse() * integral_gain_ * velocity_error) +
@@ -145,6 +145,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
     hydrodynamics_.restoring_forces.calculateRestoringForces(orientation.toRotationMatrix()) +
     sliding_gain_ * surface;
 
+  // Publish the desired torques to help with debugging and visualization
   geometry_msgs::msg::WrenchStamped wrench;
   wrench.header.frame_id = kBaseFrameId;
   wrench.header.stamp = this->get_clock()->now();
@@ -173,12 +174,6 @@ mavros_msgs::msg::OverrideRCIn ISMC::update()
     pwms = thruster_forces.unaryExpr(
       [this](double x) { return blue::dynamics::calculatePwmFromThrustCurve(x); });
   }
-
-  // std::string sep = "\n----------------------------------------\n";
-  // std::stringstream ss;
-  // ss << std::endl << velocity_error << sep << forces << sep << pwms << sep;
-  // std::string sad = ss.str();
-  // RCLCPP_WARN(this->get_logger(), "pwms: %s", sad.c_str());
 
   mavros_msgs::msg::OverrideRCIn msg;
 

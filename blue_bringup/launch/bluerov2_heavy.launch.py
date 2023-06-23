@@ -35,12 +35,12 @@ def generate_launch_description() -> LaunchDescription:
     """Generate a launch description to run the system.
 
     Returns:
-        The launch description for the BlueROV2 base configuration.
+        The launch description for the BlueROV2 heavy configuration.
     """
     args = [
         DeclareLaunchArgument(
             "config",
-            default_value="bluerov2.yaml",
+            default_value="bluerov2_heavy.yaml",
             description="The ROS 2 parameters configuration file.",
         ),
         DeclareLaunchArgument(
@@ -90,12 +90,12 @@ def generate_launch_description() -> LaunchDescription:
         ),
         DeclareLaunchArgument(
             "gazebo_world_file",
-            default_value="bluerov2_underwater.world",
+            default_value="bluerov2_heavy_underwater.world",
             description="The world configuration to load if using Gazebo.",
         ),
         DeclareLaunchArgument(
             "ardusub_params_file",
-            default_value="bluerov2.parm",
+            default_value="bluerov2_heavy.parm",
             description=(
                 "The ArduSub parameters that the BlueROV2 should use if running in"
                 " simulation."
@@ -134,7 +134,7 @@ def generate_launch_description() -> LaunchDescription:
             package="ros_gz_bridge",
             executable="parameter_bridge",
             arguments=[
-                "/model/bluerov2/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
+                "/model/bluerov2_heavy/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
             ],
             output="screen",
         ),

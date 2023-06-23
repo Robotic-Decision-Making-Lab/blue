@@ -129,7 +129,7 @@ protected:
   /**
    * @brief The current acceleration of the BlueROV2.
    *
-   * @note This is not provided by the system directly and is calculated using finite differencing.
+   * @note This is not provided by ArduSub directly and is calculated using finite differencing.
    */
   geometry_msgs::msg::Accel accel_;
 
@@ -142,7 +142,7 @@ protected:
 
 private:
   /**
-   * @brief Enable the controller.
+   * @brief Enable/disable the controller.
    *
    * @details This method enables/disables sending RC Override messages to the BlueROV2.
    *
@@ -198,8 +198,10 @@ private:
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
   rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr ardu_pose_sub_;
 
+  // Callback groups
+  rclcpp::CallbackGroup::SharedPtr control_loop_cb_group_;
+
   // Timers
-  rclcpp::CallbackGroup::SharedPtr timer_cb_group_;
   rclcpp::TimerBase::SharedPtr control_loop_timer_;
   rclcpp::TimerBase::SharedPtr set_message_rate_timer_;
 
