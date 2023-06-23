@@ -94,10 +94,6 @@ void ISMC::onArm()
     cmd_.accel.angular.x, cmd_.accel.angular.y, cmd_.accel.angular.z;
   initial_acceleration_error_ = accel_error;
   initial_acceleration_error_ -= accel;
-
-  // !TESTING PURPOSES ONLY
-  cmd_.twist.linear.x = -10.0;
-  cmd_.twist.linear.z = 10.0;
 };
 
 void ISMC::onDisarm()

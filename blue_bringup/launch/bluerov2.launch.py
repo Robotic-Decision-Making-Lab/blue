@@ -80,6 +80,11 @@ def generate_launch_description() -> LaunchDescription:
             description="Automatically start Gazebo.",
         ),
         DeclareLaunchArgument(
+            "use_foxglove",
+            default_value="false",
+            description="Start the Foxglove bridge.",
+        ),
+        DeclareLaunchArgument(
             "description_package",
             default_value="blue_description",
             description=(
@@ -105,6 +110,7 @@ def generate_launch_description() -> LaunchDescription:
 
     description_package = LaunchConfiguration("description_package")
     use_sim = LaunchConfiguration("use_sim")
+    use_foxglove = LaunchConfiguration("use_foxglove")
     gazebo_world_file = LaunchConfiguration("gazebo_world_file")
 
     config_filepath = PathJoinSubstitution(
@@ -212,6 +218,14 @@ def generate_launch_description() -> LaunchDescription:
                 "use_mocap": LaunchConfiguration("use_mocap"),
                 "use_camera": LaunchConfiguration("use_camera"),
             }.items(),
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution(
+                    [FindPackageShare("foxglove_bridge"), "foxglove_bridge_launch.xml"]
+                )
+            ),
+            condition=IfCondition(use_foxglove),
         ),
     ]
 
