@@ -204,7 +204,7 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
   accel_ = accel;
 
   geometry_msgs::msg::AccelStamped accel_stamped;
-  accel_stamped.header.frame_id = blue::transforms::kBaseFrameId;
+  accel_stamped.header.frame_id = blue::transforms::kBaseLinkFrameId;
   accel_stamped.header.stamp = this->get_clock()->now();
   accel_stamped.accel = accel_;
 
@@ -215,7 +215,7 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
   // Publish the map -> base_link transform
   tf_map_base_.header.stamp = this->get_clock()->now();
   tf_map_base_.header.frame_id = blue::transforms::kMapFrameId;
-  tf_map_base_.child_frame_id = blue::transforms::kBaseFrameId;
+  tf_map_base_.child_frame_id = blue::transforms::kBaseLinkFrameId;
 
   tf_map_base_.transform.translation.x = odom_.pose.pose.position.x;
   tf_map_base_.transform.translation.y = odom_.pose.pose.position.y;

@@ -26,7 +26,7 @@ namespace blue::transforms
 // Coordinate frame IDs
 const std::string kMapFrameId{"map"};
 const std::string kMapNedFrameId{"map_ned"};
-const std::string kBaseFrameId{"base_link"};
-const std::string kBaseNedFrameId{"base_link_frd"};
+const std::string kBaseLinkFrameId{"base_link"};
+const std::string kBaseLinkFrdFrameId{"base_link_frd"};
 
 }  // namespace blue::transforms

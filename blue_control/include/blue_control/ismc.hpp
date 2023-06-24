@@ -24,7 +24,7 @@
 
 #include "blue_control/controller.hpp"
 #include "blue_dynamics/thruster_dynamics.hpp"
-#include "blue_msgs/msg/reference.hpp"
+#include "blue_msgs/msg/twist_accel_cmd.hpp"
 #include "geometry_msgs/msg/wrench_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 
@@ -63,13 +63,13 @@ private:
   bool use_battery_state_;
 
   // Reference signal
-  blue_msgs::msg::Reference cmd_;
+  blue_msgs::msg::TwistAccelCmd cmd_;
 
   // Publishers
   rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr desired_wrench_pub_;
 
   // Subscribers
-  rclcpp::Subscription<blue_msgs::msg::Reference>::SharedPtr cmd_sub_;
+  rclcpp::Subscription<blue_msgs::msg::TwistAccelCmd>::SharedPtr cmd_sub_;
 };
 
 }  // namespace blue::control

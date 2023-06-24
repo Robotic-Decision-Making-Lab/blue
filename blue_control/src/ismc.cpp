@@ -25,7 +25,6 @@
 
 #include "blue_dynamics/thruster_dynamics.hpp"
 #include "tf2_eigen/tf2_eigen.hpp"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
 namespace blue::control
 {
@@ -60,8 +59,9 @@ ISMC::ISMC()
     this->create_publisher<geometry_msgs::msg::WrenchStamped>("/blue/ismc/desired_wrench", 1);
 
   // Update the reference signal when a new command is received
-  cmd_sub_ = this->create_subscription<blue_msgs::msg::Reference>(
-    "/blue/ismc/cmd", 1, [this](blue_msgs::msg::Reference::ConstSharedPtr msg) { cmd_ = *msg; });
+  cmd_sub_ = this->create_subscription<blue_msgs::msg::TwistAccelCmd>(
+    "/blue/ismc/cmd", 1,
+    [this](blue_msgs::msg::TwistAccelCmd::ConstSharedPtr msg) { cmd_ = *msg; });
 }
 
 void ISMC::onArm()
@@ -148,7 +148,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
 
   // Publish the desired torques to help with debugging and visualization
   geometry_msgs::msg::WrenchStamped wrench;
-  wrench.header.frame_id = blue::transforms::kBaseFrameId;
+  wrench.header.frame_id = blue::transforms::kBaseLinkFrameId;
   wrench.header.stamp = this->get_clock()->now();
   wrench.wrench.force.x = forces[0];
   wrench.wrench.force.y = forces[1];
