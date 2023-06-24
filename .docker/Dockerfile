@@ -200,7 +200,6 @@ RUN apt-get -q update \
     iputils-ping \
     net-tools \
     gdb \
-    ros-$ROS_DISTRO-foxglove-bridge \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*

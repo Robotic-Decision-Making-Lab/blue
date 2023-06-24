@@ -29,6 +29,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch_xml.launch_description_sources import XMLLaunchDescriptionSource
 
 
 def generate_launch_description() -> LaunchDescription:
@@ -106,12 +107,19 @@ def generate_launch_description() -> LaunchDescription:
                 " simulation."
             ),
         ),
+        DeclareLaunchArgument(
+            "foxglove_bridge_address",
+            default_value="127.0.0.1",
+            description="The Foxglove Studio datasource address.",
+        ),
+        DeclareLaunchArgument(
+            "foxglove_bridge_port",
+            default_value="8765",
+            description="The Foxglove Studio datasource port.",
+        ),
     ]
 
-    description_package = LaunchConfiguration("description_package")
     use_sim = LaunchConfiguration("use_sim")
-    use_foxglove = LaunchConfiguration("use_foxglove")
-    gazebo_world_file = LaunchConfiguration("gazebo_world_file")
 
     config_filepath = PathJoinSubstitution(
         [
@@ -157,10 +165,10 @@ def generate_launch_description() -> LaunchDescription:
                 "-r",
                 PathJoinSubstitution(
                     [
-                        FindPackageShare(description_package),
+                        FindPackageShare(LaunchConfiguration("description_package")),
                         "gazebo",
                         "worlds",
-                        gazebo_world_file,
+                        LaunchConfiguration("gazebo_world_file"),
                     ]
                 ),
             ],
@@ -220,12 +228,19 @@ def generate_launch_description() -> LaunchDescription:
             }.items(),
         ),
         IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
+            XMLLaunchDescriptionSource(
                 PathJoinSubstitution(
-                    [FindPackageShare("foxglove_bridge"), "foxglove_bridge_launch.xml"]
-                )
+                    [
+                        FindPackageShare("foxglove_bridge"),
+                        "foxglove_bridge_launch.xml",
+                    ]
+                ),
             ),
-            condition=IfCondition(use_foxglove),
+            launch_arguments={
+                "address": LaunchConfiguration("foxglove_bridge_address"),
+                "port": LaunchConfiguration("foxglove_bridge_port"),
+            },
+            condition=IfCondition(LaunchConfiguration("use_foxglove")),
         ),
     ]
 
