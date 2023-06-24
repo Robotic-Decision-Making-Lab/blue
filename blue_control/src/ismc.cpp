@@ -83,7 +83,7 @@ void ISMC::onArm()
   tf2::fromMsg(cmd_.twist, initial_velocity_error_);
   initial_velocity_error_ -= velocity;
 
-  // Now calculate the accleration error i.c.
+  // Now calculate the acceleration error i.c.
   blue::dynamics::Vector6d accel;
   accel << accel_.linear.x, accel_.linear.y, accel_.linear.z, accel_.angular.x, accel_.angular.y,
     accel_.angular.z;
@@ -101,7 +101,7 @@ void ISMC::onDisarm()
   // Reset the total velocity error on disarm just to be safe
   total_velocity_error_ = blue::dynamics::Vector6d::Zero();
 
-  // Reset the intial conditions too
+  // Reset the initial conditions too
   initial_velocity_error_ = blue::dynamics::Vector6d::Zero();
   initial_acceleration_error_ = blue::dynamics::Vector6d::Zero();
 };

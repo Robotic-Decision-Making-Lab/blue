@@ -28,12 +28,12 @@ import tf2_geometry_msgs  # noqa
 import tf_transformations as tf
 from cv_bridge import CvBridge
 from geometry_msgs.msg import PoseStamped
+from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
-from nav_msgs.msg import Odometry
 
 
 class Localizer(Node, ABC):
