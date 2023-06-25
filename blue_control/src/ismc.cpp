@@ -24,7 +24,9 @@
 #include <cmath>
 
 #include "blue_dynamics/thruster_dynamics.hpp"
+#include "tf2/transform_datatypes.h"
 #include "tf2_eigen/tf2_eigen.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
 namespace blue::control
 {
@@ -96,6 +98,9 @@ void ISMC::onArm()
     cmd_.accel.angular.x, cmd_.accel.angular.y, cmd_.accel.angular.z;
   initial_acceleration_error_ = accel_error;
   initial_acceleration_error_ -= accel;
+
+  // !REMOVE
+  cmd_.twist.linear.x = 1.0;
 };
 
 void ISMC::onDisarm()
@@ -162,7 +167,17 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
     hydrodynamics_.restoring_forces.calculateRestoringForces(orientation.toRotationMatrix()) +
     sliding_gain_ * surface;
 
-  // Publish the desired torques to help with debugging and visualization
+  // Initialize a OverrideRCIn message with no change for the PWM values
+  mavros_msgs::msg::OverrideRCIn msg;
+
+  // Set all channels to "NOCHANGE" by default
+  for (uint16_t & channel : msg.channels) {
+    channel = mavros_msgs::msg::OverrideRCIn::CHAN_NOCHANGE;
+  }
+
+  // The torques have been calculated for the base_link frame, but we need to transform them
+  // to the base_link_frd frame for ArduSub. We can just use the wrench message that we are already
+  // planning to publish to help us do the transform.
   geometry_msgs::msg::WrenchStamped wrench;
   wrench.header.frame_id = blue::transforms::kBaseLinkFrameId;
   wrench.header.stamp = this->get_clock()->now();
@@ -173,14 +188,33 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   wrench.wrench.torque.y = forces[4];
   wrench.wrench.torque.z = forces[5];
 
-  desired_wrench_pub_->publish(wrench);
+  geometry_msgs::msg::TransformStamped transform;
 
-  mavros_msgs::msg::OverrideRCIn msg;
-
-  // Set all channels to "NOCHANGE" by default
-  for (uint16_t & channel : msg.channels) {
-    channel = mavros_msgs::msg::OverrideRCIn::CHAN_NOCHANGE;
+  try {
+    transform = tf_buffer_->lookupTransform(
+      blue::transforms::kBaseLinkFrdFrameId, blue::transforms::kBaseLinkFrameId,
+      tf2::TimePointZero);
   }
+  catch (const tf2::TransformException & e) {
+    RCLCPP_INFO(
+      this->get_logger(), "Could not transform %s to %s: %s",
+      blue::transforms::kBaseLinkFrdFrameId.c_str(), blue::transforms::kBaseLinkFrameId.c_str(),
+      e.what());
+    return msg;
+  }
+
+  geometry_msgs::msg::WrenchStamped wrench_frd;
+
+  tf2::doTransform(wrench, wrench_frd, transform);
+
+  desired_wrench_pub_->publish(wrench_frd);
+
+  forces[0] = wrench_frd.wrench.force.x;
+  forces[1] = wrench_frd.wrench.force.y;
+  forces[2] = wrench_frd.wrench.force.z;
+  forces[3] = wrench_frd.wrench.torque.x;
+  forces[4] = wrench_frd.wrench.torque.y;
+  forces[5] = wrench_frd.wrench.torque.z;
 
   // Multiply the desired forces by the pseudoinverse of the thruster configuration matrix
   // The size of this vector will depend on the number of thrusters so we don't assign it to a
