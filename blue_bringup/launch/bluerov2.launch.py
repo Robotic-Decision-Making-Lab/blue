@@ -239,7 +239,7 @@ def generate_launch_description() -> LaunchDescription:
             launch_arguments={
                 "address": LaunchConfiguration("foxglove_bridge_address"),
                 "port": LaunchConfiguration("foxglove_bridge_port"),
-            },
+            }.items(),
             condition=IfCondition(LaunchConfiguration("use_foxglove")),
         ),
     ]

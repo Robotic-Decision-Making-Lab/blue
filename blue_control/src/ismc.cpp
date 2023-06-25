@@ -54,9 +54,11 @@ ISMC::ISMC()
   boundary_thickness_ = this->get_parameter("boundary_thickness").as_double();
   use_battery_state_ = this->get_parameter("use_battery_state").as_bool();
 
-  // Publish the desired wrench to help with tuning and visualization
+  // Publish the desired wrench and errors to help with tuning and visualization
   desired_wrench_pub_ =
     this->create_publisher<geometry_msgs::msg::WrenchStamped>("/blue/ismc/desired_wrench", 1);
+  velocity_error_pub_ =
+    this->create_publisher<geometry_msgs::msg::TwistStamped>("/blue/ismc/velocity_error", 1);
 
   // Update the reference signal when a new command is received
   cmd_sub_ = this->create_subscription<blue_msgs::msg::TwistAccelCmd>(
@@ -115,6 +117,20 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   blue::dynamics::Vector6d velocity_error;
   tf2::fromMsg(cmd_.twist, velocity_error);
   velocity_error -= velocity;
+
+  // Publish the velocity error to help with debugging
+  geometry_msgs::msg::TwistStamped velocity_error_msg;
+  velocity_error_msg.header.frame_id = blue::transforms::kBaseLinkFrdFrameId;
+  velocity_error_msg.header.stamp = this->get_clock()->now();
+
+  velocity_error_msg.twist.linear.x = velocity[0];
+  velocity_error_msg.twist.linear.y = velocity[1];
+  velocity_error_msg.twist.linear.z = velocity[2];
+  velocity_error_msg.twist.angular.x = velocity[3];
+  velocity_error_msg.twist.angular.y = velocity[4];
+  velocity_error_msg.twist.angular.z = velocity[5];
+
+  velocity_error_pub_->publish(velocity_error_msg);
 
   // :(
   blue::dynamics::Vector6d desired_accel;  // NOLINT

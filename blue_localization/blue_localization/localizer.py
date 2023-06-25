@@ -312,7 +312,16 @@ class GazeboLocalizer(Localizer):
         # We only need the pose; we don't need the covariance
         pose.pose = msg.pose.pose
 
-        self.localization_pub.publish(pose)
+        # Transform the pose into the map_ned frame for ArduSub
+        to_frame = "map_ned"
+
+        try:
+            self.localization_pub.publish(self.tf_buffer.transform(pose, to_frame))
+        except Exception as e:
+            self.get_logger().warning(
+                f"Failed to transform the Gazebo pose from {pose.header.frame_id} to"
+                f" {to_frame}, {e}"
+            )
 
 
 def main_aruco(args: list[str] | None = None):
