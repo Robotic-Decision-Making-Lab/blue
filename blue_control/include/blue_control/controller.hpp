@@ -26,8 +26,8 @@
 #include <string>
 #include <vector>
 
-#include "blue_control/frames.hpp"
 #include "blue_dynamics/hydrodynamics.hpp"
+#include "blue_utils/frames.hpp"
 #include "geometry_msgs/msg/accel.hpp"
 #include "geometry_msgs/msg/accel_stamped.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
@@ -59,30 +59,6 @@ public:
   explicit Controller(const std::string & node_name);
 
 protected:
-  /**
-   * @brief Convert an std::vector into an Eigen::Matrix
-   *
-   * @tparam T The type of values held by the vector.
-   * @tparam major The order to copy over the elements in (e.g., ``Eigen::RowMajor``)
-   * @param rows The number of rows in the resulting matrix.
-   * @param cols The number of columns in the resulting matrix.
-   * @param vec The vector to convert into a matrix.
-   * @return The converted Eigen matrix.
-   */
-  template <typename T, int major = Eigen::ColMajor>
-  static inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> convertVectorToEigenMatrix(
-    const std::vector<T> & vec, int rows, int cols)
-  {
-    // While it would be preferable to define the rows and cols as template parameters, the
-    // primary use-case for this method within the scope of this implementation is to use it with
-    // ROS 2 parameters which are not always known at compile time (e.g., TCM). Therefore, the rows
-    // and cols are made to be function parameters.
-    typedef const Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic, major> M;
-    Eigen::Map<M> mat(vec.data(), rows, cols);
-
-    return mat;
-  }
-
   /**
    * @brief Function executed when the controller is armed.
    */
@@ -184,9 +160,6 @@ private:
 
   // Manages whether or not control inputs are sent to ArduSub
   bool armed_;
-
-  // Dynamic transforms
-  geometry_msgs::msg::TransformStamped tf_map_base_;
 
   // TF2
   std::unique_ptr<tf2_ros::TransformListener> tf_listener_;

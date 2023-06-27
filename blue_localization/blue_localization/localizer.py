@@ -27,17 +27,23 @@ import rclpy
 import tf2_geometry_msgs  # noqa
 import tf_transformations as tf
 from cv_bridge import CvBridge
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose, PoseStamped, TransformStamped
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
+from tf2_ros.transform_broadcaster import TransformBroadcaster
 from tf2_ros.transform_listener import TransformListener
 
 
 class Localizer(Node, ABC):
     """Base class for implementing a visual localization interface."""
+
+    MAP_FRAME = "map"
+    MAP_NED_FRAME = "map_ned"
+    BASE_LINK_FRAME = "base_link"
+    BASE_LINK_FRD_FRAME = "base_link_frd"
 
     def __init__(self, node_name: str) -> None:
         """Create a new localizer.
@@ -51,11 +57,45 @@ class Localizer(Node, ABC):
         # Provide access to TF2
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.tf_broadcaster = TransformBroadcaster(self, 1)
 
         # Poses are sent to the ArduPilot EKF
         self.localization_pub = self.create_publisher(
             PoseStamped, "/mavros/vision_pose/pose", 1
         )
+        self.odometry_pub = self.create_publisher(Odometry, "/mavros/odometry/out", 1)
+
+    @staticmethod
+    def convert_pose_to_transform(
+        node: Node, pose: Pose, reference_frame: str, child_frame: str
+    ) -> TransformStamped:
+        """Convert a Pose message into a TransformStamped.
+
+        Args:
+            node: The ROS 2 node that is calling the method.
+            pose: The Pose message to convert into a TransformStamped message.
+            reference_frame: The frame that the TransformStamped transforms from.
+            child_frame: The frame that the TrasnformStamped transforms to.
+
+        Returns:
+            The converted TransformStamped message.
+        """
+        tf = TransformStamped()
+
+        tf.header.stamp = node.get_clock().now().to_msg()
+        tf.header.frame_id = reference_frame
+        tf.child_frame_id = child_frame
+
+        tf.transform.translation.x = pose.position.x
+        tf.transform.translation.y = pose.position.y
+        tf.transform.translation.z = pose.position.z
+
+        tf.transform.rotation.x = pose.orientation.x
+        tf.transform.rotation.y = pose.orientation.y
+        tf.transform.rotation.z = pose.orientation.z
+        tf.transform.rotation.w = pose.orientation.w
+
+        return tf
 
 
 class ArucoMarkerLocalizer(Localizer):
@@ -303,6 +343,13 @@ class GazeboLocalizer(Localizer):
         Args:
             msg: The Gazebo ground-truth odometry for the BlueROV2.
         """
+        # Use the Odometry message to publish the transform from the map frame to the
+        # base_link frame
+        tf_map_base = Localizer.convert_pose_to_transform(
+            self, msg.pose.pose, self.MAP_FRAME, self.BASE_LINK_FRAME
+        )
+        self.tf_broadcaster.sendTransform(tf_map_base)
+
         pose = PoseStamped()
 
         # Pose is provided in the parent header frame
@@ -312,16 +359,7 @@ class GazeboLocalizer(Localizer):
         # We only need the pose; we don't need the covariance
         pose.pose = msg.pose.pose
 
-        # Transform the pose into the map_ned frame for ArduSub
-        to_frame = "map_ned"
-
-        try:
-            self.localization_pub.publish(self.tf_buffer.transform(pose, to_frame))
-        except Exception as e:
-            self.get_logger().warning(
-                f"Failed to transform the Gazebo pose from {pose.header.frame_id} to"
-                f" {to_frame}, {e}"
-            )
+        self.localization_pub.publish(pose)
 
 
 def main_aruco(args: list[str] | None = None):

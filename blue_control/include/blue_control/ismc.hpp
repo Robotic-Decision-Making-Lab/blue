@@ -24,7 +24,7 @@
 
 #include "blue_control/controller.hpp"
 #include "blue_dynamics/thruster_dynamics.hpp"
-#include "blue_msgs/msg/twist_accel_cmd.hpp"
+#include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "geometry_msgs/msg/wrench_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
@@ -52,6 +52,7 @@ private:
   // ISMC gains
   blue::dynamics::Matrix6d integral_gain_;
   blue::dynamics::Matrix6d proportional_gain_;
+  blue::dynamics::Matrix6d derivative_gain_;
   double sliding_gain_;
   double boundary_thickness_;
 
@@ -64,14 +65,14 @@ private:
   bool use_battery_state_;
 
   // Reference signal
-  blue_msgs::msg::TwistAccelCmd cmd_;
+  geometry_msgs::msg::Twist cmd_;
 
   // Publishers
   rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr desired_wrench_pub_;
   rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr velocity_error_pub_;
 
   // Subscribers
-  rclcpp::Subscription<blue_msgs::msg::TwistAccelCmd>::SharedPtr cmd_sub_;
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_sub_;
 };
 
 }  // namespace blue::control

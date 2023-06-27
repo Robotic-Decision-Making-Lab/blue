@@ -20,6 +20,8 @@
 
 #include "blue_control/controller.hpp"
 
+#include "blue_utils/utils.hpp"
+
 namespace blue::control
 {
 
@@ -45,16 +47,20 @@ Controller::Controller(const std::string & node_name)
     "linear_damping_coeff", std::vector<double>({-4.03, -6.22, -5.18, -0.07, -0.07, -0.07}));
   this->declare_parameter(
     "quadratic_damping_coeff", std::vector<double>({-18.18, -21.66, -36.99, -1.55, -1.55, -1.55}));
+  this->declare_parameter(
+    "frame", std::vector<bool>({true, true, false, false, true, false, false, true}));
 
   // clang-format off
   this->declare_parameter(
-    "tcm", std::vector<double>({  0.707,  0.707, -0.707,  -0.707,    0.0,   0.0,    0.0,    0.0,
-                                 -0.707,  0.707, -0.707,   0.707,    0.0,   0.0,    0.0,    0.0,
-                                    0.0,    0.0,    0.0,     0.0,   -1.0,   1.0,    1.0,   -1.0,
-                                    0.0,    0.0,    0.0,     0.0,  0.218, 0.218, -0.218, -0.218,
-                                    0.0,    0.0,    0.0,     0.0,   0.12, -0.12,   0.12,  -0.12,
-                                -0.1888, 0.1888, 0.1888, -0.1888,    0.0,   0.0,    0.0,    0.0}));
+    "tcm", std::vector<double>({-0.707,  -0.707,   0.707,  0.707,    0.0,    0.0,   0.0,   0.0,
+                                 0.707,  -0.707,   0.707, -0.707,    0.0,    0.0,   0.0,   0.0,
+                                   0.0,     0.0,     0.0,    0.0,    1.0,   -1.0,  -1.0,   1.0,
+                                   0.0,     0.0,     0.0,    0.0, -0.218, -0.218, 0.218, 0.218,
+                                   0.0,     0.0,     0.0,    0.0,  -0.12,   0.12, -0.12,  0.12,
+                                0.1888, -0.1888, -0.1888, 0.1888,    0.0,    0.0,   0.0,   0.0}));
   // clang-format on
+
+  using blue::utils::convertVectorToEigenMatrix;
 
   // Get hydrodynamic parameters
   const double mass = this->get_parameter("mass").as_double();
@@ -90,7 +96,7 @@ Controller::Controller(const std::string & node_name)
     blue::dynamics::CurrentEffects(ocean_current));
 
   // Setup the ROS things
-  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(get_clock());
+  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_unique<tf2_ros::TransformListener>(*tf_buffer_);
   tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
 
@@ -107,9 +113,9 @@ Controller::Controller(const std::string & node_name)
     [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) { updateOdomCb(msg); });
 
   arm_srv_ = this->create_service<std_srvs::srv::SetBool>(
-    "blue/control/arm", [this](
-                          const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-                          std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
+    "blue/cmd/arm", [this](
+                      const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+                      std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
       armControllerCb(request, response);
     });
 
@@ -208,23 +214,8 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
 
   accel_pub_->publish(accel_stamped);
 
+  // Update the current Odometry reading
   odom_ = *msg;
-
-  // Publish the map -> base_link transform
-  tf_map_base_.header.stamp = this->get_clock()->now();
-  tf_map_base_.header.frame_id = blue::transforms::kMapFrameId;
-  tf_map_base_.child_frame_id = blue::transforms::kBaseLinkFrameId;
-
-  tf_map_base_.transform.translation.x = odom_.pose.pose.position.x;
-  tf_map_base_.transform.translation.y = odom_.pose.pose.position.y;
-  tf_map_base_.transform.translation.z = odom_.pose.pose.position.z;
-
-  tf_map_base_.transform.rotation.x = odom_.pose.pose.orientation.x;
-  tf_map_base_.transform.rotation.y = odom_.pose.pose.orientation.y;
-  tf_map_base_.transform.rotation.z = odom_.pose.pose.orientation.z;
-  tf_map_base_.transform.rotation.w = odom_.pose.pose.orientation.w;
-
-  tf_broadcaster_->sendTransform(tf_map_base_);
 }
 
 void Controller::setMessageRates(

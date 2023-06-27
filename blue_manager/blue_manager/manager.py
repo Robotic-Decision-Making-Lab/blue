@@ -68,7 +68,7 @@ class Manager(Node):
         # Services
         self.set_pwm_passthrough_srv = self.create_service(
             SetBool,
-            "/blue/manager/enable_passthrough",
+            "/blue/cmd/enable_passthrough",
             self.set_rc_passthrough_mode_cb,
             callback_group=reentrant_callback_group,
         )
