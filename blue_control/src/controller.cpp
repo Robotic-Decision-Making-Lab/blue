@@ -21,6 +21,7 @@
 #include "blue_control/controller.hpp"
 
 #include "blue_utils/eigen.hpp"
+#include "blue_utils/tf2.hpp"
 
 namespace blue::control
 {
