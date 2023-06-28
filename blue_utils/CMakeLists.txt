@@ -27,24 +27,23 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
-include_directories(
-  include
-)
-
 add_library(${PROJECT_NAME} INTERFACE)
 
-target_link_libraries(${PROJECT_NAME} INTERFACE ${rclcpp_LIBRARIES})
-target_include_directories(${PROJECT_NAME} INTERFACE)
+target_link_libraries(${PROJECT_NAME} INTERFACE)
+target_include_directories(${PROJECT_NAME} INTERFACE
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+)
 ament_target_dependencies(${PROJECT_NAME} INTERFACE ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 install(
   DIRECTORY include/
-  DESTINATION include
+  DESTINATION include/${PROJECT_NAME}
 )
 
 install(
   TARGETS ${PROJECT_NAME}
-  EXPORT ${PROJECT_NAME}
+  EXPORT "export_${PROJECT_NAME}"
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
@@ -61,7 +60,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-ament_export_targets(${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
+ament_export_targets("export_${PROJECT_NAME}")
 
 ament_package()

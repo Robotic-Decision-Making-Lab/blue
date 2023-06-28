@@ -4,7 +4,7 @@
 
   <name>blue_utils</name>
   <version>0.0.1</version>
-  <description>Common helper functions and constants</description>
+  <description>Common helper functions and types</description>
 
   <maintainer email="evanp922@gmail.com">Evan Palmer</maintainer>
   <license>MIT</license>

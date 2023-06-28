@@ -36,18 +36,24 @@ add_library(${PROJECT_NAME} SHARED
   src/thruster_dynamics.cpp
 )
 
-target_link_libraries(${PROJECT_NAME} ${rclcpp_LIBRARIES})
-target_include_directories(${PROJECT_NAME} PRIVATE include)
+target_link_libraries(${PROJECT_NAME}
+  ${rclcpp_LIBRARIES}
+  blue_utils::blue_utils
+)
+target_include_directories(${PROJECT_NAME} PUBLIC
+  "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
+  "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>"
+)
 ament_target_dependencies(${PROJECT_NAME} ${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 install(
   DIRECTORY include/
-  DESTINATION include
+  DESTINATION include/${PROJECT_NAME}
 )
 
 install(
   TARGETS ${PROJECT_NAME}
-  EXPORT ${PROJECT_NAME}
+  EXPORT "export_${PROJECT_NAME}"
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
@@ -78,7 +84,7 @@ if(BUILD_TESTING)
   target_link_libraries(test_thruster_dynamics ${PROJECT_NAME})
 endif()
 
-ament_export_targets(${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_targets("export_${PROJECT_NAME}" HAS_LIBRARY_TARGET)
 ament_export_dependencies(${THIS_PACKAGE_INCLUDE_DEPENDS})
 
 ament_package()
