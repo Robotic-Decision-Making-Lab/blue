@@ -5,7 +5,7 @@
 !blue_dynamics
 !blue_manager
 !blue_control
-!blue_msgs
 !blue_bringup
 !blue_localization
+!blue_utils
 !blue.repos

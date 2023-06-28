@@ -22,14 +22,10 @@
 
 #include <Eigen/Dense>
 
+#include "blue_utils/eigen.hpp"
+
 namespace blue::dynamics
 {
-
-// Used to represent a 6x6 matrix: commonly used in hydrodynamics.
-using Matrix6d = Eigen::Matrix<double, 6, 6>;
-
-// Used to represent a 6x1 matrix: commonly used in hydrodynamics.
-using Vector6d = Eigen::Matrix<double, 6, 1>;
 
 /**
  * @brief Create a skew-symmetric matrix from the provided coefficients.
@@ -68,7 +64,8 @@ public:
    *        M_dot{q}, N_dot{r})`.
    */
   Inertia(
-    double mass, const Eigen::Vector3d & inertia_tensor_coeff, const Vector6d & added_mass_coeff);
+    double mass, const Eigen::Vector3d & inertia_tensor_coeff,
+    const Eigen::Vector6d & added_mass_coeff);
 
   /**
    * @brief Get the vehicle's inertia matrix.
@@ -83,10 +80,10 @@ public:
    *
    * @return The inertia matrix `M`.
    */
-  [[nodiscard]] Matrix6d getInertia() const;
+  [[nodiscard]] Eigen::Matrix6d getInertia() const;
 
 private:
-  Matrix6d inertia_matrix_;
+  Eigen::Matrix6d inertia_matrix_;
 };
 
 /**
@@ -109,7 +106,8 @@ public:
    *        M_dot{q}, N_dot{r})`.
    */
   Coriolis(
-    double mass, const Eigen::Vector3d & inertia_tensor_coeff, const Vector6d & added_mass_coeff);
+    double mass, const Eigen::Vector3d & inertia_tensor_coeff,
+    const Eigen::Vector6d & added_mass_coeff);
 
   /**
    * @brief Calculate the Coriolis and centripetal forces for the vehicle.
@@ -120,7 +118,7 @@ public:
    * @param velocity The current velocity of the vehicle in the body frame.
    * @return The Coriolis and centripetal force matrix `C`.
    */
-  [[nodiscard]] Matrix6d calculateCoriolis(const Vector6d & velocity) const;
+  [[nodiscard]] Eigen::Matrix6d calculateCoriolis(const Eigen::Vector6d & velocity) const;
 
   /**
    * @brief Calculate the rigid body Coriolis matrix.
@@ -138,7 +136,8 @@ public:
    * @param angular_velocity The current angular velocity of the vehicle in the body frame (rad/s).
    * @return The rigid body Coriolis matrix `C_RB`.
    */
-  [[nodiscard]] Matrix6d calculateRigidBodyCoriolis(const Eigen::Vector3d & angular_velocity) const;
+  [[nodiscard]] Eigen::Matrix6d calculateRigidBodyCoriolis(
+    const Eigen::Vector3d & angular_velocity) const;
 
   /**
    * @brief Calculate the added Coriolis matrix.
@@ -154,12 +153,12 @@ public:
    * @param velocity The current velocity of the vehicle in the body frame.
    * @return The added Coriolis matrix `C_A`.
    */
-  [[nodiscard]] Matrix6d calculateAddedCoriolis(const Vector6d & velocity) const;
+  [[nodiscard]] Eigen::Matrix6d calculateAddedCoriolis(const Eigen::Vector6d & velocity) const;
 
 private:
   double mass_{0.0};
   Eigen::Matrix3d moments_;
-  Vector6d added_mass_coeff_;
+  Eigen::Vector6d added_mass_coeff_;
 };
 
 /**
@@ -180,7 +179,8 @@ public:
    * @param quadratic_damping_coeff The nonlinear damping coefficients `(X_u|u|, Y_v|v|, Z_w|w|,
    *        K_p|p|, M_q|q|, N_r|r|)`.
    */
-  Damping(const Vector6d & linear_damping_coeff, const Vector6d & quadratic_damping_coeff);
+  Damping(
+    const Eigen::Vector6d & linear_damping_coeff, const Eigen::Vector6d & quadratic_damping_coeff);
 
   /**
    * @brief Calculate the damping forces for the vehicle.
@@ -192,11 +192,11 @@ public:
    * @param velocity The current velocity of the vehicle in the body frame.
    * @return The damping matrix `D`.
    */
-  [[nodiscard]] Matrix6d calculateDamping(const Vector6d & velocity) const;
+  [[nodiscard]] Eigen::Matrix6d calculateDamping(const Eigen::Vector6d & velocity) const;
 
 private:
-  Matrix6d linear_damping_;
-  Vector6d quadratic_damping_coeff_;
+  Eigen::Matrix6d linear_damping_;
+  Eigen::Vector6d quadratic_damping_coeff_;
 
   /**
    * @brief Calculate the nonlinear damping matrix.
@@ -204,7 +204,7 @@ private:
    * @param velocity The current velocity of the vehicle in the body frame.
    * @return The nonlinear damping matrix.
    */
-  [[nodiscard]] Matrix6d calculateNonlinearDamping(const Vector6d & velocity) const;
+  [[nodiscard]] Eigen::Matrix6d calculateNonlinearDamping(const Eigen::Vector6d & velocity) const;
 };
 
 /**
@@ -241,7 +241,7 @@ public:
    * @param rotation The current rotation of the vehicle in the inertial frame.
    * @return The vector of restoring forces.
    */
-  [[nodiscard]] Vector6d calculateRestoringForces(const Eigen::Matrix3d & rotation) const;
+  [[nodiscard]] Eigen::Vector6d calculateRestoringForces(const Eigen::Matrix3d & rotation) const;
 
 private:
   double weight_{0.0};
@@ -266,7 +266,7 @@ public:
    *
    * @param current_velocity The velocity of the fluid in the inertial frame.
    */
-  explicit CurrentEffects(const Vector6d & current_velocity);
+  explicit CurrentEffects(const Eigen::Vector6d & current_velocity);
 
   /**
    * @brief Calculate the current in the body frame.
@@ -274,10 +274,10 @@ public:
    * @param rotation The current rotation of the vehicle in the inertial frame.
    * @return The velocity of the current in the body frame.
    */
-  [[nodiscard]] Vector6d calculateCurrentEffects(const Eigen::Matrix3d & rotation) const;
+  [[nodiscard]] Eigen::Vector6d calculateCurrentEffects(const Eigen::Matrix3d & rotation) const;
 
 private:
-  Vector6d current_velocity_;
+  Eigen::Vector6d current_velocity_;
 };
 
 /**
