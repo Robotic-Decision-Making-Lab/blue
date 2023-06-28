@@ -51,6 +51,12 @@ inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> convertVectorToEigenMatr
   return mat;
 }
 
+/**
+ * @brief Convert a geometry_msgs::msg::Accel message into an Eigen vector.
+ *
+ * @param in The Accel message to convert.
+ * @param out The Eigen vector that should be populated with the Accel data.
+ */
 inline void fromMsg(const geometry_msgs::msg::Accel & in, blue::dynamics::Vector6d & out)
 {
   blue::dynamics::Vector6d v;
@@ -58,6 +64,12 @@ inline void fromMsg(const geometry_msgs::msg::Accel & in, blue::dynamics::Vector
   out = v;
 }
 
+/**
+ * @brief Convert a geometry_msgs::msg::Wrench into an Eigen vector.
+ *
+ * @param in The Wrench message to convert.
+ * @param out The Eigen vector that should be populated with the Wrench data.
+ */
 inline void fromMsg(const geometry_msgs::msg::Wrench & in, blue::dynamics::Vector6d & out)
 {
   blue::dynamics::Vector6d v;
@@ -65,6 +77,12 @@ inline void fromMsg(const geometry_msgs::msg::Wrench & in, blue::dynamics::Vecto
   out = v;
 }
 
+/**
+ * @brief Convert an Eigen vector into a geometry_msgs::msg::Wrench message.
+ *
+ * @param in The Eigen vector to convert into a Wrench message.
+ * @return geometry_msgs::msg::Wrench
+ */
 inline geometry_msgs::msg::Wrench toMsg(const blue::dynamics::Vector6d & in)
 {
   geometry_msgs::msg::Wrench msg;
