@@ -78,7 +78,7 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "use_sim",
             default_value="false",
-            description="Automatically start Gazebo.",
+            description="Launch the Gazebo + ArduSub simulator.",
         ),
         DeclareLaunchArgument(
             "use_foxglove",
