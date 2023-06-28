@@ -24,6 +24,7 @@
 
 #include "blue_control/controller.hpp"
 #include "blue_dynamics/thruster_dynamics.hpp"
+#include "blue_utils/eigen.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 #include "geometry_msgs/msg/wrench_stamped.hpp"
@@ -50,16 +51,16 @@ protected:
 
 private:
   // ISMC gains
-  blue::dynamics::Matrix6d integral_gain_;
-  blue::dynamics::Matrix6d proportional_gain_;
-  blue::dynamics::Matrix6d derivative_gain_;
+  Eigen::Matrix6d integral_gain_;
+  Eigen::Matrix6d proportional_gain_;
+  Eigen::Matrix6d derivative_gain_;
   double sliding_gain_;
   double boundary_thickness_;
 
   // Error terms
-  blue::dynamics::Vector6d initial_velocity_error_;
-  blue::dynamics::Vector6d initial_acceleration_error_;
-  blue::dynamics::Vector6d total_velocity_error_;
+  Eigen::Vector6d initial_velocity_error_;
+  Eigen::Vector6d initial_acceleration_error_;
+  Eigen::Vector6d total_velocity_error_;
 
   // Control whether or not the battery state is used when converting thrust to PWM
   bool use_battery_state_;

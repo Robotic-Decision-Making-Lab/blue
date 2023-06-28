@@ -20,6 +20,7 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   ament_cmake
   eigen3_cmake_module
   Eigen3
+  blue_utils
 )
 
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
@@ -75,7 +76,6 @@ if(BUILD_TESTING)
     test/test_thruster_dynamics.cpp
   )
   target_link_libraries(test_thruster_dynamics ${PROJECT_NAME})
-
 endif()
 
 ament_export_targets(${PROJECT_NAME} HAS_LIBRARY_TARGET)

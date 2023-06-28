@@ -24,7 +24,8 @@
 #include <cmath>
 
 #include "blue_dynamics/thruster_dynamics.hpp"
-#include "blue_utils/utils.hpp"
+#include "blue_utils/eigen.hpp"
+#include "blue_utils/tf2.hpp"
 #include "tf2/transform_datatypes.h"
 #include "tf2_eigen/tf2_eigen.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
@@ -34,9 +35,9 @@ namespace blue::control
 
 ISMC::ISMC()
 : Controller("ismc"),
-  initial_velocity_error_(blue::dynamics::Vector6d::Zero()),
-  initial_acceleration_error_(blue::dynamics::Vector6d::Zero()),
-  total_velocity_error_(blue::dynamics::Vector6d::Zero())
+  initial_velocity_error_(Eigen::Vector6d::Zero()),
+  initial_acceleration_error_(Eigen::Vector6d::Zero()),
+  total_velocity_error_(Eigen::Vector6d::Zero())
 {
   // Declare the ROS parameters specific to this controller
   this->declare_parameter("integral_gain", std::vector<double>({1.0, 1.0, 1.0, 1.0, 1.0, 1.0}));
@@ -47,11 +48,11 @@ ISMC::ISMC()
   this->declare_parameter("use_battery_state", false);
 
   // Get the gain matrices
-  Eigen::VectorXd integral_gain_coeff = blue::utils::convertVectorToEigenMatrix<double>(
+  Eigen::VectorXd integral_gain_coeff = blue::utility::vectorToEigen<double>(
     this->get_parameter("integral_gain").as_double_array(), 6, 1);
-  Eigen::VectorXd proportional_gain_coeff = blue::utils::convertVectorToEigenMatrix<double>(
+  Eigen::VectorXd proportional_gain_coeff = blue::utility::vectorToEigen<double>(
     this->get_parameter("proportional_gain").as_double_array(), 6, 1);
-  Eigen::VectorXd derivative_gain_coeff = blue::utils::convertVectorToEigenMatrix<double>(
+  Eigen::VectorXd derivative_gain_coeff = blue::utility::vectorToEigen<double>(
     this->get_parameter("derivative_gain").as_double_array(), 6, 1);
 
   integral_gain_ = integral_gain_coeff.asDiagonal().toDenseMatrix();
@@ -76,17 +77,17 @@ ISMC::ISMC()
 void ISMC::onArm()
 {
   // Reset the total velocity error
-  total_velocity_error_ = blue::dynamics::Vector6d::Zero();
+  total_velocity_error_ = Eigen::Vector6d::Zero();
 
   // Reset the initial conditions
-  initial_velocity_error_ = blue::dynamics::Vector6d::Zero();
-  initial_acceleration_error_ = blue::dynamics::Vector6d::Zero();
+  initial_velocity_error_ = Eigen::Vector6d::Zero();
+  initial_acceleration_error_ = Eigen::Vector6d::Zero();
 
   // We need to calculate the initial conditions for the controller now. This includes the
   // initial velocity and acceleration errors
 
   // Start by calculating the velocity error i.c.
-  blue::dynamics::Vector6d velocity;
+  Eigen::Vector6d velocity;
   tf2::fromMsg(odom_.twist.twist, velocity);
 
   tf2::fromMsg(cmd_, initial_velocity_error_);
@@ -94,34 +95,34 @@ void ISMC::onArm()
 
   // Now calculate the acceleration error i.c.
   // Assume that the desired acceleration is 0
-  blue::dynamics::Vector6d accel;
-  blue::utils::fromMsg(accel_, accel);
+  Eigen::Vector6d accel;
+  tf2::fromMsg(accel_, accel);
   initial_acceleration_error_ -= accel;
 };
 
 void ISMC::onDisarm()
 {
   // Reset the total velocity error on disarm just to be safe
-  total_velocity_error_ = blue::dynamics::Vector6d::Zero();
+  total_velocity_error_ = Eigen::Vector6d::Zero();
 
   // Reset the initial conditions too
-  initial_velocity_error_ = blue::dynamics::Vector6d::Zero();
-  initial_acceleration_error_ = blue::dynamics::Vector6d::Zero();
+  initial_velocity_error_ = Eigen::Vector6d::Zero();
+  initial_acceleration_error_ = Eigen::Vector6d::Zero();
 };
 
 mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
 {
-  blue::dynamics::Vector6d velocity;
+  Eigen::Vector6d velocity;
   tf2::fromMsg(odom_.twist.twist, velocity);
 
   // Calculate the velocity error
-  blue::dynamics::Vector6d velocity_error;
+  Eigen::Vector6d velocity_error;
   tf2::fromMsg(cmd_, velocity_error);
   velocity_error -= velocity;
 
   // Calculate the acceleration error; assume that the desired acceleration is 0
-  blue::dynamics::Vector6d accel_error;
-  blue::utils::fromMsg(accel_, accel_error);
+  Eigen::Vector6d accel_error;
+  tf2::fromMsg(accel_, accel_error);
   accel_error *= -1;
 
   // Publish the velocity error to help with debugging
@@ -141,7 +142,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   total_velocity_error_ += velocity_error * dt_;
 
   // Calculate the sliding surface
-  blue::dynamics::Vector6d surface =
+  Eigen::Vector6d surface =
     proportional_gain_ * velocity_error + integral_gain_ * total_velocity_error_ +
     derivative_gain_ * accel_error - proportional_gain_ * initial_velocity_error_ -
     initial_acceleration_error_;
@@ -151,7 +152,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   surface = surface.unaryExpr([this](double x) { return tanh(x / boundary_thickness_); });
 
   // Calculate the computed torque control
-  blue::dynamics::Vector6d tau0 =
+  Eigen::Vector6d tau0 =
     hydrodynamics_.inertia.getInertia() *
       (proportional_gain_ * velocity_error + integral_gain_ * total_velocity_error_ +
        derivative_gain_ * accel_error) +
@@ -161,15 +162,15 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
     hydrodynamics_.restoring_forces.calculateRestoringForces(orientation.toRotationMatrix());
 
   // Calculate the disturbance rejection torque
-  blue::dynamics::Vector6d tau1 = -sliding_gain_ * surface;
+  Eigen::Vector6d tau1 = -sliding_gain_ * surface;
 
-  blue::dynamics::Vector6d forces = tau0 + tau1;
+  Eigen::Vector6d forces = tau0 + tau1;
 
   // Publish the desired wrench for debugging purposes
   geometry_msgs::msg::WrenchStamped wrench;
   wrench.header.frame_id = blue::transforms::kBaseLinkFrameId;
   wrench.header.stamp = this->get_clock()->now();
-  wrench.wrench = blue::utils::toMsg(forces);
+  wrench.wrench = tf2::toMsg2(forces);
   desired_wrench_pub_->publish(wrench);
 
   // Initialize an OverrideRCIn message with no change for the PWM values
@@ -199,7 +200,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
 
   geometry_msgs::msg::WrenchStamped wrench_frd;
   tf2::doTransform(wrench, wrench_frd, transform);
-  blue::utils::fromMsg(wrench_frd.wrench, forces);
+  tf2::fromMsg(wrench_frd.wrench, forces);
 
   // Multiply the desired forces by the pseudoinverse of the thruster configuration matrix
   // The size of this vector will depend on the number of thrusters so we don't assign it to a

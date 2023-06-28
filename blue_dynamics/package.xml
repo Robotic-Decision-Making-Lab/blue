@@ -18,6 +18,7 @@
   <buildtool_depend>eigen3_cmake_module</buildtool_depend>
 
   <depend>eigen</depend>
+  <depend>blue_utils</depend>
 
   <buildtool_export_depend>eigen3_cmake_module</buildtool_export_depend>
 

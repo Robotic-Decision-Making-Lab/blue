@@ -18,7 +18,6 @@ endif()
 set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
   ament_cmake
-  blue_dynamics
   geometry_msgs
   eigen3_cmake_module
   Eigen3

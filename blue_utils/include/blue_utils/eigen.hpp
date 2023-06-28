@@ -18,27 +18,37 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
 
+#pragma once
+
 #include <Eigen/Dense>
+#include <vector>
 
-#include "blue_dynamics/hydrodynamics.hpp"
-#include "geometry_msgs/msg/accel.hpp"
-#include "geometry_msgs/msg/wrench.hpp"
+/// @cond
+namespace Eigen
+{
 
-namespace blue::utils
+// Extend the Eigen namespace to include commonly used matrix types
+using Matrix6d = Eigen::Matrix<double, 6, 6>;
+using Vector6d = Eigen::Matrix<double, 6, 1>;
+
+}  // namespace Eigen
+/// @endcond
+
+namespace blue::utility
 {
 
 /**
- * @brief Convert an std::vector into an Eigen::Matrix
+ * @brief Convert an std::vector into an Eigen::Matrix.
  *
  * @tparam T The type of values held by the vector.
- * @tparam major The order to copy over the elements in (e.g., ``Eigen::RowMajor``)
+ * @tparam major The order to copy over the elements in (e.g., ``Eigen::RowMajor``).
  * @param rows The number of rows in the resulting matrix.
  * @param cols The number of columns in the resulting matrix.
  * @param vec The vector to convert into a matrix.
  * @return The converted Eigen matrix.
  */
 template <typename T, int major = Eigen::ColMajor>
-inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> convertVectorToEigenMatrix(
+inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> vectorToEigen(
   const std::vector<T> & vec, int rows, int cols)
 {
   // While it would be preferable to define the rows and cols as template parameters, the
@@ -51,48 +61,4 @@ inline Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic> convertVectorToEigenMatr
   return mat;
 }
 
-/**
- * @brief Convert a geometry_msgs::msg::Accel message into an Eigen vector.
- *
- * @param in The Accel message to convert.
- * @param out The Eigen vector that should be populated with the Accel data.
- */
-inline void fromMsg(const geometry_msgs::msg::Accel & in, blue::dynamics::Vector6d & out)
-{
-  blue::dynamics::Vector6d v;
-  v << in.linear.x, in.linear.y, in.linear.z, in.angular.x, in.angular.y, in.angular.z;
-  out = v;
-}
-
-/**
- * @brief Convert a geometry_msgs::msg::Wrench into an Eigen vector.
- *
- * @param in The Wrench message to convert.
- * @param out The Eigen vector that should be populated with the Wrench data.
- */
-inline void fromMsg(const geometry_msgs::msg::Wrench & in, blue::dynamics::Vector6d & out)
-{
-  blue::dynamics::Vector6d v;
-  v << in.force.x, in.force.y, in.force.z, in.torque.x, in.torque.y, in.torque.z;
-  out = v;
-}
-
-/**
- * @brief Convert an Eigen vector into a geometry_msgs::msg::Wrench message.
- *
- * @param in The Eigen vector to convert into a Wrench message.
- * @return geometry_msgs::msg::Wrench
- */
-inline geometry_msgs::msg::Wrench toMsg(const blue::dynamics::Vector6d & in)
-{
-  geometry_msgs::msg::Wrench msg;
-  msg.force.x = in[0];
-  msg.force.y = in[1];
-  msg.force.z = in[2];
-  msg.torque.x = in[3];
-  msg.torque.y = in[4];
-  msg.torque.z = in[5];
-  return msg;
-}
-
-}  // namespace blue::utils
+}  // namespace blue::utility

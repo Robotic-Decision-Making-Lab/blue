@@ -20,7 +20,7 @@
 
 #include "blue_control/controller.hpp"
 
-#include "blue_utils/utils.hpp"
+#include "blue_utils/eigen.hpp"
 
 namespace blue::control
 {
@@ -60,31 +60,29 @@ Controller::Controller(const std::string & node_name)
                                 0.1888, -0.1888, -0.1888, 0.1888,    0.0,    0.0,   0.0,   0.0}));
   // clang-format on
 
-  using blue::utils::convertVectorToEigenMatrix;
-
   // Get hydrodynamic parameters
   const double mass = this->get_parameter("mass").as_double();
   const double buoyancy = this->get_parameter("buoyancy").as_double();
   const double weight = this->get_parameter("weight").as_double();
-  const Eigen::Vector3d inertia_tensor_coeff = convertVectorToEigenMatrix<double>(
+  const Eigen::Vector3d inertia_tensor_coeff = blue::utility::vectorToEigen<double>(
     this->get_parameter("inertia_tensor_coeff").as_double_array(), 3, 1);
-  const Eigen::Matrix<double, 6, 1> added_mass_coeff = convertVectorToEigenMatrix<double>(
+  const Eigen::Matrix<double, 6, 1> added_mass_coeff = blue::utility::vectorToEigen<double>(
     this->get_parameter("added_mass_coeff").as_double_array(), 6, 1);
-  const Eigen::Matrix<double, 6, 1> linear_damping_coeff = convertVectorToEigenMatrix<double>(
+  const Eigen::Matrix<double, 6, 1> linear_damping_coeff = blue::utility::vectorToEigen<double>(
     this->get_parameter("linear_damping_coeff").as_double_array(), 6, 1);
-  const Eigen::Matrix<double, 6, 1> quadratic_damping_coeff = convertVectorToEigenMatrix<double>(
+  const Eigen::Matrix<double, 6, 1> quadratic_damping_coeff = blue::utility::vectorToEigen<double>(
     this->get_parameter("quadratic_damping_coeff").as_double_array(), 6, 1);
-  const Eigen::Vector3d center_of_gravity = convertVectorToEigenMatrix<double>(
+  const Eigen::Vector3d center_of_gravity = blue::utility::vectorToEigen<double>(
     this->get_parameter("center_of_gravity").as_double_array(), 3, 1);
-  const Eigen::Vector3d center_of_buoyancy = convertVectorToEigenMatrix<double>(
+  const Eigen::Vector3d center_of_buoyancy = blue::utility::vectorToEigen<double>(
     this->get_parameter("center_of_buoyancy").as_double_array(), 3, 1);
-  const Eigen::Matrix<double, 6, 1> ocean_current = convertVectorToEigenMatrix<double>(
+  const Eigen::Matrix<double, 6, 1> ocean_current = blue::utility::vectorToEigen<double>(
     this->get_parameter("ocean_current").as_double_array(), 6, 1);
 
   // Get the thruster configuration matrix
   std::vector<double> tcm_vec = this->get_parameter("tcm").as_double_array();
   const int num_thrusters = this->get_parameter("num_thrusters").as_int();
-  tcm_ = convertVectorToEigenMatrix<double, Eigen::RowMajor>(
+  tcm_ = blue::utility::vectorToEigen<double, Eigen::RowMajor>(
     tcm_vec, static_cast<int>(tcm_vec.size() / num_thrusters), num_thrusters);
 
   // Initialize the hydrodynamic parameters
