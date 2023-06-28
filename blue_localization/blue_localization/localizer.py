@@ -27,16 +27,23 @@ import rclpy
 import tf2_geometry_msgs  # noqa
 import tf_transformations as tf
 from cv_bridge import CvBridge
-from geometry_msgs.msg import PoseStamped
+from geometry_msgs.msg import Pose, PoseStamped, TransformStamped
+from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
+from tf2_ros.transform_broadcaster import TransformBroadcaster
 from tf2_ros.transform_listener import TransformListener
 
 
 class Localizer(Node, ABC):
     """Base class for implementing a visual localization interface."""
+
+    MAP_FRAME = "map"
+    MAP_NED_FRAME = "map_ned"
+    BASE_LINK_FRAME = "base_link"
+    BASE_LINK_FRD_FRAME = "base_link_frd"
 
     def __init__(self, node_name: str) -> None:
         """Create a new localizer.
@@ -50,11 +57,45 @@ class Localizer(Node, ABC):
         # Provide access to TF2
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
+        self.tf_broadcaster = TransformBroadcaster(self, 1)
 
         # Poses are sent to the ArduPilot EKF
         self.localization_pub = self.create_publisher(
             PoseStamped, "/mavros/vision_pose/pose", 1
         )
+        self.odometry_pub = self.create_publisher(Odometry, "/mavros/odometry/out", 1)
+
+    @staticmethod
+    def convert_pose_to_transform(
+        node: Node, pose: Pose, reference_frame: str, child_frame: str
+    ) -> TransformStamped:
+        """Convert a Pose message into a TransformStamped.
+
+        Args:
+            node: The ROS 2 node that is calling the method.
+            pose: The Pose message to convert into a TransformStamped message.
+            reference_frame: The frame that the TransformStamped transforms from.
+            child_frame: The frame that the TrasnformStamped transforms to.
+
+        Returns:
+            The converted TransformStamped message.
+        """
+        tf = TransformStamped()
+
+        tf.header.stamp = node.get_clock().now().to_msg()
+        tf.header.frame_id = reference_frame
+        tf.child_frame_id = child_frame
+
+        tf.transform.translation.x = pose.position.x
+        tf.transform.translation.y = pose.position.y
+        tf.transform.translation.z = pose.position.z
+
+        tf.transform.rotation.x = pose.orientation.x
+        tf.transform.rotation.y = pose.orientation.y
+        tf.transform.rotation.z = pose.orientation.z
+        tf.transform.rotation.w = pose.orientation.w
+
+        return tf
 
 
 class ArucoMarkerLocalizer(Localizer):
@@ -278,6 +319,49 @@ class QualisysLocalizer(Localizer):
         self.localization_pub.publish(pose)
 
 
+class GazeboLocalizer(Localizer):
+    """Localize the BlueROV2 using the Gazebo ground-truth data."""
+
+    def __init__(self) -> None:
+        """Create a new Gazebo localizer."""
+        super().__init__("gazebo_localizer")
+
+        # We need to know the topic to stream from
+        self.declare_parameter("gazebo_odom_topic", "")
+
+        # Subscribe to that topic so that we can proxy messages to the ArduSub EKF
+        self.create_subscription(
+            Odometry,
+            self.get_parameter("gazebo_odom_topic").get_parameter_value().string_value,
+            self.proxy_odom_cb,
+            1,
+        )
+
+    def proxy_odom_cb(self, msg: Odometry) -> None:
+        """Proxy the pose data from the Gazebo odometry ground-truth data.
+
+        Args:
+            msg: The Gazebo ground-truth odometry for the BlueROV2.
+        """
+        # Use the Odometry message to publish the transform from the map frame to the
+        # base_link frame
+        tf_map_base = Localizer.convert_pose_to_transform(
+            self, msg.pose.pose, self.MAP_FRAME, self.BASE_LINK_FRAME
+        )
+        self.tf_broadcaster.sendTransform(tf_map_base)
+
+        pose = PoseStamped()
+
+        # Pose is provided in the parent header frame
+        pose.header.frame_id = msg.header.frame_id
+        pose.header.stamp = msg.header.stamp
+
+        # We only need the pose; we don't need the covariance
+        pose.pose = msg.pose.pose
+
+        self.localization_pub.publish(pose)
+
+
 def main_aruco(args: list[str] | None = None):
     """Run the ArUco marker detector."""
     rclpy.init(args=args)
@@ -294,6 +378,17 @@ def main_qualisys(args: list[str] | None = None):
     rclpy.init(args=args)
 
     node = QualisysLocalizer()
+    rclpy.spin(node)
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+def main_gazebo(args: list[str] | None = None):
+    """Run the Gazebo localizer."""
+    rclpy.init(args=args)
+
+    node = GazeboLocalizer()
     rclpy.spin(node)
 
     node.destroy_node()

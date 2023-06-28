@@ -20,32 +20,26 @@
 
 #include "blue_control/controller.hpp"
 
+#include "blue_utils/utils.hpp"
+
 namespace blue::control
 {
-
-Eigen::VectorXd convertVectorToEigenVector(const std::vector<double> & vec)
-{
-  Eigen::VectorXd eigen_vec(vec.size());
-  eigen_vec = Eigen::Map<const Eigen::VectorXd>(vec.data(), vec.size());
-
-  return eigen_vec;
-}
-
-Eigen::MatrixXd convertVectorToEigenMatrix(
-  const std::vector<double> & vec, size_t rows, size_t cols)
-{
-  Eigen::Map<const Eigen::MatrixXd> mat(vec.data(), rows, cols);
-  return mat;
-}
 
 Controller::Controller(const std::string & node_name)
 : Node(std::move(node_name)),
   armed_(false)
 {
   // Declare ROS parameters
-  this->declare_parameter("mass", 11.5);
+  this->declare_parameter("mass", 13.5);
   this->declare_parameter("buoyancy", 112.80);
   this->declare_parameter("weight", 114.80);
+  this->declare_parameter("center_of_gravity", std::vector<double>({0.0, 0.0, 0.0}));
+  this->declare_parameter("center_of_buoyancy", std::vector<double>({0.0, 0.0, 0.0}));
+  this->declare_parameter("ocean_current", std::vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
+  this->declare_parameter("num_thrusters", 8);
+  this->declare_parameter("msg_ids", std::vector<int>({31, 32}));
+  this->declare_parameter("msg_rates", std::vector<double>({100, 100}));
+  this->declare_parameter("control_rate", 200.0);
   this->declare_parameter("inertia_tensor_coeff", std::vector<double>({0.16, 0.16, 0.16}));
   this->declare_parameter(
     "added_mass_coeff", std::vector<double>({-5.50, -12.70, -14.60, -0.12, -0.12, -0.12}));
@@ -53,47 +47,45 @@ Controller::Controller(const std::string & node_name)
     "linear_damping_coeff", std::vector<double>({-4.03, -6.22, -5.18, -0.07, -0.07, -0.07}));
   this->declare_parameter(
     "quadratic_damping_coeff", std::vector<double>({-18.18, -21.66, -36.99, -1.55, -1.55, -1.55}));
-  this->declare_parameter("center_of_gravity", std::vector<double>({0.0, 0.0, 0.0}));
-  this->declare_parameter("center_of_buoyancy", std::vector<double>({0.0, 0.0, 0.0}));
-  this->declare_parameter("ocean_current", std::vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
-  this->declare_parameter("num_thrusters", 8);
-  this->declare_parameter("msg_ids", std::vector<int>({31, 32}));
-  this->declare_parameter("msg_rates", std::vector<double>({100, 100}));
-  this->declare_parameter("control_loop_freq", 200.0);
-
-  // I'm so sorry for this
-  // You can blame the ROS devs for not supporting nested arrays for parameters
   this->declare_parameter(
-    "tcm", std::vector<double>({0.707,   0.707,  -0.707, -0.707,  0.0,    0.0,    0.0,   0.0,
-                                -0.707,  0.707,  -0.707, 0.707,   0.0,    0.0,    0.0,   0.0,
-                                0.0,     0.0,    0.0,    0.0,     -1.0,   1.0,    1.0,   -1.0,
-                                0.06,    -0.06,  0.06,   -0.06,   -0.218, -0.218, 0.218, 0.218,
-                                0.06,    0.06,   -0.06,  -0.06,   0.120,  -0.120, 0.120, -0.120,
-                                -0.1888, 0.1888, 0.1888, -0.1888, 0.0,    0.0,    0.0,   0.0}));
+    "frame", std::vector<bool>({true, true, false, false, true, false, false, true}));
 
-  // Get the parameter values
+  // clang-format off
+  this->declare_parameter(
+    "tcm", std::vector<double>({-0.707,  -0.707,   0.707,  0.707,    0.0,    0.0,   0.0,   0.0,
+                                 0.707,  -0.707,   0.707, -0.707,    0.0,    0.0,   0.0,   0.0,
+                                   0.0,     0.0,     0.0,    0.0,    1.0,   -1.0,  -1.0,   1.0,
+                                   0.0,     0.0,     0.0,    0.0, -0.218, -0.218, 0.218, 0.218,
+                                   0.0,     0.0,     0.0,    0.0,  -0.12,   0.12, -0.12,  0.12,
+                                0.1888, -0.1888, -0.1888, 0.1888,    0.0,    0.0,   0.0,   0.0}));
+  // clang-format on
+
+  using blue::utils::convertVectorToEigenMatrix;
+
+  // Get hydrodynamic parameters
   const double mass = this->get_parameter("mass").as_double();
   const double buoyancy = this->get_parameter("buoyancy").as_double();
   const double weight = this->get_parameter("weight").as_double();
-  const Eigen::Vector3d inertia_tensor_coeff =
-    convertVectorToEigenVector(this->get_parameter("inertia_tensor_coeff").as_double_array());
-  const Eigen::VectorXd added_mass_coeff =
-    convertVectorToEigenVector(this->get_parameter("added_mass_coeff").as_double_array());
-  const Eigen::VectorXd linear_damping_coeff =
-    convertVectorToEigenVector(this->get_parameter("linear_damping_coeff").as_double_array());
-  const Eigen::VectorXd quadratic_damping_coeff =
-    convertVectorToEigenVector(this->get_parameter("quadratic_damping_coeff").as_double_array());
-  const Eigen::Vector3d center_of_gravity =
-    convertVectorToEigenVector(this->get_parameter("center_of_gravity").as_double_array());
-  const Eigen::Vector3d center_of_buoyancy =
-    convertVectorToEigenVector(this->get_parameter("center_of_buoyancy").as_double_array());
-  const Eigen::VectorXd ocean_current =
-    convertVectorToEigenVector(this->get_parameter("ocean_current").as_double_array());
+  const Eigen::Vector3d inertia_tensor_coeff = convertVectorToEigenMatrix<double>(
+    this->get_parameter("inertia_tensor_coeff").as_double_array(), 3, 1);
+  const Eigen::Matrix<double, 6, 1> added_mass_coeff = convertVectorToEigenMatrix<double>(
+    this->get_parameter("added_mass_coeff").as_double_array(), 6, 1);
+  const Eigen::Matrix<double, 6, 1> linear_damping_coeff = convertVectorToEigenMatrix<double>(
+    this->get_parameter("linear_damping_coeff").as_double_array(), 6, 1);
+  const Eigen::Matrix<double, 6, 1> quadratic_damping_coeff = convertVectorToEigenMatrix<double>(
+    this->get_parameter("quadratic_damping_coeff").as_double_array(), 6, 1);
+  const Eigen::Vector3d center_of_gravity = convertVectorToEigenMatrix<double>(
+    this->get_parameter("center_of_gravity").as_double_array(), 3, 1);
+  const Eigen::Vector3d center_of_buoyancy = convertVectorToEigenMatrix<double>(
+    this->get_parameter("center_of_buoyancy").as_double_array(), 3, 1);
+  const Eigen::Matrix<double, 6, 1> ocean_current = convertVectorToEigenMatrix<double>(
+    this->get_parameter("ocean_current").as_double_array(), 6, 1);
 
   // Get the thruster configuration matrix
   std::vector<double> tcm_vec = this->get_parameter("tcm").as_double_array();
-  size_t num_thrusters = this->get_parameter("num_thrusters").as_int();
-  tcm_ = convertVectorToEigenMatrix(tcm_vec, tcm_vec.size() / num_thrusters, num_thrusters);
+  const int num_thrusters = this->get_parameter("num_thrusters").as_int();
+  tcm_ = convertVectorToEigenMatrix<double, Eigen::RowMajor>(
+    tcm_vec, static_cast<int>(tcm_vec.size() / num_thrusters), num_thrusters);
 
   // Initialize the hydrodynamic parameters
   hydrodynamics_ = blue::dynamics::HydrodynamicParameters(
@@ -104,21 +96,26 @@ Controller::Controller(const std::string & node_name)
     blue::dynamics::CurrentEffects(ocean_current));
 
   // Setup the ROS things
+  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+  tf_listener_ = std::make_unique<tf2_ros::TransformListener>(*tf_buffer_);
+  tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
+
+  accel_pub_ = this->create_publisher<geometry_msgs::msg::AccelStamped>("/blue/state/accel", 1);
   rc_override_pub_ =
     this->create_publisher<mavros_msgs::msg::OverrideRCIn>("mavros/rc/override", 1);
 
   battery_state_sub_ = this->create_subscription<sensor_msgs::msg::BatteryState>(
-    "/mavros/battery", 1,
+    "/mavros/battery", rclcpp::SensorDataQoS(),
     [this](sensor_msgs::msg::BatteryState::ConstSharedPtr msg) { battery_state_ = *msg; });
 
   odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
-    "/mavros/local_position/odom", 1,
-    [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) { odom_ = *msg; });
+    "/mavros/local_position/odom", rclcpp::SensorDataQoS(),
+    [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) { updateOdomCb(msg); });
 
   arm_srv_ = this->create_service<std_srvs::srv::SetBool>(
-    "blue/control/arm", [this](
-                          const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-                          std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
+    "blue/cmd/arm", [this](
+                      const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+                      std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
       armControllerCb(request, response);
     });
 
@@ -151,14 +148,18 @@ Controller::Controller(const std::string & node_name)
     [this, msg_ids, msg_rates]() -> void { setMessageRates(msg_ids, msg_rates); });
 
   // Convert the control loop frequency to seconds
-  dt_ = 1 / this->get_parameter("control_loop_freq").as_double();
+  dt_ = 1 / this->get_parameter("control_rate").as_double();
 
-  control_loop_timer_ =
-    this->create_wall_timer(std::chrono::duration<double>(dt_), [this]() -> void {
+  // Give the control loop its own callback group to avoid issues with long callbacks in the
+  // default callback group
+  control_loop_timer_ = this->create_wall_timer(
+    std::chrono::duration<double>(dt_),
+    [this]() -> void {
       if (armed_) {
-        rc_override_pub_->publish(update());
+        rc_override_pub_->publish(calculateControlInput());
       }
-    });
+    },
+    control_loop_cb_group_);
 }
 
 void Controller::armControllerCb(
@@ -166,6 +167,11 @@ void Controller::armControllerCb(
   std::shared_ptr<std_srvs::srv::SetBool::Response> response)
 {
   if (request->data) {
+    // Run the controller arming function prior to actually arming the controller
+    // This makes sure that any processing that needs to happen before the controller is *actually*
+    // armed can occur
+    onArm();
+
     // Arm the controller
     armed_ = true;
     response->success = true;
@@ -177,7 +183,39 @@ void Controller::armControllerCb(
     response->success = true;
     response->message = "Controller disarmed.";
     RCLCPP_WARN(this->get_logger(), "Custom BlueROV2 controller disarmed.");
+
+    // Run the controller disarming function after the controller has been fully disarmed
+    onDisarm();
   }
+}
+
+void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
+{
+  // Get the duration between the readings
+  rclcpp::Time prev_stamp(odom_.header.stamp.sec, odom_.header.stamp.nanosec);
+  rclcpp::Time current_stamp(msg->header.stamp.sec, msg->header.stamp.nanosec);
+  const double dt = (current_stamp - prev_stamp).seconds();
+
+  // Calculate the current acceleration using finite differencing and publish it for debugging
+  geometry_msgs::msg::Accel accel;
+  accel.linear.x = (msg->twist.twist.linear.x - odom_.twist.twist.linear.x) / dt;
+  accel.linear.y = (msg->twist.twist.linear.y - odom_.twist.twist.linear.y) / dt;
+  accel.linear.z = (msg->twist.twist.linear.z - odom_.twist.twist.linear.z) / dt;
+  accel.angular.x = (msg->twist.twist.angular.x - odom_.twist.twist.angular.x) / dt;
+  accel.angular.y = (msg->twist.twist.angular.y - odom_.twist.twist.angular.y) / dt;
+  accel.angular.z = (msg->twist.twist.angular.z - odom_.twist.twist.angular.z) / dt;
+
+  accel_ = accel;
+
+  geometry_msgs::msg::AccelStamped accel_stamped;
+  accel_stamped.header.frame_id = blue::transforms::kBaseLinkFrameId;
+  accel_stamped.header.stamp = this->get_clock()->now();
+  accel_stamped.accel = accel_;
+
+  accel_pub_->publish(accel_stamped);
+
+  // Update the current Odometry reading
+  odom_ = *msg;
 }
 
 void Controller::setMessageRates(

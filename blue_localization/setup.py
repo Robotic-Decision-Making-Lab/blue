@@ -50,6 +50,7 @@ setup(
             "qualisys_mocap = blue_localization.source:main_qualisys_mocap",
             "aruco_marker_localizer = blue_localization.localizer:main_aruco",
             "qualisys_localizer = blue_localization.localizer:main_qualisys",
+            "gazebo_localizer = blue_localization.localizer:main_gazebo",
         ],
     },
 )

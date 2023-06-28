@@ -68,7 +68,7 @@ class Manager(Node):
         # Services
         self.set_pwm_passthrough_srv = self.create_service(
             SetBool,
-            "/blue/manager/enable_passthrough",
+            "/blue/cmd/enable_passthrough",
             self.set_rc_passthrough_mode_cb,
             callback_group=reentrant_callback_group,
         )
@@ -223,8 +223,17 @@ class Manager(Node):
             # Set the servo mode to "RC Passthrough"
             # This disables the arming and failsafe features, but now lets us send PWM
             # values to the thrusters without any mixing
-            for param in passthrough_params.values():
-                param.value.integer_value = 1  # type: ignore
+            try:
+                for param in passthrough_params.values():
+                    param.value.integer_value = 1  # type: ignore
+            except AttributeError:
+                response.success = False
+                response.message = (
+                    "Failed to switch to RC Passthrough mode. Please ensure that all"
+                    " ArduSub parameters have been loaded prior to attempting to"
+                    " switch modes."
+                )
+                return response
 
             for _ in range(self.retries):
                 self.passthrough_enabled = self.set_thruster_params(

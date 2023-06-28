@@ -19,14 +19,16 @@ set(THIS_PACKAGE_INCLUDE_DEPENDS
   rclcpp
   ament_cmake
   blue_dynamics
-  blue_msgs
+  blue_utils
   nav_msgs
   sensor_msgs
   mavros_msgs
+  geometry_msgs
   std_srvs
   eigen3_cmake_module
   Eigen3
   tf2_eigen
+  tf2_geometry_msgs
 )
 
 foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})

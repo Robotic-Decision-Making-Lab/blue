@@ -46,7 +46,7 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "localization_source",
             default_value="mocap",
-            choices=["mocap", "camera"],
+            choices=["mocap", "camera", "gazebo"],
             description="The localization source to stream from.",
         ),
         DeclareLaunchArgument(
@@ -126,6 +126,16 @@ def generate_launch_description() -> LaunchDescription:
             parameters=[LaunchConfiguration("config_filepath")],
             condition=IfCondition(
                 PythonExpression(["'", localization_source, "' == 'mocap'"])
+            ),
+        ),
+        Node(
+            package="blue_localization",
+            executable="gazebo_localizer",
+            name="gazebo_localizer",
+            output="screen",
+            parameters=[LaunchConfiguration("config_filepath")],
+            condition=IfCondition(
+                PythonExpression(["'", localization_source, "' == 'gazebo'"])
             ),
         ),
     ]

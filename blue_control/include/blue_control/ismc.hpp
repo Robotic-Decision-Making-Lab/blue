@@ -23,7 +23,10 @@
 #include <Eigen/Dense>
 
 #include "blue_control/controller.hpp"
-#include "blue_msgs/msg/reference.hpp"
+#include "blue_dynamics/thruster_dynamics.hpp"
+#include "geometry_msgs/msg/twist.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
+#include "geometry_msgs/msg/wrench_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 
 namespace blue::control
@@ -41,18 +44,35 @@ public:
   ISMC();
 
 protected:
-  mavros_msgs::msg::OverrideRCIn update() override;
+  void onArm() override;
+  void onDisarm() override;
+  mavros_msgs::msg::OverrideRCIn calculateControlInput() override;
 
 private:
-  // Hyperparameters used by the ISMC
-  blue::dynamics::Vector6d total_velocity_error_;
-  blue::dynamics::Matrix6d convergence_rate_;
+  // ISMC gains
+  blue::dynamics::Matrix6d integral_gain_;
+  blue::dynamics::Matrix6d proportional_gain_;
+  blue::dynamics::Matrix6d derivative_gain_;
   double sliding_gain_;
   double boundary_thickness_;
 
+  // Error terms
+  blue::dynamics::Vector6d initial_velocity_error_;
+  blue::dynamics::Vector6d initial_acceleration_error_;
+  blue::dynamics::Vector6d total_velocity_error_;
+
+  // Control whether or not the battery state is used when converting thrust to PWM
   bool use_battery_state_;
-  blue_msgs::msg::Reference cmd_;
-  rclcpp::Subscription<blue_msgs::msg::Reference>::SharedPtr cmd_sub_;
+
+  // Reference signal
+  geometry_msgs::msg::Twist cmd_;
+
+  // Publishers
+  rclcpp::Publisher<geometry_msgs::msg::WrenchStamped>::SharedPtr desired_wrench_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr velocity_error_pub_;
+
+  // Subscribers
+  rclcpp::Subscription<geometry_msgs::msg::Twist>::SharedPtr cmd_sub_;
 };
 
 }  // namespace blue::control

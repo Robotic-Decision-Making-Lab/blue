@@ -24,18 +24,19 @@ from launch.actions import (
     ExecuteProcess,
     IncludeLaunchDescription,
 )
-from launch.conditions import IfCondition, UnlessCondition
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
+from launch_xml.launch_description_sources import XMLLaunchDescriptionSource
 
 
 def generate_launch_description() -> LaunchDescription:
     """Generate a launch description to run the system.
 
     Returns:
-        The Blue ROS 2 launch description.
+        The launch description for the BlueROV2 heavy configuration.
     """
     args = [
         DeclareLaunchArgument(
@@ -54,8 +55,8 @@ def generate_launch_description() -> LaunchDescription:
         ),
         DeclareLaunchArgument(
             "localization_source",
-            default_value="mocap",
-            choices=["mocap", "camera"],
+            default_value="gazebo",
+            choices=["mocap", "camera", "gazebo"],
             description="The localization source to stream from.",
         ),
         DeclareLaunchArgument(
@@ -77,7 +78,12 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "use_sim",
             default_value="false",
-            description="Automatically start Gazebo.",
+            description="Launch the Gazebo + ArduSub simulator.",
+        ),
+        DeclareLaunchArgument(
+            "use_foxglove",
+            default_value="false",
+            description="Start the Foxglove bridge.",
         ),
         DeclareLaunchArgument(
             "description_package",
@@ -101,11 +107,19 @@ def generate_launch_description() -> LaunchDescription:
                 " simulation."
             ),
         ),
+        DeclareLaunchArgument(
+            "foxglove_bridge_address",
+            default_value="127.0.0.1",
+            description="The Foxglove Studio datasource address.",
+        ),
+        DeclareLaunchArgument(
+            "foxglove_bridge_port",
+            default_value="8765",
+            description="The Foxglove Studio datasource port.",
+        ),
     ]
 
-    description_package = LaunchConfiguration("description_package")
     use_sim = LaunchConfiguration("use_sim")
-    gazebo_world_file = LaunchConfiguration("gazebo_world_file")
 
     config_filepath = PathJoinSubstitution(
         [
@@ -118,7 +132,7 @@ def generate_launch_description() -> LaunchDescription:
     ardusub_params_filepath = PathJoinSubstitution(
         [
             FindPackageShare("blue_description"),
-            "config",
+            "params",
             LaunchConfiguration("ardusub_params_file"),
         ]
     )
@@ -151,10 +165,10 @@ def generate_launch_description() -> LaunchDescription:
                 "-r",
                 PathJoinSubstitution(
                     [
-                        FindPackageShare(description_package),
+                        FindPackageShare(LaunchConfiguration("description_package")),
                         "gazebo",
                         "worlds",
-                        gazebo_world_file,
+                        LaunchConfiguration("gazebo_world_file"),
                     ]
                 ),
             ],
@@ -212,7 +226,21 @@ def generate_launch_description() -> LaunchDescription:
                 "use_mocap": LaunchConfiguration("use_mocap"),
                 "use_camera": LaunchConfiguration("use_camera"),
             }.items(),
-            condition=UnlessCondition(use_sim),
+        ),
+        IncludeLaunchDescription(
+            XMLLaunchDescriptionSource(
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare("foxglove_bridge"),
+                        "foxglove_bridge_launch.xml",
+                    ]
+                ),
+            ),
+            launch_arguments={
+                "address": LaunchConfiguration("foxglove_bridge_address"),
+                "port": LaunchConfiguration("foxglove_bridge_port"),
+            }.items(),
+            condition=IfCondition(LaunchConfiguration("use_foxglove")),
         ),
     ]
 

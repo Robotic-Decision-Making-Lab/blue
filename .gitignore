@@ -48,3 +48,7 @@ ros_gz/
 
 # ArduSub Sim
 eeprom.bin
+mav.parm
+mav.tlog
+mav.tlog.raw
+logs/

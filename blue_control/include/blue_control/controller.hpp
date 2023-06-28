@@ -27,41 +27,23 @@
 #include <vector>
 
 #include "blue_dynamics/hydrodynamics.hpp"
-#include "blue_dynamics/thruster_dynamics.hpp"
+#include "blue_utils/frames.hpp"
+#include "geometry_msgs/msg/accel.hpp"
+#include "geometry_msgs/msg/accel_stamped.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/transform_stamped.hpp"
 #include "mavros_msgs/msg/override_rc_in.hpp"
 #include "mavros_msgs/srv/message_interval.hpp"
 #include "nav_msgs/msg/odometry.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "sensor_msgs/msg/battery_state.hpp"
 #include "std_srvs/srv/set_bool.hpp"
+#include "tf2_ros/buffer.h"
+#include "tf2_ros/transform_broadcaster.h"
+#include "tf2_ros/transform_listener.h"
 
 namespace blue::control
 {
-
-/**
- * @brief Convert an `std::vector` to an `Eigen::VectorXd`.
- *
- * @note This method is useful when converting a ROS parameter that has been read as a `std::vector`
- * to an `Eigen::VectorXd`.
- *
- * @param vec The `std::vector` to convert.
- * @return An `Eigen::VectorXd` with the same values as `vec`.
- */
-Eigen::VectorXd convertVectorToEigenVector(const std::vector<double> & vec);
-
-/**
- * @brief Convert an `std::vector` to an `Eigen::MatrixXd`.
- *
- * @note This method is useful when converting a ROS parameter that has been read as a `std::vector`
- * to an `Eigen::MatrixXd`.
- *
- * @param vec The `std::vector` to convert.
- * @param rows The total number of rows in the resulting matrix.
- * @param cols The total number of columns in the resulting matrix.
- * @return An `Eigen::MatrixXd` with the same values as `vec`.
- */
-Eigen::MatrixXd convertVectorToEigenMatrix(
-  const std::vector<double> & vec, size_t rows, size_t cols);
 
 /**
  * @brief A base class for custom BlueROV2 controllers.
@@ -78,11 +60,21 @@ public:
 
 protected:
   /**
+   * @brief Function executed when the controller is armed.
+   */
+  virtual void onArm() = 0;
+
+  /**
+   * @brief Function executed when the controller is disarmed.
+   */
+  virtual void onDisarm() = 0;
+
+  /**
    * @brief Update the current control inputs to the thrusters
    *
    * @return mavros_msgs::msg::OverrideRCIn
    */
-  virtual mavros_msgs::msg::OverrideRCIn update() = 0;
+  virtual mavros_msgs::msg::OverrideRCIn calculateControlInput() = 0;
 
   /**
    * @brief A collection of the hydrodynamic parameters for the BlueROV2.
@@ -104,12 +96,15 @@ protected:
 
   /**
    * @brief The current pose and twist of the BlueROV2.
-   *
-   * @note It is important to note here that the pose information is provided in the inertial frame
-   * and the twist is provided in the body frame. For more information on this see:
-   * https://github.com/mavlink/mavros/issues/1251
    */
   nav_msgs::msg::Odometry odom_;
+
+  /**
+   * @brief The current acceleration of the BlueROV2.
+   *
+   * @note This is not provided by ArduSub directly and is calculated using finite differencing.
+   */
+  geometry_msgs::msg::Accel accel_;
 
   /**
    * @brief The total time (s) between control loop iterations
@@ -118,9 +113,13 @@ protected:
    */
   double dt_{0.0};
 
+  // TF2
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::unique_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
+
 private:
   /**
-   * @brief Enable the controller.
+   * @brief Enable/disable the controller.
    *
    * @details This method enables/disables sending RC Override messages to the BlueROV2.
    *
@@ -130,6 +129,15 @@ private:
   void armControllerCb(
     std::shared_ptr<std_srvs::srv::SetBool::Request> request,
     std::shared_ptr<std_srvs::srv::SetBool::Response> response);
+
+  /**
+   * @brief Handle the incoming odometry messages.
+   *
+   * @note This message will be published after MAVROS and all of it's plugins are loaded.
+   *
+   * @param msg The current odometry message.
+   */
+  void updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg);
 
   /**
    * @brief Set custom MAVLink message rates.
@@ -150,14 +158,23 @@ private:
    */
   void setMessageRate(int64_t msg_id, float rate);
 
+  // Manages whether or not control inputs are sent to ArduSub
   bool armed_;
+
+  // TF2
+  std::unique_ptr<tf2_ros::TransformListener> tf_listener_;
 
   // Publishers
   rclcpp::Publisher<mavros_msgs::msg::OverrideRCIn>::SharedPtr rc_override_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::AccelStamped>::SharedPtr accel_pub_;
 
   // Subscribers
   rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr battery_state_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
+  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr ardu_pose_sub_;
+
+  // Callback groups
+  rclcpp::CallbackGroup::SharedPtr control_loop_cb_group_;
 
   // Timers
   rclcpp::TimerBase::SharedPtr control_loop_timer_;

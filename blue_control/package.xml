@@ -1,21 +1,29 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
+
   <name>blue_control</name>
   <version>0.0.1</version>
   <description>Control interface for the BlueROV2</description>
+
   <maintainer email="evanp922@gmail.com">Evan Palmer</maintainer>
   <license>MIT</license>
+
+  <url type="repository">https://github.com/evan-palmer/blue.git</url>
+  <url type="bugtracker">https://github.com/evan-palmer/blue/issues</url>
+
+  <author>Evan Palmer</author>
 
   <depend>nav_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>mavros_msgs</depend>
   <depend>rclcpp</depend>
-  <depend>blue_dynamics</depend>
   <depend>eigen</depend>
-  <depend>blue_msgs</depend>
   <depend>std_srvs</depend>
   <depend>tf2_eigen</depend>
+  <depend>tf2</depend>
+  <depend>tf2_geometry_msgs</depend>
+  <depend>tf2_ros</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

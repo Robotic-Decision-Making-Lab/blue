@@ -6,7 +6,7 @@ blue_manager:
 
 ismc:
   ros__parameters:
-    mass: 11.5
+    mass: 13.5
     buoyancy: 112.80
     weight: 114.80
     inertia_tensor_coeff: [0.16, 0.16, 0.16]
@@ -17,15 +17,20 @@ ismc:
     center_of_buoyancy: [0.0, 0.0, 0.0]
     ocean_current: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     num_thrusters: 8
-    tcm: [0.707,   0.707,  -0.707, -0.707,  0.0,    0.0,    0.0,   0.0,
-          -0.707,  0.707,  -0.707, 0.707,   0.0,    0.0,    0.0,   0.0,
-          0.0,     0.0,    0.0,    0.0,     -1.0,   1.0,    1.0,   -1.0,
-          0.06,    -0.06,  0.06,   -0.06,   -0.218, -0.218, 0.218, 0.218,
-          0.06,    0.06,   -0.06,  -0.06,   0.120,  -0.120, 0.120, -0.120,
-          -0.1888, 0.1888, 0.1888, -0.1888, 0.0,    0.0,    0.0,   0.0]
+    tcm: [-0.707,  -0.707,   0.707,  0.707,      0.0,     0.0,      0.0,     0.0,
+           0.707,  -0.707,   0.707, -0.707,      0.0,     0.0,      0.0,     0.0,
+             0.0,     0.0,    -0.0,   -0.0,      1.0,     1.0,      1.0,     1.0,
+             0.0,    -0.0,     0.0,   -0.0, -0.21805, 0.21805, -0.21805, 0.21805,
+             0.0,    -0.0,     0.0,    0.0,    -0.12,   -0.12,     0.12,    0.12,
+          0.1888, -0.1888, -0.1888, 0.1888,      0.0,     0.0,      0.0 ,    0.0]
     msg_ids: [31, 32]
     msg_rates: [100.0, 100.0]
-    control_loop_freq: 200.0
+    control_rate: 200.0
+    proportional_gain: [10.0, 10.0, 6.0, 6.0, 6.0, 10.0]
+    integral_gain: [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+    derivative_gain: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    sliding_gain: 20.0
+    boundary_thickness: 200.0
     use_battery_state: false
 
 aruco_marker_localizer:
@@ -56,6 +61,10 @@ qualisys_localizer:
   ros__parameters:
     body: "bluerov" # This should be the same as the body parameter setting for the qualisys_mocap node
 
+gazebo_localizer:
+  ros__parameters:
+    gazebo_odom_topic: "/model/bluerov2_heavy/odometry"
+
 mavros:
   ros__parameters:
     system_id: 255
@@ -78,3 +87,6 @@ mavros/local_position:
     frame_id: "map"
     tf:
       send: false
+      frame_id: "map"
+      child_frame_id: "base_link"
+      send_fcu: false
