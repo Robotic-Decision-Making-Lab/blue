@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+
+  <name>blue_utils</name>
+  <version>0.0.1</version>
+  <description>Common helper functions and types</description>
+
+  <maintainer email="evanp922@gmail.com">Evan Palmer</maintainer>
+  <license>MIT</license>
+
+  <url type="repository">https://github.com/evan-palmer/blue.git</url>
+  <url type="bugtracker">https://github.com/evan-palmer/blue/issues</url>
+
+  <author>Evan Palmer</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <buildtool_depend>eigen3_cmake_module</buildtool_depend>
+
+  <depend>eigen</depend>
+
+  <buildtool_export_depend>eigen3_cmake_module</buildtool_export_depend>
+
+  <test_depend>ament_lint_auto</test_depend>
+  <test_depend>ament_lint_common</test_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>
