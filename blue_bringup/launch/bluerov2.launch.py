@@ -36,13 +36,37 @@ def generate_launch_description() -> LaunchDescription:
     """Generate a launch description to run the system.
 
     Returns:
-        The launch description for the BlueROV2 base configuration.
+        The launch description for the BlueROV2 configuration.
     """
     args = [
         DeclareLaunchArgument(
-            "config",
+            "description_package",
+            default_value="blue_description",
+            description=(
+                "The description package with the blue configuration files. This is"
+                " typically not set, but is available in case another description"
+                " package has been defined."
+            ),
+        ),
+        DeclareLaunchArgument(
+            "controllers_file",
             default_value="bluerov2.yaml",
-            description="The ROS 2 parameters configuration file.",
+            description="The BlueROV2 controller configuration file.",
+        ),
+        DeclareLaunchArgument(
+            "localization_file",
+            default_value="bluerov2.yaml",
+            description="The BlueROV2 localization configuration file.",
+        ),
+        DeclareLaunchArgument(
+            "manager_file",
+            default_value="bluerov2.yaml",
+            description="The BlueROV2 manager configuration file.",
+        ),
+        DeclareLaunchArgument(
+            "mavros_file",
+            default_value="mavros.yaml",
+            description="The MAVROS configuration file.",
         ),
         DeclareLaunchArgument(
             "controller",
@@ -86,15 +110,6 @@ def generate_launch_description() -> LaunchDescription:
             description="Start the Foxglove bridge.",
         ),
         DeclareLaunchArgument(
-            "description_package",
-            default_value="blue_description",
-            description=(
-                "The description package with the BlueROV2 models. This is typically"
-                " not set, but is available in case another description package has"
-                " been defined."
-            ),
-        ),
-        DeclareLaunchArgument(
             "gazebo_world_file",
             default_value="bluerov2_underwater.world",
             description="The world configuration to load if using Gazebo.",
@@ -119,20 +134,17 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
+    description_package = LaunchConfiguration("description_package")
+    controllers_file = LaunchConfiguration("controllers_file")
+    localization_file = LaunchConfiguration("localization_file")
+    manager_file = LaunchConfiguration("manager_file")
+    mavros_file = LaunchConfiguration("mavros_file")
     use_sim = LaunchConfiguration("use_sim")
-
-    config_filepath = PathJoinSubstitution(
-        [
-            FindPackageShare("blue_bringup"),
-            "config",
-            LaunchConfiguration("config"),
-        ]
-    )
 
     ardusub_params_filepath = PathJoinSubstitution(
         [
-            FindPackageShare("blue_description"),
-            "params",
+            FindPackageShare(description_package),
+            "ardusub",
             LaunchConfiguration("ardusub_params_file"),
         ]
     )
@@ -142,7 +154,11 @@ def generate_launch_description() -> LaunchDescription:
             package="mavros",
             executable="mavros_node",
             output="screen",
-            parameters=[config_filepath],
+            parameters=[
+                PathJoinSubstitution(
+                    [FindPackageShare(description_package), "config", mavros_file]
+                )
+            ],
         ),
         Node(
             package="ros_gz_bridge",
@@ -165,7 +181,7 @@ def generate_launch_description() -> LaunchDescription:
                 "-r",
                 PathJoinSubstitution(
                     [
-                        FindPackageShare(LaunchConfiguration("description_package")),
+                        FindPackageShare(description_package),
                         "gazebo",
                         "worlds",
                         LaunchConfiguration("gazebo_world_file"),
@@ -201,7 +217,11 @@ def generate_launch_description() -> LaunchDescription:
                     [FindPackageShare("blue_manager"), "manager.launch.py"]
                 )
             ),
-            launch_arguments={"config_filepath": config_filepath}.items(),
+            launch_arguments={
+                "config_filepath": PathJoinSubstitution(
+                    [FindPackageShare(description_package), "config", manager_file]
+                )
+            }.items(),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
@@ -210,7 +230,9 @@ def generate_launch_description() -> LaunchDescription:
                 )
             ),
             launch_arguments={
-                "config_filepath": config_filepath,
+                "config_filepath": PathJoinSubstitution(
+                    [FindPackageShare(description_package), "config", controllers_file]
+                ),
                 "controller": LaunchConfiguration("controller"),
             }.items(),
         ),
@@ -221,7 +243,9 @@ def generate_launch_description() -> LaunchDescription:
                 )
             ),
             launch_arguments={
-                "config_filepath": config_filepath,
+                "config_filepath": PathJoinSubstitution(
+                    [FindPackageShare(description_package), "config", localization_file]
+                ),
                 "localization_source": LaunchConfiguration("localization_source"),
                 "use_mocap": LaunchConfiguration("use_mocap"),
                 "use_camera": LaunchConfiguration("use_camera"),

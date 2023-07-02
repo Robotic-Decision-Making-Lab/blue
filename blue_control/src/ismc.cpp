@@ -193,8 +193,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   catch (const tf2::TransformException & e) {
     RCLCPP_INFO(  // NOLINT
       this->get_logger(), "Could not transform from %s to %s: %s",
-      blue::transforms::kBaseLinkFrameId.c_str(), blue::transforms::kBaseLinkFrdFrameId.c_str(),
-      e.what());
+      blue::transforms::kBaseLinkFrameId, blue::transforms::kBaseLinkFrdFrameId, e.what());
     return msg;
   }
 

@@ -1,0 +1,66 @@
+blue_manager:
+  ros__parameters:
+    num_thrusters: 8
+    mode_change_timeout: 1.0
+    mode_change_retries: 3
+
+ismc:
+  ros__parameters:
+    mass: 13.5
+    buoyancy: 112.80
+    weight: 114.80
+    inertia_tensor_coeff: [0.16, 0.16, 0.16]
+    added_mass_coeff: [-5.50, -12.70, -14.60, -0.12, -0.12, -0.12]
+    linear_damping_coeff: [-4.03, -6.22, -5.18, -0.07, -0.07, -0.07]
+    quadratic_damping_coeff: [-18.18, -21.66, -36.99, -1.55, -1.55, -1.55]
+    center_of_gravity: [0.0, 0.0, 0.0]
+    center_of_buoyancy: [0.0, 0.0, 0.0]
+    ocean_current: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    num_thrusters: 8
+    tcm: [-0.707,  -0.707,   0.707,  0.707,      0.0,     0.0,      0.0,     0.0,
+           0.707,  -0.707,   0.707, -0.707,      0.0,     0.0,      0.0,     0.0,
+             0.0,     0.0,     0.0,    0.0,      1.0,     1.0,      1.0,     1.0,
+             0.0,     0.0,     0.0,    0.0, -0.21805, 0.21805, -0.21805, 0.21805,
+             0.0,     0.0,     0.0,    0.0,    -0.12,   -0.12,     0.12,    0.12,
+          0.1888, -0.1888, -0.1888, 0.1888,      0.0,     0.0,      0.0 ,    0.0]
+    msg_ids: [31, 32]
+    msg_rates: [100.0, 100.0]
+    control_rate: 200.0
+    proportional_gain: [10.0, 10.0, 6.0, 6.0, 6.0, 10.0]
+    integral_gain: [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
+    derivative_gain: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    sliding_gain: 20.0
+    boundary_thickness: 200.0
+    use_battery_state: false
+
+aruco_marker_localizer:
+  ros__parameters:
+    camera_matrix:
+      [1078.17559, 0.0,        1010.57086,
+       0.0,        1076.46176, 463.06243,
+       0.0,        0.0,        1.0]
+    distortion_coefficients:
+      [0.019645, 0.007271, -0.004324, -0.001628, 0.000000]
+    projection_matrix:
+      [1108.25366, 0.0,        1003.75555, 0.0,
+       0.0,        1108.39001, 456.92861,  0.0,
+       0.0,        0.0,        1.0,        0.0]
+
+camera:
+  ros__parameters:
+    port: 5600
+
+qualisys_mocap:
+  ros__parameters:
+    ip: "192.168.0.0"
+    port: 22223
+    version: "1.22"
+    body: "bluerov"
+
+qualisys_localizer:
+  ros__parameters:
+    body: "bluerov" # This should be the same as the body parameter setting for the qualisys_mocap node
+
+gazebo_localizer:
+  ros__parameters:
+    gazebo_odom_topic: "/model/bluerov2_heavy/odometry"
