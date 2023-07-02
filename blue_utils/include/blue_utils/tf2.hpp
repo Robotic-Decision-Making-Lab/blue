@@ -87,9 +87,9 @@ namespace blue::transforms
 {
 
 // Coordinate frame IDs
-const std::string kMapFrameId{"map"};
-const std::string kMapNedFrameId{"map_ned"};
-const std::string kBaseLinkFrameId{"base_link"};
-const std::string kBaseLinkFrdFrameId{"base_link_frd"};
+constexpr char * kMapFrameId = "map";
+constexpr char * kMapNedFrameId = "map_ned";
+constexpr char * kBaseLinkFrameId = "base_link";
+constexpr char * kBaseLinkFrdFrameId = "base_link_frd";
 
 }  // namespace blue::transforms
