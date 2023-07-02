@@ -50,17 +50,17 @@ def generate_launch_description() -> LaunchDescription:
         ),
         DeclareLaunchArgument(
             "controllers_file",
-            default_value="bluerov2_controllers.yaml",
+            default_value="bluerov2.yaml",
             description="The BlueROV2 controller configuration file.",
         ),
         DeclareLaunchArgument(
             "localization_file",
-            default_value="bluerov2_controllers.yaml",
-            description="The BlueROV2 controller configuration file.",
+            default_value="bluerov2.yaml",
+            description="The BlueROV2 localization configuration file.",
         ),
         DeclareLaunchArgument(
             "manager_file",
-            default_value="bluerov2_manager.yaml",
+            default_value="bluerov2.yaml",
             description="The BlueROV2 manager configuration file.",
         ),
         DeclareLaunchArgument(
