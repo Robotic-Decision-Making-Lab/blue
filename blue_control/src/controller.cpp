@@ -167,8 +167,8 @@ Controller::Controller(const std::string & node_name)
 }
 
 void Controller::armControllerCb(
-  const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-  std::shared_ptr<std_srvs::srv::SetBool::Response> response)  // NOLINT
+  const std::shared_ptr<std_srvs::srv::SetBool::Request> request,  // NOLINT
+  std::shared_ptr<std_srvs::srv::SetBool::Response> response)      // NOLINT
 {
   if (request->data) {
     // Run the controller arming function prior to actually arming the controller
