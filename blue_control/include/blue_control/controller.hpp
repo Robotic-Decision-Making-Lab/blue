@@ -55,7 +55,7 @@ public:
    *
    * @param node_name The name of the ROS node.
    */
-  explicit Controller(std::string node_name);
+  explicit Controller(const std::string & node_name);
 
 protected:
   /**

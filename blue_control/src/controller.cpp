@@ -28,8 +28,8 @@
 namespace blue::control
 {
 
-Controller::Controller(std::string node_name)
-: Node(std::move(node_name))
+Controller::Controller(const std::string & node_name)
+: Node(node_name)
 {
   // Declare ROS parameters
   this->declare_parameter("mass", 13.5);
@@ -168,7 +168,7 @@ Controller::Controller(std::string node_name)
 
 void Controller::armControllerCb(
   const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-  std::shared_ptr<std_srvs::srv::SetBool::Response> response)
+  std::shared_ptr<std_srvs::srv::SetBool::Response> response)  // NOLINT
 {
   if (request->data) {
     // Run the controller arming function prior to actually arming the controller
@@ -193,7 +193,7 @@ void Controller::armControllerCb(
   }
 }
 
-void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)
+void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)  // NOLINT
 {
   // Get the duration between the readings
   rclcpp::Time prev_stamp(odom_.header.stamp.sec, odom_.header.stamp.nanosec);
