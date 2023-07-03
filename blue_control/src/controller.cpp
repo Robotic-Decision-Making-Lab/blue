@@ -252,7 +252,7 @@ void Controller::setMessageRate(int64_t msg_id, float rate)
 
   auto future = set_msg_interval_client_->async_send_request(
     request, [this, &request](
-               rclcpp::Client<mavros_msgs::srv::MessageInterval>::SharedFuture future) // NOLINT
+               rclcpp::Client<mavros_msgs::srv::MessageInterval>::SharedFuture future)  // NOLINT
     {
       try {
         const auto & response = future.get();
