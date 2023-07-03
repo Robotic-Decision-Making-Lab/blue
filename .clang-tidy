@@ -24,6 +24,7 @@ Checks: >
   -bugprone-narrowing-conversions,
   -bugprone-easily-swappable-parameters,
   -bugprone-implicit-widening-of-multiplication-result,
+  -clang-diagnostic-error
 WarningsAsErrors: "*"
 CheckOptions:
   - key: readability-braces-around-statements.ShortStatementLines

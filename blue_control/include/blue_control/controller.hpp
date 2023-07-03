@@ -55,7 +55,7 @@ public:
    *
    * @param node_name The name of the ROS node.
    */
-  explicit Controller(const std::string & node_name);
+  explicit Controller(std::string node_name);
 
 protected:
   /**
@@ -158,7 +158,7 @@ private:
   void setMessageRate(int64_t msg_id, float rate);
 
   // Manages whether or not control inputs are sent to ArduSub
-  bool armed_;
+  bool armed_{false};
 
   // TF2
   std::unique_ptr<tf2_ros::TransformListener> tf_listener_;

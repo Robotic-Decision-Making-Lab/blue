@@ -71,7 +71,8 @@ ISMC::ISMC()
   // Update the reference signal when a new command is received
   cmd_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
     "/blue/ismc/cmd_vel", 1,
-    [this](geometry_msgs::msg::Twist::ConstSharedPtr msg) { cmd_ = *msg; });
+    [this](geometry_msgs::msg::Twist::ConstSharedPtr msg) -> void  // NOLINT
+    { cmd_ = *msg; });
 }
 
 void ISMC::onArm()
@@ -228,7 +229,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   }
 
   // Set the PWM values
-  for (uint16_t i = 0; i < pwms.size(); i++) {
+  for (int i = 0; i < pwms.size(); i++) {
     auto pwm = static_cast<uint16_t>(pwms[i]);
 
     // Apply the deadband to the PWM values
@@ -245,7 +246,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
 
 }  // namespace blue::control
 
-int main(int argc, char ** argv)
+int main(int argc, char ** argv) // NOLINT(bugprone-exception-escape)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<blue::control::ISMC>();

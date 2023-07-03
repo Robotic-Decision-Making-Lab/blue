@@ -20,15 +20,16 @@
 
 #include "blue_control/controller.hpp"
 
+#include <memory>
+
 #include "blue_utils/eigen.hpp"
 #include "blue_utils/tf2.hpp"
 
 namespace blue::control
 {
 
-Controller::Controller(const std::string & node_name)
-: Node(std::move(node_name)),
-  armed_(false)
+Controller::Controller(std::string node_name)
+: Node(std::move(node_name))
 {
   // Declare ROS parameters
   this->declare_parameter("mass", 13.5);
@@ -103,20 +104,24 @@ Controller::Controller(const std::string & node_name)
   rc_override_pub_ =
     this->create_publisher<mavros_msgs::msg::OverrideRCIn>("mavros/rc/override", 1);
 
+  // clang-tidy and ROS conflict when creating subscriptions with ConstSharedPtr
+  // NOLINTBEGIN(performance-unnecessary-value-param)
   battery_state_sub_ = this->create_subscription<sensor_msgs::msg::BatteryState>(
     "/mavros/battery", rclcpp::SensorDataQoS(),
-    [this](sensor_msgs::msg::BatteryState::ConstSharedPtr msg) { battery_state_ = *msg; });
+    [this](sensor_msgs::msg::BatteryState::ConstSharedPtr msg) -> void { battery_state_ = *msg; });
 
   odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
     "/mavros/local_position/odom", rclcpp::SensorDataQoS(),
-    [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) { updateOdomCb(msg); });
+    [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) -> void { updateOdomCb(msg); });
 
   arm_srv_ = this->create_service<std_srvs::srv::SetBool>(
-    "blue/cmd/arm", [this](
-                      const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
-                      std::shared_ptr<std_srvs::srv::SetBool::Response> response) {
+    "blue/cmd/arm",
+    [this](
+      const std::shared_ptr<std_srvs::srv::SetBool::Request> request,
+      std::shared_ptr<std_srvs::srv::SetBool::Response> response) -> void {
       armControllerCb(request, response);
     });
+  // NOLINTEND(performance-unnecessary-value-param)
 
   set_msg_interval_client_ =
     this->create_client<mavros_msgs::srv::MessageInterval>("/mavros/set_message_interval");
@@ -246,10 +251,11 @@ void Controller::setMessageRate(int64_t msg_id, float rate)
     get_logger(), "Set message rate for %d to %g hz", request->message_id, request->message_rate);
 
   auto future = set_msg_interval_client_->async_send_request(
-    request,
-    [this, &request](rclcpp::Client<mavros_msgs::srv::MessageInterval>::SharedFuture future) {
+    request, [this, &request](
+               rclcpp::Client<mavros_msgs::srv::MessageInterval>::SharedFuture future) // NOLINT
+    {
       try {
-        auto response = future.get();
+        const auto & response = future.get();
 
         if (!response->success) {
           RCLCPP_ERROR(

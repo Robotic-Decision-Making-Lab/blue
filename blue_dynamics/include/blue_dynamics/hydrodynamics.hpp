@@ -232,8 +232,8 @@ public:
    * @param center_of_gravity The center of gravity of the vehicle relative to the body frame.
    */
   RestoringForces(
-    double weight, double buoyancy, const Eigen::Vector3d & center_of_buoyancy,
-    const Eigen::Vector3d & center_of_gravity);
+    double weight, double buoyancy, Eigen::Vector3d center_of_buoyancy,
+    Eigen::Vector3d center_of_gravity);
 
   /**
    * @brief Calculate the restoring forces for the vehicle.
@@ -266,7 +266,7 @@ public:
    *
    * @param current_velocity The velocity of the fluid in the inertial frame.
    */
-  explicit CurrentEffects(const Eigen::Vector6d & current_velocity);
+  explicit CurrentEffects(Eigen::Vector6d current_velocity);
 
   /**
    * @brief Calculate the current in the body frame.
