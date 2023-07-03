@@ -246,7 +246,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
 
 }  // namespace blue::control
 
-int main(int argc, char ** argv)  // NOLINT(bugprone-exception-escape)
+int main(int argc, char ** argv)
 {
   rclcpp::init(argc, argv);
   auto node = std::make_shared<blue::control::ISMC>();

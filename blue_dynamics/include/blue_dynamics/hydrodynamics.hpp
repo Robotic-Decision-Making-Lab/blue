@@ -64,8 +64,8 @@ public:
    *        M_dot{q}, N_dot{r})`.
    */
   Inertia(
-    double mass, const Eigen::Vector3d & inertia_tensor_coeff,
-    const Eigen::Vector6d & added_mass_coeff);
+    double mass, Eigen::Vector3d inertia_tensor_coeff,
+    Eigen::Vector6d added_mass_coeff);
 
   /**
    * @brief Get the vehicle's inertia matrix.
@@ -106,8 +106,8 @@ public:
    *        M_dot{q}, N_dot{r})`.
    */
   Coriolis(
-    double mass, const Eigen::Vector3d & inertia_tensor_coeff,
-    const Eigen::Vector6d & added_mass_coeff);
+    double mass, Eigen::Vector3d inertia_tensor_coeff,
+    Eigen::Vector6d added_mass_coeff);
 
   /**
    * @brief Calculate the Coriolis and centripetal forces for the vehicle.
@@ -180,7 +180,7 @@ public:
    *        K_p|p|, M_q|q|, N_r|r|)`.
    */
   Damping(
-    const Eigen::Vector6d & linear_damping_coeff, const Eigen::Vector6d & quadratic_damping_coeff);
+    Eigen::Vector6d linear_damping_coeff, Eigen::Vector6d quadratic_damping_coeff);
 
   /**
    * @brief Calculate the damping forces for the vehicle.
