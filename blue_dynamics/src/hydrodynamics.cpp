@@ -56,11 +56,10 @@ Inertia::Inertia(
 [[nodiscard]] Eigen::Matrix6d Inertia::getInertia() const { return inertia_matrix_; }
 
 Coriolis::Coriolis(
-  double mass, const Eigen::Vector3d & inertia_tensor_coeff,
-  const Eigen::Vector6d & added_mass_coeff)
+  double mass, const Eigen::Vector3d & inertia_tensor_coeff, Eigen::Vector6d added_mass_coeff)
 : mass_(mass),
   moments_(inertia_tensor_coeff.asDiagonal().toDenseMatrix()),
-  added_mass_coeff_(added_mass_coeff)
+  added_mass_coeff_(std::move(added_mass_coeff))
 {
 }
 
@@ -106,9 +105,9 @@ Coriolis::Coriolis(
 }
 
 Damping::Damping(
-  const Eigen::Vector6d & linear_damping_coeff, const Eigen::Vector6d & quadratic_damping_coeff)
+  const Eigen::Vector6d & linear_damping_coeff, Eigen::Vector6d quadratic_damping_coeff)
 : linear_damping_(-linear_damping_coeff.asDiagonal().toDenseMatrix()),
-  quadratic_damping_coeff_(quadratic_damping_coeff)
+  quadratic_damping_coeff_(std::move(quadratic_damping_coeff))
 {
 }
 
