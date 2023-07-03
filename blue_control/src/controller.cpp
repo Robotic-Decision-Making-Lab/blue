@@ -250,10 +250,10 @@ void Controller::setMessageRate(int64_t msg_id, float rate)
   RCLCPP_DEBUG(
     get_logger(), "Set message rate for %d to %g hz", request->message_id, request->message_rate);
 
+  // NOLINTBEGIN(performance-unnecessary-value-param)
   auto future = set_msg_interval_client_->async_send_request(
-    request, [this, &request](
-               rclcpp::Client<mavros_msgs::srv::MessageInterval>::SharedFuture future)  // NOLINT
-    {
+    request,
+    [this, &request](rclcpp::Client<mavros_msgs::srv::MessageInterval>::SharedFuture future) {
       try {
         const auto & response = future.get();
 
@@ -267,6 +267,7 @@ void Controller::setMessageRate(int64_t msg_id, float rate)
         RCLCPP_ERROR(this->get_logger(), "Failed to set message rate: %s", e.what());
       }
     });
+  // NOLINTEND(performance-unnecessary-value-param)
 }
 
 }  // namespace blue::control
