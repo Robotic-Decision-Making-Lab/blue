@@ -19,17 +19,10 @@
 # THE SOFTWARE.
 
 from launch import LaunchDescription
-from launch.actions import (
-    DeclareLaunchArgument,
-    ExecuteProcess,
-    IncludeLaunchDescription,
-)
-from launch.conditions import IfCondition
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
-from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch_xml.launch_description_sources import XMLLaunchDescriptionSource
 
 
 def generate_launch_description() -> LaunchDescription:
@@ -39,35 +32,6 @@ def generate_launch_description() -> LaunchDescription:
         The launch description for the BlueROV2 heavy configuration.
     """
     args = [
-        DeclareLaunchArgument(
-            "description_package",
-            default_value="blue_description",
-            description=(
-                "The description package with the blue configuration files. This is"
-                " typically not set, but is available in case another description"
-                " package has been defined."
-            ),
-        ),
-        DeclareLaunchArgument(
-            "controllers_file",
-            default_value="bluerov2_heavy.yaml",
-            description="The BlueROV2 Heavy controller configuration file.",
-        ),
-        DeclareLaunchArgument(
-            "localization_file",
-            default_value="bluerov2_heavy.yaml",
-            description="The BlueROV2 Heavy localization configuration file.",
-        ),
-        DeclareLaunchArgument(
-            "manager_file",
-            default_value="bluerov2_heavy.yaml",
-            description="The BlueROV2 Heavy manager configuration file.",
-        ),
-        DeclareLaunchArgument(
-            "mavros_file",
-            default_value="mavros.yaml",
-            description="The MAVROS configuration file.",
-        ),
         DeclareLaunchArgument(
             "controller",
             default_value="ismc",
@@ -104,168 +68,26 @@ def generate_launch_description() -> LaunchDescription:
             default_value="false",
             description="Launch the Gazebo + ArduSub simulator.",
         ),
-        DeclareLaunchArgument(
-            "use_foxglove",
-            default_value="false",
-            description="Start the Foxglove bridge.",
-        ),
-        DeclareLaunchArgument(
-            "gazebo_world_file",
-            default_value="bluerov2_heavy_underwater.world",
-            description="The world configuration to load if using Gazebo.",
-        ),
-        DeclareLaunchArgument(
-            "ardusub_params_file",
-            default_value="bluerov2_heavy.parm",
-            description=(
-                "The ArduSub parameters that the BlueROV2 should use if running in"
-                " simulation."
-            ),
-        ),
-        DeclareLaunchArgument(
-            "foxglove_bridge_address",
-            default_value="127.0.0.1",
-            description="The Foxglove Studio datasource address.",
-        ),
-        DeclareLaunchArgument(
-            "foxglove_bridge_port",
-            default_value="8765",
-            description="The Foxglove Studio datasource port.",
-        ),
     ]
 
-    description_package = LaunchConfiguration("description_package")
-    controllers_file = LaunchConfiguration("controllers_file")
-    localization_file = LaunchConfiguration("localization_file")
-    manager_file = LaunchConfiguration("manager_file")
-    mavros_file = LaunchConfiguration("mavros_file")
-    use_sim = LaunchConfiguration("use_sim")
-
-    ardusub_params_filepath = PathJoinSubstitution(
+    return LaunchDescription(
         [
-            FindPackageShare(description_package),
-            "ardusub",
-            LaunchConfiguration("ardusub_params_file"),
+            *args,
+            IncludeLaunchDescription(
+                PythonLaunchDescriptionSource(
+                    PathJoinSubstitution(
+                        [FindPackageShare("blue_bringup"), "launch", "base.launch.py"]
+                    )
+                ),
+                launch_arguments={
+                    "configuration_type": "bluerov2_heavy",
+                    "controller": LaunchConfiguration("controller"),
+                    "localization_source": LaunchConfiguration("localization_source"),
+                    "use_camera": LaunchConfiguration("use_camera"),
+                    "use_mocap": LaunchConfiguration("use_mocap"),
+                    "use_sim": LaunchConfiguration("use_sim"),
+                    "gazebo_world_file": "bluerov2_heavy_underwater.world",
+                }.items(),
+            ),
         ]
     )
-
-    nodes = [
-        Node(
-            package="mavros",
-            executable="mavros_node",
-            output="screen",
-            parameters=[
-                PathJoinSubstitution(
-                    [FindPackageShare(description_package), "config", mavros_file]
-                )
-            ],
-        ),
-        Node(
-            package="ros_gz_bridge",
-            executable="parameter_bridge",
-            arguments=[
-                "/model/bluerov2_heavy/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
-            ],
-            output="screen",
-        ),
-    ]
-
-    processes = [
-        # Launch Ignition Gazebo - this launches Garden (what ardupilot_gazebo uses)
-        ExecuteProcess(
-            cmd=[
-                "gz",
-                "sim",
-                "-v",
-                "3",
-                "-r",
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare(description_package),
-                        "gazebo",
-                        "worlds",
-                        LaunchConfiguration("gazebo_world_file"),
-                    ]
-                ),
-            ],
-            output="screen",
-            condition=IfCondition(use_sim),
-        ),
-        # Launch ArduSub for simulation purposes
-        ExecuteProcess(
-            cmd=[
-                "ardusub",
-                "-S",
-                "-w",
-                "-M",
-                "JSON",
-                "--defaults",
-                ardusub_params_filepath,
-                "-I0",
-                "--home",
-                "44.65870,-124.06556,0.0,270.0",  # my not-so-secrect surf spot
-            ],
-            output="screen",
-            condition=IfCondition(use_sim),
-        ),
-    ]
-
-    includes = [
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution(
-                    [FindPackageShare("blue_manager"), "manager.launch.py"]
-                )
-            ),
-            launch_arguments={
-                "config_filepath": PathJoinSubstitution(
-                    [FindPackageShare(description_package), "config", manager_file]
-                )
-            }.items(),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution(
-                    [FindPackageShare("blue_control"), "launch", "control.launch.py"]
-                )
-            ),
-            launch_arguments={
-                "config_filepath": PathJoinSubstitution(
-                    [FindPackageShare(description_package), "config", controllers_file]
-                ),
-                "controller": LaunchConfiguration("controller"),
-            }.items(),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution(
-                    [FindPackageShare("blue_localization"), "localization.launch.py"]
-                )
-            ),
-            launch_arguments={
-                "config_filepath": PathJoinSubstitution(
-                    [FindPackageShare(description_package), "config", localization_file]
-                ),
-                "localization_source": LaunchConfiguration("localization_source"),
-                "use_mocap": LaunchConfiguration("use_mocap"),
-                "use_camera": LaunchConfiguration("use_camera"),
-            }.items(),
-        ),
-        IncludeLaunchDescription(
-            XMLLaunchDescriptionSource(
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare("foxglove_bridge"),
-                        "foxglove_bridge_launch.xml",
-                    ]
-                ),
-            ),
-            launch_arguments={
-                "address": LaunchConfiguration("foxglove_bridge_address"),
-                "port": LaunchConfiguration("foxglove_bridge_port"),
-            }.items(),
-            condition=IfCondition(LaunchConfiguration("use_foxglove")),
-        ),
-    ]
-
-    return LaunchDescription(args + nodes + processes + includes)

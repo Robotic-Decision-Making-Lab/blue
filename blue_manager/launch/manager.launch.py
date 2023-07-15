@@ -34,7 +34,12 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "config_filepath",
             default_value=None,
-            description="The path to the configuration YAML file",
+            description="The path to the configuration YAML file.",
+        ),
+        DeclareLaunchArgument(
+            "use_sim_time",
+            default_value="false",
+            description=("Use the simulated Gazebo clock."),
         ),
     ]
 
@@ -44,7 +49,10 @@ def generate_launch_description() -> LaunchDescription:
             executable="blue_manager",
             name="blue_manager",
             output="screen",
-            parameters=[LaunchConfiguration("config_filepath")],
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {"use_sim_time": LaunchConfiguration("use_sim_time")},
+            ],
         ),
     ]
 
