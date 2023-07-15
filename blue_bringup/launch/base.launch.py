@@ -149,7 +149,8 @@ def generate_launch_description() -> LaunchDescription:
                         "config",
                         LaunchConfiguration("mavros_file"),
                     ]
-                )
+                ),
+                {"use_sim_time": use_sim},
             ],
         ),
         Node(
