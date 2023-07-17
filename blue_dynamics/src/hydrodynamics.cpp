@@ -56,8 +56,7 @@ Inertia::Inertia(
 [[nodiscard]] Eigen::Matrix6d Inertia::getInertia() const { return inertia_matrix_; }
 
 Coriolis::Coriolis(
-  double mass, const Eigen::Vector3d & inertia_tensor_coeff,
-  const Eigen::Vector6d & added_mass_coeff)
+  double mass, const Eigen::Vector3d & inertia_tensor_coeff, Eigen::Vector6d added_mass_coeff)
 : mass_(mass),
   moments_(inertia_tensor_coeff.asDiagonal().toDenseMatrix()),
   added_mass_coeff_(std::move(added_mass_coeff))
@@ -106,7 +105,7 @@ Coriolis::Coriolis(
 }
 
 Damping::Damping(
-  const Eigen::Vector6d & linear_damping_coeff, const Eigen::Vector6d & quadratic_damping_coeff)
+  const Eigen::Vector6d & linear_damping_coeff, Eigen::Vector6d quadratic_damping_coeff)
 : linear_damping_(-linear_damping_coeff.asDiagonal().toDenseMatrix()),
   quadratic_damping_coeff_(std::move(quadratic_damping_coeff))
 {
@@ -126,12 +125,12 @@ Damping::Damping(
 }
 
 RestoringForces::RestoringForces(
-  double weight, double buoyancy, const Eigen::Vector3d & center_of_buoyancy,
-  const Eigen::Vector3d & center_of_gravity)
+  double weight, double buoyancy, Eigen::Vector3d center_of_buoyancy,
+  Eigen::Vector3d center_of_gravity)
 : weight_(weight),
   buoyancy_(buoyancy),
-  center_of_buoyancy_(center_of_buoyancy),
-  center_of_gravity_(center_of_gravity)
+  center_of_buoyancy_(std::move(center_of_buoyancy)),
+  center_of_gravity_(std::move(center_of_gravity))
 {
 }
 
@@ -152,7 +151,7 @@ RestoringForces::RestoringForces(
   return g_rb;
 }
 
-CurrentEffects::CurrentEffects(const Eigen::Vector6d & current_velocity)
+CurrentEffects::CurrentEffects(Eigen::Vector6d current_velocity)
 : current_velocity_(std::move(current_velocity))
 {
 }

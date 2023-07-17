@@ -34,16 +34,21 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "config_filepath",
             default_value=None,
-            description="The path to the configuration YAML file",
+            description="The path to the configuration YAML file.",
         ),
         DeclareLaunchArgument(
             "controller",
             default_value="ismc",
             description=(
                 "The controller to use; this should be the same name as the"
-                " controller's executable"
+                " controller's executable."
             ),
             choices=["ismc"],
+        ),
+        DeclareLaunchArgument(
+            "use_sim_time",
+            default_value="false",
+            description=("Use the simulated Gazebo clock."),
         ),
     ]
 
@@ -55,7 +60,10 @@ def generate_launch_description() -> LaunchDescription:
             executable=controller,
             name=controller,
             output="screen",
-            parameters=[LaunchConfiguration("config_filepath")],
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {"use_sim_time": LaunchConfiguration("use_sim_time")},
+            ],
         ),
     ]
 

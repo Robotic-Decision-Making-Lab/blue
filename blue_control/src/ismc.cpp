@@ -71,7 +71,8 @@ ISMC::ISMC()
   // Update the reference signal when a new command is received
   cmd_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
     "/blue/ismc/cmd_vel", 1,
-    [this](geometry_msgs::msg::Twist::ConstSharedPtr msg) { cmd_ = *msg; });
+    [this](geometry_msgs::msg::Twist::ConstSharedPtr msg) -> void  // NOLINT
+    { cmd_ = *msg; });
 }
 
 void ISMC::onArm()
@@ -193,8 +194,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   catch (const tf2::TransformException & e) {
     RCLCPP_INFO(  // NOLINT
       this->get_logger(), "Could not transform from %s to %s: %s",
-      blue::transforms::kBaseLinkFrameId.c_str(), blue::transforms::kBaseLinkFrdFrameId.c_str(),
-      e.what());
+      blue::transforms::kBaseLinkFrameId, blue::transforms::kBaseLinkFrdFrameId, e.what());
     return msg;
   }
 
@@ -229,7 +229,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   }
 
   // Set the PWM values
-  for (uint16_t i = 0; i < pwms.size(); i++) {
+  for (int i = 0; i < pwms.size(); i++) {
     auto pwm = static_cast<uint16_t>(pwms[i]);
 
     // Apply the deadband to the PWM values
