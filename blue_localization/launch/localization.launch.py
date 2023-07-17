@@ -41,7 +41,7 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "config_filepath",
             default_value=None,
-            description="The path to the configuration YAML file",
+            description="The path to the configuration YAML file.",
         ),
         DeclareLaunchArgument(
             "localization_source",
@@ -65,11 +65,17 @@ def generate_launch_description() -> LaunchDescription:
                 " set to true when using the motion capture system for localization."
             ),
         ),
+        DeclareLaunchArgument(
+            "use_sim_time",
+            default_value="false",
+            description=("Use the simulated Gazebo clock."),
+        ),
     ]
 
     localization_source = LaunchConfiguration("localization_source")
     use_camera = LaunchConfiguration("use_camera")
     use_mocap = LaunchConfiguration("use_mocap")
+    use_sim_time = LaunchConfiguration("use_sim_time")
 
     nodes = [
         Node(
@@ -77,7 +83,10 @@ def generate_launch_description() -> LaunchDescription:
             executable="camera",
             name="camera",
             output="screen",
-            parameters=[LaunchConfiguration("config_filepath")],
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {"use_sim_time": use_sim_time},
+            ],
             condition=IfCondition(
                 PythonExpression(
                     [
@@ -95,7 +104,10 @@ def generate_launch_description() -> LaunchDescription:
             executable="aruco_marker_localizer",
             name="aruco_marker_localizer",
             output="screen",
-            parameters=[LaunchConfiguration("config_filepath")],
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {"use_sim_time": use_sim_time},
+            ],
             condition=IfCondition(
                 PythonExpression(["'", localization_source, "' == 'camera'"])
             ),
@@ -105,7 +117,10 @@ def generate_launch_description() -> LaunchDescription:
             executable="qualisys_mocap",
             name="qualisys_mocap",
             output="screen",
-            parameters=[LaunchConfiguration("config_filepath")],
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {"use_sim_time": use_sim_time},
+            ],
             condition=IfCondition(
                 PythonExpression(
                     [
@@ -123,7 +138,10 @@ def generate_launch_description() -> LaunchDescription:
             executable="qualisys_localizer",
             name="qualisys_localizer",
             output="screen",
-            parameters=[LaunchConfiguration("config_filepath")],
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {"use_sim_time": use_sim_time},
+            ],
             condition=IfCondition(
                 PythonExpression(["'", localization_source, "' == 'mocap'"])
             ),
@@ -133,7 +151,10 @@ def generate_launch_description() -> LaunchDescription:
             executable="gazebo_localizer",
             name="gazebo_localizer",
             output="screen",
-            parameters=[LaunchConfiguration("config_filepath")],
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {"use_sim_time": use_sim_time},
+            ],
             condition=IfCondition(
                 PythonExpression(["'", localization_source, "' == 'gazebo'"])
             ),

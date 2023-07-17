@@ -106,8 +106,7 @@ public:
    *        M_dot{q}, N_dot{r})`.
    */
   Coriolis(
-    double mass, const Eigen::Vector3d & inertia_tensor_coeff,
-    const Eigen::Vector6d & added_mass_coeff);
+    double mass, const Eigen::Vector3d & inertia_tensor_coeff, Eigen::Vector6d added_mass_coeff);
 
   /**
    * @brief Calculate the Coriolis and centripetal forces for the vehicle.
@@ -179,8 +178,7 @@ public:
    * @param quadratic_damping_coeff The nonlinear damping coefficients `(X_u|u|, Y_v|v|, Z_w|w|,
    *        K_p|p|, M_q|q|, N_r|r|)`.
    */
-  Damping(
-    const Eigen::Vector6d & linear_damping_coeff, const Eigen::Vector6d & quadratic_damping_coeff);
+  Damping(const Eigen::Vector6d & linear_damping_coeff, Eigen::Vector6d quadratic_damping_coeff);
 
   /**
    * @brief Calculate the damping forces for the vehicle.
@@ -232,8 +230,8 @@ public:
    * @param center_of_gravity The center of gravity of the vehicle relative to the body frame.
    */
   RestoringForces(
-    double weight, double buoyancy, const Eigen::Vector3d & center_of_buoyancy,
-    const Eigen::Vector3d & center_of_gravity);
+    double weight, double buoyancy, Eigen::Vector3d center_of_buoyancy,
+    Eigen::Vector3d center_of_gravity);
 
   /**
    * @brief Calculate the restoring forces for the vehicle.
@@ -266,7 +264,7 @@ public:
    *
    * @param current_velocity The velocity of the fluid in the inertial frame.
    */
-  explicit CurrentEffects(const Eigen::Vector6d & current_velocity);
+  explicit CurrentEffects(Eigen::Vector6d current_velocity);
 
   /**
    * @brief Calculate the current in the body frame.
