@@ -1,3 +1,6 @@
+##############################################
+# ci: Install core dependencies needed for CI
+##############################################
 ARG ROS_DISTRO=rolling
 FROM ros:$ROS_DISTRO-ros-base as ci
 
@@ -28,10 +31,8 @@ RUN apt-get -q update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Qualisys Python SDK
-# This isn't available as a rosdep, so we need to install
-# it manually
-RUN python3 -m pip install qtm
+# Install the Python requirements that aren't available as rosdeps
+RUN python3 -m pip install -r $(pwd)/src/blue/requirements-build.txt
 
 # Install gstreamer
 RUN apt-get -q update \
@@ -84,6 +85,9 @@ RUN wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/in
 USER root
 ENV USER=root
 
+#################################################################
+# sim: install Gazebo and the tools needed for Gazebo simulation
+#################################################################
 FROM ci as sim
 
 # Install Gazebo Garden: https://gazebosim.org/docs/garden/install_ubuntu
@@ -140,41 +144,45 @@ RUN [ "/bin/bash" , "-c" , " \
     && cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     && make -j4" ]
 
-# Configure the ardupilot_gazebo environment variables
-RUN echo 'export GZ_SIM_SYSTEM_PLUGIN_PATH=$HOME/ardupilot_gazebo/build:${GZ_SIM_SYSTEM_PLUGIN_PATH}' >> /home/$USERNAME/.bashrc \
-    && echo 'export GZ_SIM_RESOURCE_PATH=$HOME/ardupilot_gazebo/models:$HOME/ardupilot_gazebo/worlds:${GZ_SIM_RESOURCE_PATH}' >> /home/$USERNAME/.bashrc
-
 # Switch back to the root user
 USER root
 ENV USER=root
 
-FROM sim as source
+# Extend the ros_entrypoint to source the simulation environment
+COPY .docker/entrypoints/sim.sh /
+RUN sed -i '/source "\/opt\/ros\/$ROS_DISTRO\/setup\.bash" --/a source /sim.sh' /ros_entrypoint.sh
+
+##################################################
+# deps: Install all external project dependencies
+##################################################
+FROM sim as deps
 
 ENV GZ_VERSION=garden
-ENV ROS_UNDERLAY /root/ws_blue/install
+ENV USER_WORKSPACE=/home/$USERNAME/ws_blue/install
 ENV DEBIAN_FRONTEND=noninteractive
-WORKDIR $ROS_UNDERLAY/..
+WORKDIR $USER_WORKSPACE/..
 
-COPY . src/blue
+COPY blue.repos src/
 
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
-    && vcs import src < src/blue/blue.repos \
+    && vcs import src < src/blue.repos \
     && rosdep update \
-    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9" \
+    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9 gz-plugin2" \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
     && colcon build \
-    --cmake-args -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
-    --ament-cmake-args -DCMAKE_BUILD_TYPE=Release \
-    --event-handlers desktop_notification- status- \
-    # Update /ros_entrypoint.sh to source the new workspace
-    && sed -i "s#/opt/ros/\$ROS_DISTRO/setup.bash#$ROS_UNDERLAY/setup.sh#g" /ros_entrypoint.sh
+    # Update /ros_entrypoint.sh to source the workspace
+    && sed -i "s#/opt/ros/\$ROS_DISTRO/setup.bash#$USER_WORKSPACE/setup.sh#g" /ros_entrypoint.sh \
+    && echo "source ${USER_WORKSPACE}/setup.sh" >> /home/$USERNAME/.bashrc
 
-FROM sim as develop
+####################################################
+# develop: Setup the image for development purposes
+####################################################
+FROM deps as develop
 
 ENV GZ_VERSION=garden
 ENV ROS_UNDERLAY /root/ws_blue/install
@@ -182,6 +190,9 @@ ENV DEBIAN_FRONTEND=noninteractive
 WORKDIR $ROS_UNDERLAY/..
 
 COPY . src/blue
+
+# Install debugging/linting Python packages
+RUN python3 -m pip install -r $(pwd)/src/blue/requirements-dev.txt
 
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
@@ -200,20 +211,19 @@ RUN apt-get -q update \
     iputils-ping \
     net-tools \
     gdb \
+    nano \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Install debugging/linting Python packages
-RUN python3 -m pip install \
-    pre-commit \
-    mypy \
-    isort \
-    flake8 \
-    black \
-    setuptools==58.2.0
+COPY .docker/entrypoints/dev.sh /
+
+# WARNING: This is a temporary solution for disabling the setuputils installation warning
+ENV PYTHONWARNINGS="ignore"
 
 ARG WORKSPACE
 RUN echo "if [ -f ${WORKSPACE}/install/setup.bash ]; then source ${WORKSPACE}/install/setup.bash; fi" >> /home/$USERNAME/.bashrc \
     && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc \
-    && echo "source ${WORKSPACE}/env.sh" >> /home/$USERNAME/.bashrc
+    # Expose the environment variables to the non-root user
+    && echo "if [ -f /sim.sh ]; then source /sim.sh; fi" >> /home/$USERNAME/.bashrc \
+    && echo "if [ -f /dev.sh ]; then source /dev.sh; fi" >> /home/$USERNAME/.bashrc

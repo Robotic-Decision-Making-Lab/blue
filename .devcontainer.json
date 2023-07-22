@@ -121,6 +121,5 @@
         "ms-python.flake8"
       ]
     }
-  },
-  "postStartCommand": "vcs import < blue.repos"
+  }
 }

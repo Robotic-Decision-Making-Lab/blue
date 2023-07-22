@@ -1,0 +1,6 @@
+# Development tools that are not required for project installation
+pre-commit
+mypy
+isort
+flake8
+black
