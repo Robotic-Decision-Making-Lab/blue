@@ -80,22 +80,22 @@ class Localizer(Node, ABC):
         Returns:
             The converted TransformStamped message.
         """
-        tf = TransformStamped()
+        msg = TransformStamped()
 
-        tf.header.stamp = node.get_clock().now().to_msg()
-        tf.header.frame_id = reference_frame
-        tf.child_frame_id = child_frame
+        msg.header.stamp = node.get_clock().now().to_msg()
+        msg.header.frame_id = reference_frame
+        msg.child_frame_id = child_frame
 
-        tf.transform.translation.x = pose.position.x
-        tf.transform.translation.y = pose.position.y
-        tf.transform.translation.z = pose.position.z
+        msg.transform.translation.x = pose.position.x
+        msg.transform.translation.y = pose.position.y
+        msg.transform.translation.z = pose.position.z
 
-        tf.transform.rotation.x = pose.orientation.x
-        tf.transform.rotation.y = pose.orientation.y
-        tf.transform.rotation.z = pose.orientation.z
-        tf.transform.rotation.w = pose.orientation.w
+        msg.transform.rotation.x = pose.orientation.x
+        msg.transform.rotation.y = pose.orientation.y
+        msg.transform.rotation.z = pose.orientation.z
+        msg.transform.rotation.w = pose.orientation.w
 
-        return tf
+        return msg
 
 
 class ArucoMarkerLocalizer(Localizer):
