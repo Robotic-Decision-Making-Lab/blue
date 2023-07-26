@@ -25,11 +25,11 @@ import cv2
 import numpy as np
 import rclpy
 import tf2_geometry_msgs  # noqa
-import tf_transformations as tf
 from cv_bridge import CvBridge
 from geometry_msgs.msg import Pose, PoseStamped, TransformStamped
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import Image
 from tf2_ros import TransformException
 from tf2_ros.buffer import Buffer
@@ -80,22 +80,22 @@ class Localizer(Node, ABC):
         Returns:
             The converted TransformStamped message.
         """
-        msg = TransformStamped()
+        tf = TransformStamped()
 
-        msg.header.stamp = node.get_clock().now().to_msg()
-        msg.header.frame_id = reference_frame
-        msg.child_frame_id = child_frame
+        tf.header.stamp = node.get_clock().now().to_msg()
+        tf.header.frame_id = reference_frame
+        tf.child_frame_id = child_frame
 
-        msg.transform.translation.x = pose.position.x
-        msg.transform.translation.y = pose.position.y
-        msg.transform.translation.z = pose.position.z
+        tf.transform.translation.x = pose.position.x
+        tf.transform.translation.y = pose.position.y
+        tf.transform.translation.z = pose.position.z
 
-        msg.transform.rotation.x = pose.orientation.x
-        msg.transform.rotation.y = pose.orientation.y
-        msg.transform.rotation.z = pose.orientation.z
-        msg.transform.rotation.w = pose.orientation.w
+        tf.transform.rotation.x = pose.orientation.x
+        tf.transform.rotation.y = pose.orientation.y
+        tf.transform.rotation.z = pose.orientation.z
+        tf.transform.rotation.w = pose.orientation.w
 
-        return msg
+        return tf
 
 
 class ArucoMarkerLocalizer(Localizer):
@@ -268,15 +268,14 @@ class ArucoMarkerLocalizer(Localizer):
             pose.position.z,
         ) = trans_vec.squeeze()
 
-        tf_mat = np.identity(4)
-        tf_mat[:3, :3], _ = cv2.Rodrigues(rot_vec)
+        rot_mat, _ = cv2.Rodrigues(rot_vec)
 
         (
             pose.orientation.x,
             pose.orientation.y,
             pose.orientation.z,
             pose.orientation.w,
-        ) = tf.quaternion_from_matrix(tf_mat)
+        ) = R.from_matrix(rot_mat).as_quat()
 
         # Transform the pose from the `marker` frame to the `map` frame
         try:
