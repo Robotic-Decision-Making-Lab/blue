@@ -1,11 +1,12 @@
 {
-  "dockerFile": ".docker/Dockerfile",
-  "context": ".",
+  "dockerFile": "../../.docker/Dockerfile",
+  "context": "../..",
   "build": {
     "args": {
       "WORKSPACE": "${containerWorkspaceFolder}",
       "ROS_DISTRO": "rolling"
-    }
+    },
+    "target": "develop-nvidia"
   },
   "remoteUser": "blue",
   "runArgs": [
@@ -13,15 +14,17 @@
     "--cap-add=SYS_PTRACE",
     "--security-opt=seccomp:unconfined",
     "--security-opt=apparmor:unconfined",
-    "--volume=/dev:/dev",
-    "--privileged",
-    "--volume=/run/user/1000:/run/user/1000"
+    "--volume=/tmp/.X11-unix:/tmp/.X11-unix",
+    "--volume=/mnt/wslg:/mnt/wslg",
+    "--gpus=all"
   ],
   "containerEnv": {
     "DISPLAY": "${localEnv:DISPLAY}",
     "WAYLAND_DISPLAY": "${localEnv:WAYLAND_DISPLAY}",
     "XDG_RUNTIME_DIR": "${localEnv:XDG_RUNTIME_DIR}",
-    "PULSE_SERVER": "${localEnv:PULSE_SERVER}"
+    "PULSE_SERVER": "${localEnv:PULSE_SERVER}",
+    "LIBGL_ALWAYS_SOFTWARE": "1", // Needed for software rendering of opengl
+    "QT_X11_NO_MITSHM": "1"
   },
   "customizations": {
     "vscode": {
@@ -53,16 +56,14 @@
         "isort.args": ["--profile", "black"],
         "isort.check": true,
         "python.autoComplete.extraPaths": [
-          "/opt/ros/humble/lib/python3.10/site-packages/",
-          "/opt/ros/humble/local/lib/python3.10/dist-packages/",
           "/opt/ros/rolling/lib/python3.10/site-packages/",
-          "/opt/ros/rolling/local/lib/python3.10/dist-packages/"
+          "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
+          "${workspaceFolder}/install/"
         ],
         "python.analysis.extraPaths": [
-          "/opt/ros/humble/lib/python3.10/site-packages/",
-          "/opt/ros/humble/local/lib/python3.10/dist-packages/",
           "/opt/ros/rolling/lib/python3.10/site-packages/",
-          "/opt/ros/rolling/local/lib/python3.10/dist-packages/"
+          "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
+          "${workspaceFolder}/install/"
         ],
         "C_Cpp.default.intelliSenseMode": "linux-gcc-x86",
         "C_Cpp.clang_format_fallbackStyle": "Google",
@@ -118,7 +119,8 @@
         "esbenp.prettier-vscode",
         "xaver.clang-format",
         "ms-python.isort",
-        "ms-python.flake8"
+        "ms-python.flake8",
+        "ms-python.black-formatter"
       ]
     }
   }
