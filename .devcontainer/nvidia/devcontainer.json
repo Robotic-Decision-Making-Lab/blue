@@ -1,0 +1,127 @@
+{
+  "dockerFile": "../../.docker/Dockerfile",
+  "context": "../..",
+  "build": {
+    "args": {
+      "WORKSPACE": "${containerWorkspaceFolder}",
+      "ROS_DISTRO": "iron"
+    },
+    "target": "develop-nvidia"
+  },
+  "remoteUser": "blue",
+  "runArgs": [
+    "--network=host",
+    "--cap-add=SYS_PTRACE",
+    "--security-opt=seccomp:unconfined",
+    "--security-opt=apparmor:unconfined",
+    "--volume=/tmp/.X11-unix:/tmp/.X11-unix",
+    "--volume=/mnt/wslg:/mnt/wslg",
+    "--gpus=all"
+  ],
+  "containerEnv": {
+    "DISPLAY": "${localEnv:DISPLAY}",
+    "WAYLAND_DISPLAY": "${localEnv:WAYLAND_DISPLAY}",
+    "XDG_RUNTIME_DIR": "${localEnv:XDG_RUNTIME_DIR}",
+    "PULSE_SERVER": "${localEnv:PULSE_SERVER}",
+    "LIBGL_ALWAYS_SOFTWARE": "1",
+    "QT_X11_NO_MITSHM": "1"
+  },
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "files.associations": {
+          "*.repos": "yaml",
+          "*.world": "xml",
+          "*.xacro": "xml",
+          "*.srdf": "xml",
+          "*.rviz": "yaml",
+          "*.config": "xml",
+          "*.sdf": "xml"
+        },
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true,
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+        "xml.format.maxLineWidth": 100,
+        "json.format.enable": true,
+        "python.linting.enabled": true,
+        "python.linting.flake8Enabled": true,
+        "python.linting.pylintEnabled": false,
+        "python.linting.pydocstyleEnabled": true,
+        "python.linting.mypyEnabled": true,
+        "python.formatting.provider": "black",
+        "autoDocstring.startOnNewLine": false,
+        "autoDocstring.docstringFormat": "google-notypes",
+        "isort.args": ["--profile", "black"],
+        "isort.check": true,
+        "python.autoComplete.extraPaths": [
+          "/opt/ros/rolling/lib/python3.10/site-packages/",
+          "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
+          "${workspaceFolder}/install/"
+        ],
+        "python.analysis.extraPaths": [
+          "/opt/ros/rolling/lib/python3.10/site-packages/",
+          "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
+          "${workspaceFolder}/install/"
+        ],
+        "C_Cpp.default.intelliSenseMode": "linux-gcc-x86",
+        "C_Cpp.clang_format_fallbackStyle": "Google",
+        "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+        "C_Cpp.codeAnalysis.clangTidy.runAutomatically": true,
+        "clang-format.executable": "/usr/bin/clang-format-14",
+        "[cpp]": {
+          "editor.rulers": [100],
+          "editor.tabSize": 2,
+          "editor.defaultFormatter": "xaver.clang-format"
+        },
+        "[python]": {
+          "editor.tabSize": 4,
+          "editor.rulers": [90],
+          "editor.codeActionsOnSave": {
+            "source.organizeImports": true
+          }
+        },
+        "[dockerfile]": {
+          "editor.quickSuggestions": {
+            "strings": true
+          },
+          "editor.defaultFormatter": "ms-azuretools.vscode-docker",
+          "editor.tabSize": 4
+        },
+        "[json]": {
+          "editor.defaultFormatter": "esbenp.prettier-vscode"
+        },
+        "[xml]": {
+          "editor.defaultFormatter": "redhat.vscode-xml"
+        },
+        "[markdown]": {
+          "editor.rulers": [80],
+          "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+        },
+        "search.exclude": {
+          "**/build": true,
+          "**/install": true,
+          "**/log": true
+        }
+      },
+      "extensions": [
+        "ms-azuretools.vscode-docker",
+        "ms-python.python",
+        "njpwerner.autodocstring",
+        "cschlosser.doxdocgen",
+        "ms-vscode.cpptools",
+        "redhat.vscode-xml",
+        "redhat.vscode-yaml",
+        "josetr.cmake-language-support-vscode",
+        "smilerobotics.urdf",
+        "DavidAnson.vscode-markdownlint",
+        "esbenp.prettier-vscode",
+        "xaver.clang-format",
+        "ms-python.isort",
+        "ms-python.flake8",
+        "ms-python.black-formatter"
+      ]
+    }
+  }
+}

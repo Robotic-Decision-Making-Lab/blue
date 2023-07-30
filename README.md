@@ -13,6 +13,7 @@ The main features of the project include:
 - External localization support to enable developing custom SLAM algorithms and interfaces for localization sensors
 - ArduSub + Gazebo SITL integration for evaluating the performance of your algorithms in a simulation environment
 - Interfaces for adjusting hydrodynamic parameters
+- RViz2 integration for visualization
 
 ## Installation
 

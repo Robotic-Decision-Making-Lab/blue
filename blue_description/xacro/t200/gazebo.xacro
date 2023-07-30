@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="t200_gazebo" params="namespace prefix id ccw:=^false">
+
+    <gazebo>
+      <plugin
+        filename="gz-sim-thruster-system"
+        name="gz::sim::systems::Thruster">
+        <namespace>${namespace}</namespace>
+        <joint_name>${prefix}thruster${id}_joint</joint_name>
+        <xacro:if value="${ccw}">
+          <thrust_coefficient>0.02</thrust_coefficient>
+        </xacro:if>
+        <xacro:unless value="${ccw}">
+          <!-- Reverse spin to balance torque -->
+          <thrust_coefficient>-0.02</thrust_coefficient>
+        </xacro:unless>
+        <fluid_density>1000.0</fluid_density>
+        <propeller_diameter>0.1</propeller_diameter>
+        <velocity_control>true</velocity_control>
+        <use_angvel_cmd>False</use_angvel_cmd>
+      </plugin>
+    </gazebo>
+
+  </xacro:macro>
+</robot>

@@ -31,7 +31,7 @@ from nav_msgs.msg import Odometry
 from rclpy.node import Node
 from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import Image
-from tf2_ros import TransformException
+from tf2_ros import TransformException  # type: ignore
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_broadcaster import TransformBroadcaster
 from tf2_ros.transform_listener import TransformListener
@@ -127,14 +127,9 @@ class ArucoMarkerLocalizer(Localizer):
 
         self.bridge = CvBridge()
 
-        self.declare_parameters(
-            "",
-            [
-                ("camera_matrix", [0.0 for _ in range(9)]),  # Reshaped to 3x3
-                ("projection_matrix", [0.0 for _ in range(12)]),  # Reshaped to 3x4
-                ("distortion_coefficients", [0.0 for _ in range(5)]),
-            ],
-        )
+        self.declare_parameter("camera_matrix", [0.0 for _ in range(9)])
+        self.declare_parameter("projection_matrix", [0.0 for _ in range(12)])
+        self.declare_parameter("distortion_coefficients", [0.0 for _ in range(5)])
 
         # Get the camera intrinsics
         self.camera_matrix = np.array(
@@ -263,18 +258,18 @@ class ArucoMarkerLocalizer(Localizer):
         pose.header.stamp = self.get_clock().now().to_msg()
 
         (
-            pose.position.x,
-            pose.position.y,
-            pose.position.z,
+            pose.pose.position.x,
+            pose.pose.position.y,
+            pose.pose.position.z,
         ) = trans_vec.squeeze()
 
         rot_mat, _ = cv2.Rodrigues(rot_vec)
 
         (
-            pose.orientation.x,
-            pose.orientation.y,
-            pose.orientation.z,
-            pose.orientation.w,
+            pose.pose.orientation.x,
+            pose.pose.orientation.y,
+            pose.pose.orientation.z,
+            pose.pose.orientation.w,
         ) = R.from_matrix(rot_mat).as_quat()
 
         # Transform the pose from the `marker` frame to the `map` frame
