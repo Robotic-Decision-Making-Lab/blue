@@ -227,3 +227,68 @@ RUN echo "if [ -f ${WORKSPACE}/install/setup.bash ]; then source ${WORKSPACE}/in
     # Expose the environment variables to the non-root user
     && echo "if [ -f /sim.sh ]; then source /sim.sh; fi" >> /home/$USERNAME/.bashrc \
     && echo "if [ -f /dev.sh ]; then source /dev.sh; fi" >> /home/$USERNAME/.bashrc
+
+
+######################################################################################
+# develop-nvidia: Setup the image for development purposes with NVIDIA driver support
+######################################################################################
+FROM deps as develop-nvidia
+
+# Install NVIDIA software
+RUN apt-get update \
+    && apt-get install -y -qq --no-install-recommends \
+    libglvnd0 \
+    libgl1 \
+    libglx0 \
+    libegl1 \
+    libxext6 \
+    libx11-6
+
+# Env vars for the nvidia-container-runtime.
+ENV NVIDIA_VISIBLE_DEVICES all
+ENV NVIDIA_DRIVER_CAPABILITIES graphics,utility,compute
+ENV QT_X11_NO_MITSHM 1
+
+ENV GZ_VERSION=garden
+ENV ROS_UNDERLAY /root/ws_blue/install
+ENV DEBIAN_FRONTEND=noninteractive
+WORKDIR $ROS_UNDERLAY/..
+
+COPY . src/blue
+
+# Install debugging/linting Python packages
+RUN python3 -m pip install -r $(pwd)/src/blue/requirements-dev.txt
+
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
+    && vcs import src < src/blue/blue.repos \
+    && rosdep update \
+    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9 gz-plugin2" \
+    && rm -rf src \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install development tools
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
+    && apt-get -q install --no-install-recommends -y \
+    iputils-ping \
+    net-tools \
+    gdb \
+    nano \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY .docker/entrypoints/dev.sh /
+
+# WARNING: This is a temporary solution for disabling the setuputils installation warning
+ENV PYTHONWARNINGS="ignore"
+
+ARG WORKSPACE
+RUN echo "if [ -f ${WORKSPACE}/install/setup.bash ]; then source ${WORKSPACE}/install/setup.bash; fi" >> /home/$USERNAME/.bashrc \
+    && echo "if [ -f /opt/ros/${ROS_DISTRO}/setup.bash ]; then source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc \
+    # Expose the environment variables to the non-root user
+    && echo "if [ -f /sim.sh ]; then source /sim.sh; fi" >> /home/$USERNAME/.bashrc \
+    && echo "if [ -f /dev.sh ]; then source /dev.sh; fi" >> /home/$USERNAME/.bashrc
