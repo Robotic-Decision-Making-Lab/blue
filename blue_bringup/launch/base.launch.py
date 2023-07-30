@@ -26,7 +26,12 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import (
+    Command,
+    FindExecutable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+)
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -51,7 +56,7 @@ def generate_launch_description() -> LaunchDescription:
             "configuration_type",
             default_value="bluerov2_heavy",
             description="The BlueROV2 configuration type to load.",
-            choices=["bluerov2_heavy", "bluerov2"],
+            choices=["bluerov2_heavy", "bluerov2", "bluerov2_heavy_reach"],
         ),
         DeclareLaunchArgument(
             "controllers_file",
@@ -83,7 +88,7 @@ def generate_launch_description() -> LaunchDescription:
         ),
         DeclareLaunchArgument(
             "gazebo_world_file",
-            default_value="bluerov2_heavy_underwater.world",
+            default_value="",
             description="The world configuration to load if using Gazebo.",
         ),
         DeclareLaunchArgument(
@@ -122,11 +127,52 @@ def generate_launch_description() -> LaunchDescription:
             default_value="false",
             description="Launch the Gazebo + ArduSub simulator.",
         ),
+        DeclareLaunchArgument(
+            "use_rviz",
+            default_value="false",
+            description="Launch RViz2.",
+        ),
+        DeclareLaunchArgument(
+            "rviz_config",
+            default_value="",
+            description="The RViz2 configuration file to load.",
+        ),
+        DeclareLaunchArgument(
+            "prefix",
+            default_value="",
+            description=(
+                "The prefix of the model. This is useful for multi-robot setups."
+                " Expected format '<prefix>/'."
+            ),
+        ),
     ]
 
     description_package = LaunchConfiguration("description_package")
     configuration_type = LaunchConfiguration("configuration_type")
     use_sim = LaunchConfiguration("use_sim")
+
+    robot_description = {
+        "robot_description": Command(
+            [
+                PathJoinSubstitution([FindExecutable(name="xacro")]),
+                " ",
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare(description_package),
+                        "xacro",
+                        configuration_type,
+                        "config.xacro",
+                    ]
+                ),
+                " ",
+                "prefix:=",
+                LaunchConfiguration("prefix"),
+                " ",
+                "use_sim:=",
+                use_sim,
+            ]
+        )
+    }
 
     ardusub_params_filepath = PathJoinSubstitution(
         [
@@ -154,6 +200,12 @@ def generate_launch_description() -> LaunchDescription:
             ],
         ),
         Node(
+            package="robot_state_publisher",
+            executable="robot_state_publisher",
+            output="both",
+            parameters=[robot_description, {"use_sim_time": use_sim}],
+        ),
+        Node(
             package="ros_gz_bridge",
             executable="parameter_bridge",
             arguments=[
@@ -162,11 +214,37 @@ def generate_launch_description() -> LaunchDescription:
                 # Odom (IGN -> ROS 2)
                 [
                     "/model/",
-                    LaunchConfiguration("configuration_type"),
+                    configuration_type,
                     "/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
                 ],
             ],
             output="screen",
+        ),
+        Node(
+            package="ros_gz_sim",
+            executable="create",
+            arguments=["-name", configuration_type, "-topic", "robot_description"],
+            output="both",
+            condition=IfCondition(use_sim),
+            parameters=[{"use_sim_time": use_sim}],
+        ),
+        Node(
+            package="rviz2",
+            executable="rviz2",
+            name="rviz2",
+            output="both",
+            arguments=[
+                "-d",
+                PathJoinSubstitution(
+                    [
+                        FindPackageShare(description_package),
+                        "rviz",
+                        LaunchConfiguration("rviz_config"),
+                    ]
+                ),
+            ],
+            parameters=[robot_description, {"use_sim_time": use_sim}],
+            condition=IfCondition(LaunchConfiguration("use_rviz")),
         ),
     ]
 
