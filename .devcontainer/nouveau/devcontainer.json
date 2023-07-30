@@ -54,23 +54,12 @@
         "isort.args": ["--profile", "black"],
         "isort.check": true,
         "python.autoComplete.extraPaths": [
-<<<<<<< HEAD:.devcontainer.json
           "/opt/ros/iron/lib/python3.10/site-packages/",
           "/opt/ros/iron/local/lib/python3.10/dist-packages/"
         ],
         "python.analysis.extraPaths": [
           "/opt/ros/iron/lib/python3.10/site-packages/",
           "/opt/ros/iron/local/lib/python3.10/dist-packages/"
-=======
-          "/opt/ros/rolling/lib/python3.10/site-packages/",
-          "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
-          "${workspaceFolder}/install/"
-        ],
-        "python.analysis.extraPaths": [
-          "/opt/ros/rolling/lib/python3.10/site-packages/",
-          "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
-          "${workspaceFolder}/install/"
->>>>>>> origin/main:.devcontainer/nouveau/devcontainer.json
         ],
         "C_Cpp.default.intelliSenseMode": "linux-gcc-x86",
         "C_Cpp.clang_format_fallbackStyle": "Google",
