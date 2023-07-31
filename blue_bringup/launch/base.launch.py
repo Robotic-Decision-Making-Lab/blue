@@ -251,25 +251,6 @@ def generate_launch_description() -> LaunchDescription:
     processes = [
         ExecuteProcess(
             cmd=[
-                "gz",
-                "sim",
-                "-v",
-                "3",
-                "-r",
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare(description_package),
-                        "gazebo",
-                        "worlds",
-                        LaunchConfiguration("gazebo_world_file"),
-                    ]
-                ),
-            ],
-            output="screen",
-            condition=IfCondition(use_sim),
-        ),
-        ExecuteProcess(
-            cmd=[
                 "ardusub",
                 "-S",
                 "-w",
@@ -287,6 +268,33 @@ def generate_launch_description() -> LaunchDescription:
     ]
 
     includes = [
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                [
+                    PathJoinSubstitution(
+                        [
+                            FindPackageShare("ros_gz_sim"),
+                            "launch",
+                            "gz_sim.launch.py",
+                        ]
+                    )
+                ]
+            ),
+            launch_arguments=[
+                (
+                    "gz_args",
+                    [
+                        "-v",
+                        "4",
+                        " ",
+                        "-r",
+                        " ",
+                        LaunchConfiguration("gazebo_world_file"),
+                    ],
+                )
+            ],
+            condition=IfCondition(use_sim),
+        ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution(
