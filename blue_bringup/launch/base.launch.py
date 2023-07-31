@@ -26,12 +26,7 @@ from launch.actions import (
 )
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import (
-    Command,
-    FindExecutable,
-    LaunchConfiguration,
-    PathJoinSubstitution,
-)
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -145,34 +140,17 @@ def generate_launch_description() -> LaunchDescription:
                 " Expected format '<prefix>/'."
             ),
         ),
+        DeclareLaunchArgument(
+            "robot_description",
+            default_value="",
+            description="The model URDF file.",
+        ),
     ]
 
     description_package = LaunchConfiguration("description_package")
     configuration_type = LaunchConfiguration("configuration_type")
     use_sim = LaunchConfiguration("use_sim")
-
-    robot_description = {
-        "robot_description": Command(
-            [
-                PathJoinSubstitution([FindExecutable(name="xacro")]),
-                " ",
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare(description_package),
-                        "xacro",
-                        configuration_type,
-                        "config.xacro",
-                    ]
-                ),
-                " ",
-                "prefix:=",
-                LaunchConfiguration("prefix"),
-                " ",
-                "use_sim:=",
-                use_sim,
-            ]
-        )
-    }
+    robot_description = LaunchConfiguration("robot_description")
 
     ardusub_params_filepath = PathJoinSubstitution(
         [
@@ -203,7 +181,9 @@ def generate_launch_description() -> LaunchDescription:
             package="robot_state_publisher",
             executable="robot_state_publisher",
             output="both",
-            parameters=[robot_description, {"use_sim_time": use_sim}],
+            parameters=[
+                {"use_sim_time": use_sim, "robot_description": robot_description}
+            ],
         ),
         Node(
             package="ros_gz_bridge",
@@ -243,7 +223,9 @@ def generate_launch_description() -> LaunchDescription:
                     ]
                 ),
             ],
-            parameters=[robot_description, {"use_sim_time": use_sim}],
+            parameters=[
+                {"use_sim_time": use_sim, "robot_description": robot_description}
+            ],
             condition=IfCondition(LaunchConfiguration("use_rviz")),
         ),
     ]
