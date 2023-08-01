@@ -51,7 +51,6 @@ def generate_launch_description() -> LaunchDescription:
             "configuration_type",
             default_value="bluerov2_heavy",
             description="The BlueROV2 configuration type to load.",
-            choices=["bluerov2_heavy", "bluerov2", "bluerov2_heavy_reach"],
         ),
         DeclareLaunchArgument(
             "controllers_file",
