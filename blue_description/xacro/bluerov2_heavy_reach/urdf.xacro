@@ -20,7 +20,7 @@
       <visual>
         <geometry>
           <mesh
-            filename="package://blue_description/meshes/bluerov2_heavy_reach/bluerov2_heavy_reach.dae"
+            filename="file://$(find blue_description)/meshes/bluerov2_heavy_reach/bluerov2_heavy_reach.dae"
             scale="0.025 0.025 0.025"
           />
         </geometry>
