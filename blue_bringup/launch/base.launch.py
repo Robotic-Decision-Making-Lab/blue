@@ -19,11 +19,7 @@
 # THE SOFTWARE.
 
 from launch import LaunchDescription
-from launch.actions import (
-    DeclareLaunchArgument,
-    ExecuteProcess,
-    IncludeLaunchDescription,
-)
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
@@ -151,15 +147,6 @@ def generate_launch_description() -> LaunchDescription:
     use_sim = LaunchConfiguration("use_sim")
     robot_description = LaunchConfiguration("robot_description")
 
-    ardusub_params_filepath = PathJoinSubstitution(
-        [
-            FindPackageShare(description_package),
-            "config",
-            configuration_type,
-            LaunchConfiguration("ardusub_params_file"),
-        ]
-    )
-
     nodes = [
         Node(
             package="mavros",
@@ -185,29 +172,6 @@ def generate_launch_description() -> LaunchDescription:
             ],
         ),
         Node(
-            package="ros_gz_bridge",
-            executable="parameter_bridge",
-            arguments=[
-                # Clock (IGN -> ROS 2)
-                "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
-                # Odom (IGN -> ROS 2)
-                [
-                    "/model/",
-                    configuration_type,
-                    "/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
-                ],
-            ],
-            output="screen",
-        ),
-        Node(
-            package="ros_gz_sim",
-            executable="create",
-            arguments=["-name", configuration_type, "-topic", "robot_description"],
-            output="both",
-            condition=IfCondition(use_sim),
-            parameters=[{"use_sim_time": use_sim}],
-        ),
-        Node(
             package="rviz2",
             executable="rviz2",
             name="rviz2",
@@ -229,51 +193,25 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
-    processes = [
-        ExecuteProcess(
-            cmd=[
-                "ardusub",
-                "-S",
-                "-w",
-                "-M",
-                "JSON",
-                "--defaults",
-                ardusub_params_filepath,
-                "-I0",
-                "--home",
-                "44.65870,-124.06556,0.0,270.0",  # my not-so-secret surf spot
-            ],
-            output="screen",
-            condition=IfCondition(use_sim),
-        ),
-    ]
-
     includes = [
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 [
                     PathJoinSubstitution(
                         [
-                            FindPackageShare("ros_gz_sim"),
+                            FindPackageShare("blue_bringup"),
                             "launch",
-                            "gz_sim.launch.py",
+                            "sitl.launch.py",
                         ]
                     )
                 ]
             ),
-            launch_arguments=[
-                (
-                    "gz_args",
-                    [
-                        "-v",
-                        "4",
-                        " ",
-                        "-r",
-                        " ",
-                        LaunchConfiguration("gazebo_world_file"),
-                    ],
-                )
-            ],
+            launch_arguments={
+                "description_package": description_package,
+                "configuration_type": configuration_type,
+                "ardusub_params_file": LaunchConfiguration("ardusub_params_file"),
+                "gazebo_world_file": LaunchConfiguration("gazebo_world_file"),
+            }.items(),
             condition=IfCondition(use_sim),
         ),
         IncludeLaunchDescription(
@@ -336,4 +274,4 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
-    return LaunchDescription(args + nodes + processes + includes)
+    return LaunchDescription(args + nodes + includes)
