@@ -21,7 +21,12 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import (
+    Command,
+    FindExecutable,
+    LaunchConfiguration,
+    PathJoinSubstitution,
+)
 from launch_ros.substitutions import FindPackageShare
 
 
@@ -86,6 +91,27 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
+    robot_description = Command(
+        [
+            PathJoinSubstitution([FindExecutable(name="xacro")]),
+            " ",
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("blue_description"),
+                    "xacro",
+                    "bluerov2",
+                    "config.xacro",
+                ]
+            ),
+            " ",
+            "prefix:=",
+            LaunchConfiguration("prefix"),
+            " ",
+            "use_sim:=",
+            LaunchConfiguration("use_sim"),
+        ]
+    )
+
     return LaunchDescription(
         [
             *args,
@@ -106,6 +132,7 @@ def generate_launch_description() -> LaunchDescription:
                     "rviz_config": LaunchConfiguration("rviz_config"),
                     "gazebo_world_file": "bluerov2_underwater.world",
                     "prefix": LaunchConfiguration("prefix"),
+                    "robot_description": robot_description,
                 }.items(),
             ),
             IncludeLaunchDescription(

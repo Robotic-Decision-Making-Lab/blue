@@ -20,7 +20,7 @@
       <visual>
         <geometry>
           <mesh
-            filename="package://blue_description/meshes/bluerov2/bluerov2.dae"
+            filename="file://$(find blue_description)/meshes/bluerov2/bluerov2.dae"
             scale="0.025 0.025 0.025"
           />
         </geometry>
