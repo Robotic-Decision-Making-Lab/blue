@@ -9,6 +9,8 @@ mavros:
       - rc_io
       - param
       - vision_pose
+      - setpoint_position
+      - setpoint_velocity
 
 mavros_node:
   ros__parameters:

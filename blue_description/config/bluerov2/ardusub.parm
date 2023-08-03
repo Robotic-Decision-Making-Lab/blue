@@ -102,5 +102,18 @@ COMPASS_USE2 0        # Disable compass 2
 COMPASS_USE3 0        # Disable compass 3
 EK3_SRC1_YAW 6        # External nav
 
+# Enable external visual navigation
+EK2_ENABLE       0.000
+EK3_ENABLE       1.000
+AHRS_EKF_TYPE    3.000
+
+VISO_TYPE        1.000
+EK3_GPS_TYPE     3.000
+EK3_SRC1_POSXY   6.000
+EK3_SRC1_VELXY   6.000
+EK3_SRC1_POSZ    1.000
+EK3_SRC1_YAW     6.000
+EK3_SRC1_VELZ    6.000
+
 # See https://github.com/clydemcqueen/bluerov2_ignition/issues/7
 SIM_BARO_RND 0.01

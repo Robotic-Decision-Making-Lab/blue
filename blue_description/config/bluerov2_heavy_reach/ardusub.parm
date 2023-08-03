@@ -67,18 +67,18 @@ EK2_ENABLE 0
 EK3_ENABLE 1
 AHRS_EKF_TYPE 3
 
-# Enable external nav
-# From https://ardupilot.org/copter/docs/common-vio-tracking-camera.html
-GPS_TYPE 0            # Disable GPS
-VISO_TYPE 1           # External vision
-EK3_SRC1_POSXY 6      # External nav
-EK3_SRC1_VELXY 6      # External nav
-EK3_SRC1_POSZ 1       # Baro is the primary z source
-EK3_SRC1_VELZ 6       # External nav z velocity influences EKF
-COMPASS_USE 0         # Disable compass 1
-COMPASS_USE2 0        # Disable compass 2
-COMPASS_USE3 0        # Disable compass 3
-EK3_SRC1_YAW 6        # External nav
+# Enable external visual navigation
+EK2_ENABLE       0.000
+EK3_ENABLE       1.000
+AHRS_EKF_TYPE    3.000
+
+VISO_TYPE        1.000
+EK3_GPS_TYPE     3.000
+EK3_SRC1_POSXY   6.000
+EK3_SRC1_VELXY   6.000
+EK3_SRC1_POSZ    1.000
+EK3_SRC1_YAW     6.000
+EK3_SRC1_VELZ    6.000
 
 # See https://github.com/clydemcqueen/bluerov2_ignition/issues/7
 SIM_BARO_RND 0.01
