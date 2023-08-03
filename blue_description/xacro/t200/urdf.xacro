@@ -17,12 +17,12 @@
       <visual>
         <xacro:if value="${ccw}">
           <geometry>
-            <mesh filename="package://blue_description/meshes/t200/ccw_prop.dae" />
+            <mesh filename="file://$(find blue_description)/meshes/t200/ccw_prop.dae" />
           </geometry>
         </xacro:if>
         <xacro:unless value="${ccw}">
           <geometry>
-            <mesh filename="package://blue_description/meshes/t200/cw_prop.dae" />
+            <mesh filename="file://$(find blue_description)/meshes/t200/cw_prop.dae" />
           </geometry>
         </xacro:unless>
         <origin rpy="-1.571 0 0" xyz="0 0 0" />

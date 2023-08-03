@@ -2,6 +2,8 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:macro name="bluerov2_heavy_gazebo" params="prefix">
 
+    <xacro:property name="model" value="bluerov2_heavy" />
+
     <gazebo>
       <plugin name="ArduPilotPlugin" filename="libArduPilotPlugin.so">
         <fdm_addr>127.0.0.1</fdm_addr>
@@ -26,7 +28,7 @@
           <servo_min>1100</servo_min>
           <servo_max>1900</servo_max>
           <type>COMMAND</type>
-          <cmd_topic>/model/blue/joint/${prefix}thruster1_joint/cmd_thrust</cmd_topic>
+          <cmd_topic>/model/${model}/joint/${prefix}thruster1_joint/cmd_thrust</cmd_topic>
           <offset>-0.5</offset>
           <multiplier>100</multiplier>
         </control>
@@ -35,7 +37,7 @@
           <servo_min>1100</servo_min>
           <servo_max>1900</servo_max>
           <type>COMMAND</type>
-          <cmd_topic>/model/blue/joint/${prefix}thruster2_joint/cmd_thrust</cmd_topic>
+          <cmd_topic>/model/${model}/joint/${prefix}thruster2_joint/cmd_thrust</cmd_topic>
           <offset>-0.5</offset>
           <multiplier>100</multiplier>
         </control>
@@ -44,7 +46,7 @@
           <servo_min>1100</servo_min>
           <servo_max>1900</servo_max>
           <type>COMMAND</type>
-          <cmd_topic>/model/blue/joint/${prefix}thruster3_joint/cmd_thrust</cmd_topic>
+          <cmd_topic>/model/${model}/joint/${prefix}thruster3_joint/cmd_thrust</cmd_topic>
           <offset>-0.5</offset>
           <multiplier>100</multiplier>
         </control>
@@ -53,7 +55,7 @@
           <servo_min>1100</servo_min>
           <servo_max>1900</servo_max>
           <type>COMMAND</type>
-          <cmd_topic>/model/blue/joint/${prefix}thruster4_joint/cmd_thrust</cmd_topic>
+          <cmd_topic>/model/${model}/joint/${prefix}thruster4_joint/cmd_thrust</cmd_topic>
           <offset>-0.5</offset>
           <multiplier>100</multiplier>
         </control>
@@ -62,7 +64,7 @@
           <servo_min>1100</servo_min>
           <servo_max>1900</servo_max>
           <type>COMMAND</type>
-          <cmd_topic>/model/blue/joint/${prefix}thruster5_joint/cmd_thrust</cmd_topic>
+          <cmd_topic>/model/${model}/joint/${prefix}thruster5_joint/cmd_thrust</cmd_topic>
           <offset>-0.5</offset>
           <multiplier>100</multiplier>
         </control>
@@ -71,7 +73,7 @@
           <servo_min>1100</servo_min>
           <servo_max>1900</servo_max>
           <type>COMMAND</type>
-          <cmd_topic>/model/blue/joint/${prefix}thruster6_joint/cmd_thrust</cmd_topic>
+          <cmd_topic>/model/${model}/joint/${prefix}thruster6_joint/cmd_thrust</cmd_topic>
           <offset>-0.5</offset>
           <multiplier>100</multiplier>
         </control>
@@ -80,7 +82,7 @@
           <servo_min>1100</servo_min>
           <servo_max>1900</servo_max>
           <type>COMMAND</type>
-          <cmd_topic>/model/blue/joint/${prefix}thruster7_joint/cmd_thrust</cmd_topic>
+          <cmd_topic>/model/${model}/joint/${prefix}thruster7_joint/cmd_thrust</cmd_topic>
           <offset>-0.5</offset>
           <multiplier>100</multiplier>
         </control>
@@ -89,7 +91,7 @@
           <servo_min>1100</servo_min>
           <servo_max>1900</servo_max>
           <type>COMMAND</type>
-          <cmd_topic>/model/blue/joint/${prefix}thruster8_joint/cmd_thrust</cmd_topic>
+          <cmd_topic>/model/${model}/joint/${prefix}thruster8_joint/cmd_thrust</cmd_topic>
           <offset>-0.5</offset>
           <multiplier>100</multiplier>
         </control>
@@ -150,14 +152,14 @@
     <!-- Include the T200 Gazebo macro -->
     <xacro:include filename="$(find blue_description)/xacro/t200/gazebo.xacro" />
 
-    <xacro:t200_gazebo namespace="bluerov2_heavy" prefix="${prefix}" id="1" ccw="true" />
-    <xacro:t200_gazebo namespace="bluerov2_heavy" prefix="${prefix}" id="2" ccw="true" />
-    <xacro:t200_gazebo namespace="bluerov2_heavy" prefix="${prefix}" id="3" />
-    <xacro:t200_gazebo namespace="bluerov2_heavy" prefix="${prefix}" id="4" />
-    <xacro:t200_gazebo namespace="bluerov2_heavy" prefix="${prefix}" id="5" ccw="true" />
-    <xacro:t200_gazebo namespace="bluerov2_heavy" prefix="${prefix}" id="6" />
-    <xacro:t200_gazebo namespace="bluerov2_heavy" prefix="${prefix}" id="7" />
-    <xacro:t200_gazebo namespace="bluerov2_heavy" prefix="${prefix}" id="8" ccw="true" />
+    <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="1" ccw="true" />
+    <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="2" ccw="true" />
+    <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="3" />
+    <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="4" />
+    <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="5" ccw="true" />
+    <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="6" />
+    <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="7" />
+    <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="8" ccw="true" />
 
   </xacro:macro>
 </robot>
