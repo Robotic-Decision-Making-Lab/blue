@@ -185,6 +185,24 @@ def generate_launch_description():
             ],
             output="screen",
         ),
+        Node(
+            package="tf2_ros",
+            executable="static_transform_publisher",
+            name="base_link_to_base_footprint",
+            arguments=[
+                "--x",
+                "-0.0",
+                "--y",
+                "0.0",
+                "--z",
+                "0.0",
+                "--frame-id",
+                [prefix, "base_link"],
+                "--child-frame-id",
+                [prefix, "base_footprint"],
+            ],
+            output="screen",
+        ),
     ]
 
     return LaunchDescription(args + nodes)

@@ -95,6 +95,15 @@ def generate_launch_description() -> LaunchDescription:
             output="screen",
         ),
         Node(
+            package="ros_gz_bridge",
+            executable="parameter_bridge",
+            arguments=[
+                # Camera (IGN -> ROS 2)
+                "/camera@sensor_msgs/msg/Image[gz.msgs.Image"
+            ],
+            output="screen",
+        ),
+        Node(
             package="ros_gz_sim",
             executable="create",
             arguments=["-name", configuration_type, "-topic", "robot_description"],

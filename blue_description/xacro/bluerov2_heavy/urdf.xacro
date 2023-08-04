@@ -39,6 +39,13 @@
       <child link="${prefix}base_link" />
     </joint>
 
+    <!-- Import camera macro -->
+    <xacro:include filename="$(find blue_description)/xacro/camera/urdf.xacro" />
+
+    <xacro:camera_urdf prefix="${prefix}" parent="${prefix}base_link">
+      <origin rpy="0 0 0" xyz="0.21 0 0.067" />
+    </xacro:camera_urdf>
+
     <!-- Import T200 macro -->
     <xacro:include filename="$(find blue_description)/xacro/t200/urdf.xacro" />
 
