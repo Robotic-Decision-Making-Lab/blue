@@ -303,13 +303,13 @@ class ArucoMarkerLocalizer(Localizer):
                 tf_camera_to_base.transform.rotation.w,
             ]
         ).as_matrix()
-        tf_camera_to_base_mat[3, :3] = np.array(
+        tf_camera_to_base_mat[:3, 3] = np.array(
             [
                 tf_camera_to_base.transform.translation.x,
                 tf_camera_to_base.transform.translation.y,
                 tf_camera_to_base.transform.translation.z,
             ]
-        ).reshape((3, 1))
+        )
 
         # Convert the pose back into a matrix
         tf_map_to_camera_mat = np.eye(4)
@@ -320,8 +320,8 @@ class ArucoMarkerLocalizer(Localizer):
                 pose.pose.orientation.z,  # type: ignore
                 pose.pose.orientation.w,  # type: ignore
             ]
-        )
-        tf_map_to_camera_mat[3, :3] = np.array(
+        ).as_matrix()
+        tf_map_to_camera_mat[:3, 3] = np.array(
             [
                 pose.pose.position.x,  # type: ignore
                 pose.pose.position.y,  # type: ignore
@@ -337,7 +337,7 @@ class ArucoMarkerLocalizer(Localizer):
             pose.pose.position.x,  # type: ignore
             pose.pose.position.y,  # type: ignore
             pose.pose.position.z,  # type: ignore
-        ) = tf_map_to_base_mat[3, :3]
+        ) = tf_map_to_base_mat[3:, 3]
 
         (
             pose.pose.orientation.x,  # type: ignore
