@@ -33,7 +33,6 @@ from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import Image
 from tf2_ros import TransformException  # type: ignore
 from tf2_ros.buffer import Buffer
-from tf2_ros.transform_broadcaster import TransformBroadcaster
 from tf2_ros.transform_listener import TransformListener
 
 
@@ -57,7 +56,6 @@ class Localizer(Node, ABC):
         # Provide access to TF2
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
-        self.tf_broadcaster = TransformBroadcaster(self, 1)
 
         # Poses are sent to the ArduPilot EKF
         self.localization_pub = self.create_publisher(
@@ -337,13 +335,6 @@ class GazeboLocalizer(Localizer):
         Args:
             msg: The Gazebo ground-truth odometry for the BlueROV2.
         """
-        # Use the Odometry message to publish the transform from the map frame to the
-        # base_link frame
-        tf_map_base = Localizer.convert_pose_to_transform(
-            self, msg.pose.pose, self.MAP_FRAME, self.BASE_LINK_FRAME
-        )
-        self.tf_broadcaster.sendTransform(tf_map_base)
-
         pose = PoseStamped()
 
         # Pose is provided in the parent header frame

@@ -218,6 +218,23 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)  // N
 
   accel_pub_->publish(accel_stamped);
 
+  // Publish the current transformation from the map frame to the base_link frame
+  geometry_msgs::msg::TransformStamped tf;
+  tf.header.frame_id = "map";
+  tf.header.stamp = this->get_clock()->now();
+  tf.child_frame_id = "base_link";
+
+  tf.transform.translation.x = msg->pose.pose.position.x;
+  tf.transform.translation.y = msg->pose.pose.position.y;
+  tf.transform.translation.z = msg->pose.pose.position.z;
+
+  tf.transform.rotation.x = msg->pose.pose.orientation.x;
+  tf.transform.rotation.y = msg->pose.pose.orientation.y;
+  tf.transform.rotation.z = msg->pose.pose.orientation.z;
+  tf.transform.rotation.w = msg->pose.pose.orientation.w;
+
+  tf_broadcaster_->sendTransform(tf);
+
   // Update the current Odometry reading
   odom_ = *msg;
 }
