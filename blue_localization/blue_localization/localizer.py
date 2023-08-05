@@ -293,7 +293,7 @@ class ArucoMarkerLocalizer(Localizer):
             self.get_logger().warning(f"Could not access transform: {e}")
             return
 
-        # Convert the tf into a homogenous tf matrix
+        # Convert the tf into a homogeneous tf matrix
         tf_camera_to_base_mat = np.eye(4)
         tf_camera_to_base_mat[:3, :3] = R.from_quat(
             [
