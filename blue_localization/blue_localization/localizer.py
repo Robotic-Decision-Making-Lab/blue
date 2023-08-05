@@ -32,6 +32,7 @@ from rclpy.node import Node
 from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import Image
 from tf2_ros import TransformException  # type: ignore
+from tf2_ros import Time
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
@@ -279,7 +280,72 @@ class ArucoMarkerLocalizer(Localizer):
             )
             return
 
-        # Publish the transformed pose
+        # The pose now represents the transformation from the map frame to the
+        # camera frame, but we need to publish the transformation from the map frame
+        # to the base_link frame
+
+        # Start by getting the camera to base_link transform
+        try:
+            tf_camera_to_base = self.tf_buffer.lookup_transform(
+                "camera_link", "base_link", Time()
+            )
+        except TransformException as e:
+            self.get_logger().warning(f"Could not access transform: {e}")
+            return
+
+        # Convert the tf into a homogeneous tf matrix
+        tf_camera_to_base_mat = np.eye(4)
+        tf_camera_to_base_mat[:3, :3] = R.from_quat(
+            [
+                tf_camera_to_base.transform.rotation.x,
+                tf_camera_to_base.transform.rotation.y,
+                tf_camera_to_base.transform.rotation.z,
+                tf_camera_to_base.transform.rotation.w,
+            ]
+        ).as_matrix()
+        tf_camera_to_base_mat[:3, 3] = np.array(
+            [
+                tf_camera_to_base.transform.translation.x,
+                tf_camera_to_base.transform.translation.y,
+                tf_camera_to_base.transform.translation.z,
+            ]
+        )
+
+        # Convert the pose back into a matrix
+        tf_map_to_camera_mat = np.eye(4)
+        tf_map_to_camera_mat[:3, :3] = R.from_quat(
+            [
+                pose.pose.orientation.x,  # type: ignore
+                pose.pose.orientation.y,  # type: ignore
+                pose.pose.orientation.z,  # type: ignore
+                pose.pose.orientation.w,  # type: ignore
+            ]
+        ).as_matrix()
+        tf_map_to_camera_mat[:3, 3] = np.array(
+            [
+                pose.pose.position.x,  # type: ignore
+                pose.pose.position.y,  # type: ignore
+                pose.pose.position.z,  # type: ignore
+            ]
+        )
+
+        # Calculate the new transform
+        tf_map_to_base_mat = tf_camera_to_base_mat @ tf_map_to_camera_mat
+
+        # Update the pose using the new transform
+        (
+            pose.pose.position.x,  # type: ignore
+            pose.pose.position.y,  # type: ignore
+            pose.pose.position.z,  # type: ignore
+        ) = tf_map_to_base_mat[3:, 3]
+
+        (
+            pose.pose.orientation.x,  # type: ignore
+            pose.pose.orientation.y,  # type: ignore
+            pose.pose.orientation.z,  # type: ignore
+            pose.pose.orientation.w,  # type: ignore
+        ) = R.from_matrix(tf_map_to_base_mat[:3, :3]).as_quat()
+
         self.localization_pub.publish(pose)
 
 

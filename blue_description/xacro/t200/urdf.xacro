@@ -29,7 +29,7 @@
       </visual>
     </link>
 
-    <joint name="thruster${id}_joint" type="continuous">
+    <joint name="${prefix}thruster${id}_joint" type="continuous">
       <xacro:insert_block name="origin" />
       <parent link="${parent}" />
       <child link="${prefix}thruster${id}" />
