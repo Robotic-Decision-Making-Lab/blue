@@ -34,7 +34,7 @@
       </collision>
     </link>
 
-    <joint name="base_footprint_joint" type="fixed">
+    <joint name="${prefix}base_footprint_joint" type="fixed">
       <parent link="${prefix}base_footprint" />
       <child link="${prefix}base_link" />
     </joint>
