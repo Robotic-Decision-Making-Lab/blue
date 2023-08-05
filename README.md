@@ -66,4 +66,4 @@ board!
 
 ## License
 
-The Blue is released under the MIT license.
+Blue is released under the MIT license.
