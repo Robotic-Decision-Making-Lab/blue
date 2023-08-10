@@ -34,7 +34,7 @@ from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import Image
 
 gi.require_version("Gst", "1.0")
-from gi.repository import Gst  # noqa
+from gi.repository import Gst  # noqa # type: ignore
 
 
 class Source(Node, ABC):
@@ -150,15 +150,10 @@ class QualisysMotionCapture(Source):
         """Create a new Qualisys motion capture source."""
         super().__init__("qualisys_mocap")
 
-        self.declare_parameters(
-            "",
-            [
-                ("ip", "192.168.0.0"),
-                ("port", 22223),
-                ("version", "1.22"),
-                ("body", "bluerov"),
-            ],
-        )
+        self.declare_parameter("ip", "192.168.254.1")
+        self.declare_parameter("port", 22223)
+        self.declare_parameter("version", "1.22")
+        self.declare_parameter("body", "ROV")
 
         # Load the parameters
         self.ip = self.get_parameter("ip").get_parameter_value().string_value
@@ -225,7 +220,7 @@ class QualisysMotionCapture(Source):
 
         # Create a callback to bind to the frame stream
         def proxy_pose_cb(packet: qtm.QRTPacket) -> None:
-            _, bodies = packet.get_6d_euler()
+            _, bodies = packet.get_6d()  # type: ignore
 
             position, rotation = bodies[body_index[self.body]]
 
@@ -234,18 +229,20 @@ class QualisysMotionCapture(Source):
             pose_msg.header.frame_id = "map"
             pose_msg.header.stamp = self.get_clock().now().to_msg()
 
+            # Convert from mm to m and save the position to the message
             (
                 pose_msg.pose.position.x,
                 pose_msg.pose.position.y,
                 pose_msg.pose.position.z,
-            ) = position
+            ) = (position.x / 1000, position.y / 1000, position.z / 1000)
 
+            # Convert from a column-major rotation matrix to a quaternion
             (
                 pose_msg.pose.orientation.x,
                 pose_msg.pose.orientation.y,
                 pose_msg.pose.orientation.z,
                 pose_msg.pose.orientation.w,
-            ) = R.from_euler("xyz", rotation).as_quat()
+            ) = R.from_matrix(np.array(rotation.matrix).reshape((3, 3)).T).as_quat()
 
             self.mocap_pub.publish(pose_msg)
 
