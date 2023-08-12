@@ -4,4 +4,4 @@ blue_manager:
     mode_change_timeout: 1.0
     mode_change_retries: 3
     msg_ids: [31, 32]
-    msg_rates: [100.0, 100.0]
+    msg_rates: [200.0, 200.0]
