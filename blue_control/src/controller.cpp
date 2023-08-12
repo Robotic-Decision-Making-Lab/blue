@@ -39,8 +39,6 @@ Controller::Controller(const std::string & node_name)
   this->declare_parameter("center_of_buoyancy", std::vector<double>({0.0, 0.0, 0.0}));
   this->declare_parameter("ocean_current", std::vector<double>({0.0, 0.0, 0.0, 0.0, 0.0, 0.0}));
   this->declare_parameter("num_thrusters", 8);
-  this->declare_parameter("msg_ids", std::vector<int>({31, 32}));
-  this->declare_parameter("msg_rates", std::vector<double>({100, 100}));
   this->declare_parameter("control_rate", 200.0);
   this->declare_parameter("inertia_tensor_coeff", std::vector<double>({0.16, 0.16, 0.16}));
   this->declare_parameter(
@@ -122,34 +120,6 @@ Controller::Controller(const std::string & node_name)
       armControllerCb(request, response);
     });
   // NOLINTEND(performance-unnecessary-value-param)
-
-  set_msg_interval_client_ =
-    this->create_client<mavros_msgs::srv::MessageInterval>("/mavros/set_message_interval");
-
-  // Wait for the service to be available
-  while (!set_msg_interval_client_->wait_for_service(std::chrono::seconds(1))) {
-    if (!rclcpp::ok()) {
-      RCLCPP_ERROR(
-        rclcpp::get_logger("rclcpp"), "Interrupted while waiting for the service. Exiting.");
-      return;
-    }
-    RCLCPP_INFO(  // NOLINT
-      this->get_logger(), "Waiting for %s...", set_msg_interval_client_->get_service_name());
-  }
-
-  // Get the message IDs to request from the autopilot and the rates at which they should be sent
-  const std::vector<int64_t> msg_ids = this->get_parameter("msg_ids").as_integer_array();
-
-  // ROS returns a std::vector<double>, but we want an std::vector<float> for the message rates
-  const std::vector<double> msg_rates_double = this->get_parameter("msg_rates").as_double_array();
-  const std::vector<float> msg_rates(msg_rates_double.begin(), msg_rates_double.end());
-
-  // A 2nd GCS (e.g., QGC) might change message rates on launch, e.g.,:
-  // https://discuss.bluerobotics.com/t/qgroundcontrol-stream-rates/12204
-  // Set up a timer to periodically set message rates
-  set_message_rate_timer_ = this->create_wall_timer(
-    std::chrono::seconds(10),
-    [this, msg_ids, msg_rates]() -> void { setMessageRates(msg_ids, msg_rates); });
 
   // Convert the control loop frequency to seconds
   dt_ = 1 / this->get_parameter("control_rate").as_double();
@@ -237,54 +207,6 @@ void Controller::updateOdomCb(nav_msgs::msg::Odometry::ConstSharedPtr msg)  // N
 
   // Update the current Odometry reading
   odom_ = *msg;
-}
-
-void Controller::setMessageRates(
-  const std::vector<int64_t> & msg_ids, const std::vector<float> & rates)
-{
-  // Check that the message IDs and rates are the same length
-  if (msg_ids.size() != rates.size()) {
-    RCLCPP_ERROR(
-      this->get_logger(),
-      "Message IDs and rates must be the same length. Message IDs: %ld, rates: %ld", msg_ids.size(),
-      rates.size());
-    return;
-  }
-
-  // Set the message rates
-  for (size_t i = 0; i < msg_ids.size(); i++) {
-    setMessageRate(msg_ids[i], rates[i]);
-  }
-}
-
-void Controller::setMessageRate(int64_t msg_id, float rate)
-{
-  auto request = std::make_shared<mavros_msgs::srv::MessageInterval::Request>();
-
-  request->message_id = msg_id;
-  request->message_rate = rate;
-
-  RCLCPP_DEBUG(
-    get_logger(), "Set message rate for %d to %g hz", request->message_id, request->message_rate);
-
-  // NOLINTBEGIN(performance-unnecessary-value-param)
-  auto future = set_msg_interval_client_->async_send_request(
-    request,
-    [this, &request](rclcpp::Client<mavros_msgs::srv::MessageInterval>::SharedFuture future) {
-      try {
-        const auto & response = future.get();
-
-        if (!response->success) {
-          RCLCPP_ERROR(
-            this->get_logger(), "Failed to set message rate for %d to %g hz", request->message_id,
-            request->message_rate);
-        }
-      }
-      catch (const std::exception & e) {
-        RCLCPP_ERROR(this->get_logger(), "Failed to set message rate: %s", e.what());
-      }
-    });
-  // NOLINTEND(performance-unnecessary-value-param)
 }
 
 }  // namespace blue::control

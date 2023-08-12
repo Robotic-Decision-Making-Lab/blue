@@ -3,3 +3,5 @@ blue_manager:
     num_thrusters: 6
     mode_change_timeout: 1.0
     mode_change_retries: 3
+    msg_ids: [31, 32]
+    msg_rates: [100.0, 100.0]
