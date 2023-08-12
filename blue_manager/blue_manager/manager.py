@@ -22,6 +22,7 @@ from copy import deepcopy
 
 import rclpy
 from mavros_msgs.msg import OverrideRCIn, ParamEvent
+from mavros_msgs.srv import MessageInterval
 from rcl_interfaces.msg import Parameter
 from rcl_interfaces.srv import SetParameters
 from rclpy.callback_groups import ReentrantCallbackGroup
@@ -39,13 +40,30 @@ class Manager(Node):
         """Create a new control manager."""
         super().__init__("blue_manager")
 
-        self.passthrough_enabled = False
-        self.num_thrusters = 8
-        self.timeout = 1.0
-        self.retries = 3
+        self.declare_parameter("num_thrusters", 8)
+        self.declare_parameter("mode_change_timeout", 1.0)
+        self.declare_parameter("mode_change_retries", 3)
+        self.declare_parameter("msg_ids", [31, 32])
+        self.declare_parameter("msg_rates", [100.0, 100.0])
 
-        # Get the ROS parameters from the parameter server
-        self._get_ros_params()
+        self.passthrough_enabled = False
+        self.num_thrusters = (
+            self.get_parameter("num_thrusters").get_parameter_value().integer_value
+        )
+        self.timeout = (
+            self.get_parameter("mode_change_timeout").get_parameter_value().double_value
+        )
+        self.retries = (
+            self.get_parameter("mode_change_retries")
+            .get_parameter_value()
+            .integer_value
+        )
+        self.msg_ids = list(
+            self.get_parameter("msg_ids").get_parameter_value().integer_array_value
+        )
+        self.msg_rates = list(
+            self.get_parameter("msg_rates").get_parameter_value().double_array_value
+        )
 
         # We need a reentrant callback group to get synchronous calls to services from
         # within service callbacks.
@@ -83,29 +101,23 @@ class Manager(Node):
             "/mavros/param/set_parameters",
             callback_group=reentrant_callback_group,
         )
+        self.set_message_rates_client = self.create_client(
+            MessageInterval, "/mavros/set_message_interval"
+        )
+
         wait_for_client(self.set_param_srv_client)
+        wait_for_client(self.set_message_rates_client)
 
-    def _get_ros_params(self) -> None:
-        """Get the ROS parameters from the parameter server."""
-        self.declare_parameters(
-            "",
-            [
-                ("num_thrusters", self.num_thrusters),
-                ("mode_change_timeout", self.timeout),
-                ("mode_change_retries", self.retries),
-            ],
-        )
+        def set_message_rates(
+            message_ids: list[int], message_rates: list[float]
+        ) -> None:
+            for msg, rate in zip(message_ids, message_rates):
+                self.set_message_rates_client.call_async(
+                    MessageInterval.Request(message_id=msg, message_rate=rate)
+                )
 
-        self.num_thrusters = (
-            self.get_parameter("num_thrusters").get_parameter_value().integer_value
-        )
-        self.timeout = (
-            self.get_parameter("mode_change_timeout").get_parameter_value().double_value
-        )
-        self.retries = (
-            self.get_parameter("mode_change_retries")
-            .get_parameter_value()
-            .integer_value
+        self.message_rate_timer = self.create_timer(
+            10, lambda: set_message_rates(self.msg_ids, self.msg_rates)
         )
 
     @property
@@ -237,7 +249,7 @@ class Manager(Node):
 
             for _ in range(self.retries):
                 self.passthrough_enabled = self.set_thruster_params(
-                    list(passthrough_params.values())
+                    list(passthrough_params.values())  # type: ignore
                 )
                 response.success = self.passthrough_enabled
 
@@ -270,7 +282,7 @@ class Manager(Node):
 
             for _ in range(self.retries):
                 self.passthrough_enabled = not self.set_thruster_params(
-                    list(self.thruster_params_backup.values())
+                    list(self.thruster_params_backup.values())  # type: ignore
                 )
 
                 response.success = not self.passthrough_enabled
