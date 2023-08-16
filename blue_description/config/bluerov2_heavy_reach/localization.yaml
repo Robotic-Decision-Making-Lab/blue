@@ -7,7 +7,7 @@ qualisys_mocap:
     ip: "192.168.254.1"
     port: 22223
     version: "1.22"
-    body: "ROV"
+    body: "bluerov"
 
 aruco_marker_localizer:
   ros__parameters:
@@ -24,7 +24,7 @@ aruco_marker_localizer:
 
 qualisys_localizer:
   ros__parameters:
-    body: "ROV" # This should be the same as the body parameter setting for the qualisys_mocap node
+    body: "bluerov" # This should be the same as the body parameter setting for the qualisys_mocap node
 
 gazebo_localizer:
   ros__parameters:
