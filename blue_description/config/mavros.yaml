@@ -1,7 +1,6 @@
 mavros:
   ros__parameters:
     system_id: 255
-    component_id: 190
     plugin_allowlist:
       - sys_status
       - command
