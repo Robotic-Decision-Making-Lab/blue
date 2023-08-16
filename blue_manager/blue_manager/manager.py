@@ -21,6 +21,7 @@
 from copy import deepcopy
 
 import rclpy
+from geographic_msgs.msg import GeoPoint, GeoPointStamped
 from mavros_msgs.msg import OverrideRCIn, ParamEvent
 from mavros_msgs.srv import MessageInterval
 from rcl_interfaces.msg import Parameter
@@ -41,28 +42,34 @@ class Manager(Node):
         super().__init__("blue_manager")
 
         self.declare_parameter("num_thrusters", 8)
-        self.declare_parameter("mode_change_timeout", 1.0)
-        self.declare_parameter("mode_change_retries", 3)
-        self.declare_parameter("msg_ids", [31, 32])
-        self.declare_parameter("msg_rates", [100.0, 100.0])
+        self.declare_parameters(
+            namespace="message_intervals",
+            parameters=[("ids", [31, 32]), ("rates", [100.0, 100.0])],  # type: ignore
+        )
+        self.declare_parameters(
+            namespace="mode_change",
+            parameters=[("timeout", 1.0), ("retries", 3)],  # type: ignore
+        )
+        self.declare_parameters(
+            namespace="ekf_origin",
+            parameters=[  # type: ignore
+                ("latitude", 44.65870),
+                ("longitude", -124.06556),
+                ("altitude", 0.0),
+            ],
+        )
 
         self.passthrough_enabled = False
         self.num_thrusters = (
             self.get_parameter("num_thrusters").get_parameter_value().integer_value
         )
         self.timeout = (
-            self.get_parameter("mode_change_timeout").get_parameter_value().double_value
+            self.get_parameter("mode_change.timeout").get_parameter_value().double_value
         )
         self.retries = (
-            self.get_parameter("mode_change_retries")
+            self.get_parameter("mode_change.retries")
             .get_parameter_value()
             .integer_value
-        )
-        self.msg_ids = list(
-            self.get_parameter("msg_ids").get_parameter_value().integer_array_value
-        )
-        self.msg_rates = list(
-            self.get_parameter("msg_rates").get_parameter_value().double_array_value
         )
 
         # We need a reentrant callback group to get synchronous calls to services from
@@ -76,6 +83,9 @@ class Manager(Node):
         # Publishers
         self.override_rc_in_pub = self.create_publisher(
             OverrideRCIn, "/mavros/rc/override", 1
+        )
+        self.gp_origin_pub = self.create_publisher(
+            GeoPointStamped, "/mavros/global_position/set_gp_origin", 1
         )
 
         # Subscribers
@@ -117,7 +127,36 @@ class Manager(Node):
                 )
 
         self.message_rate_timer = self.create_timer(
-            10, lambda: set_message_rates(self.msg_ids, self.msg_rates)
+            10,
+            lambda: set_message_rates(
+                list(
+                    self.get_parameter("message_intervals.ids")
+                    .get_parameter_value()
+                    .integer_array_value
+                ),
+                list(
+                    self.get_parameter("message_intervals.rates")
+                    .get_parameter_value()
+                    .double_array_value
+                ),
+            ),
+        )
+
+        self.set_ekf_origin_timer = self.create_timer(
+            10,
+            lambda: self.set_ekf_origin_cb(
+                GeoPoint(
+                    latitude=self.get_parameter("ekf_origin.latitude")
+                    .get_parameter_value()
+                    .double_value,
+                    longitude=self.get_parameter("ekf_origin.longitude")
+                    .get_parameter_value()
+                    .double_value,
+                    altitude=self.get_parameter("ekf_origin.altitude")
+                    .get_parameter_value()
+                    .double_value,
+                )
+            ),
         )
 
     @property
@@ -305,6 +344,20 @@ class Manager(Node):
         self.get_logger().info(response.message)
 
         return response
+
+    def set_ekf_origin_cb(self, origin: GeoPoint) -> None:
+        """Set the EKF origin.
+
+        This is required for navigation on a vehicle with one of the provided
+        localizers.
+
+        Args:
+            origin: The EKF origin to set.
+        """
+        origin_stamped = GeoPointStamped()
+        origin_stamped.header.stamp = self.get_clock().now().to_msg()
+        origin_stamped.position = origin
+        self.gp_origin_pub.publish(origin_stamped)
 
 
 def main(args: list[str] | None = None):

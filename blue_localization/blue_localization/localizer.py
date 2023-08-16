@@ -19,7 +19,8 @@
 # THE SOFTWARE.
 
 from abc import ABC
-from typing import Any
+from collections import deque
+from typing import Any, Deque
 
 import cv2
 import numpy as np
@@ -357,23 +358,86 @@ class QualisysLocalizer(Localizer):
         super().__init__("qualisys_localizer")
 
         self.declare_parameter("body", "bluerov")
+        self.declare_parameter("filter_len", 20)
 
         body = self.get_parameter("body").get_parameter_value().string_value
+        filter_len = (
+            self.get_parameter("filter_len").get_parameter_value().integer_value
+        )
 
         self.mocap_sub = self.create_subscription(
             PoseStamped, f"/blue/mocap/qualisys/{body}", self.proxy_pose_cb, 1
         )
 
+        # Store the pose information in a buffer and apply an LWMA filter to it
+        self.pose_buffer: Deque[np.ndarray] = deque(maxlen=filter_len)
+
     def proxy_pose_cb(self, pose: PoseStamped) -> None:
         """Proxy the pose to the ArduSub EKF.
 
-        The pose published by the Qualisys motion capture system is already defined in
-        the map frame. Therefore, all that needs to be done is to proxy this forward to
-        the EKF.
+        We need to do some filtering here to handle the noise from the measurements.
+        The filter that we apply in this case is the LWMA filter.
 
         Args:
             pose: The pose of the BlueROV2 identified by the motion capture system.
         """
+
+        def pose_to_array(pose: Pose) -> np.ndarray:
+            ar = np.zeros(6)
+            ar[:3] = [pose.position.x, pose.position.y, pose.position.z]
+            ar[3:] = R.from_quat(
+                [
+                    pose.orientation.x,
+                    pose.orientation.y,
+                    pose.orientation.z,
+                    pose.orientation.w,
+                ]
+            ).as_euler("xyz")
+
+            return ar
+
+        # Convert the pose message into an array for filtering
+        pose_ar = pose_to_array(pose.pose)
+
+        # Check if any of the values in the array are NaN; if they are, then
+        # don't publish the state
+        if np.isnan(np.min(pose_ar)):
+            return
+
+        # Add the pose to the circular buffer
+        self.pose_buffer.append(pose_ar)
+
+        # Wait until our buffer is full to start publishing the state information
+        if len(self.pose_buffer) < self.pose_buffer.maxlen:  # type: ignore
+            return
+
+        def lwma(measurements: np.ndarray) -> np.ndarray:
+            # Get the linear weights
+            weights = np.arange(len(measurements)) + 1
+            return np.array(
+                [
+                    np.sum(np.prod(np.vstack((axis, weights)), axis=0))
+                    / np.sum(weights)
+                    for axis in measurements.T
+                ]
+            )
+
+        filtered_pose_ar = lwma(pose_ar)
+
+        def array_to_pose(ar: np.ndarray) -> Pose:
+            pose = Pose()
+            pose.position.x, pose.position.y, pose.position.z = ar[:3]
+            (
+                pose.orientation.x,
+                pose.orientation.y,
+                pose.orientation.z,
+                pose.orientation.w,
+            ) = R.from_euler("xyz", ar[3:]).as_quat()
+            return pose
+
+        # Update the pose to be the new filtered pose
+        pose.pose = array_to_pose(filtered_pose_ar)
+
         self.localization_pub.publish(pose)
 
 
