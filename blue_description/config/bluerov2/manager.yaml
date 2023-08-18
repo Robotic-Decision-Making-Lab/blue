@@ -1,6 +1,6 @@
 blue_manager:
   ros__parameters:
-    num_thrusters: 8
+    num_thrusters: 6
     mode_change:
       timeout: 1.0
       retries: 3
