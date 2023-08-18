@@ -372,6 +372,45 @@ class QualisysLocalizer(Localizer):
         # Store the pose information in a buffer and apply an LWMA filter to it
         self.pose_buffer: Deque[np.ndarray] = deque(maxlen=filter_len)
 
+    @staticmethod
+    def check_isnan(pose: PoseStamped) -> bool:
+        """Check if a pose message has NaN values.
+
+        NaN values are not uncommon when dealing with MoCap data.
+
+        Args:
+            pose: The message to check for NaN values.
+
+        Returns:
+            Whether or not the message has any NaN values.
+        """
+        # Check the position
+        if np.isnan(
+            np.min(
+                np.array(
+                    [pose.pose.position.x, pose.pose.position.y, pose.pose.position.z]
+                )
+            )
+        ):
+            return False
+
+        # Check the orientation
+        if np.isnan(
+            np.min(
+                np.array(
+                    [
+                        pose.pose.orientation.x,
+                        pose.pose.orientation.y,
+                        pose.pose.orientation.z,
+                        pose.pose.orientation.w,
+                    ]
+                )
+            )
+        ):
+            return False
+
+        return True
+
     def proxy_pose_cb(self, pose: PoseStamped) -> None:
         """Proxy the pose to the ArduSub EKF.
 
@@ -381,6 +420,10 @@ class QualisysLocalizer(Localizer):
         Args:
             pose: The pose of the BlueROV2 identified by the motion capture system.
         """
+        # Check if any of the values in the array are NaN; if they are, then
+        # discard the reading
+        if not self.check_isnan(pose):
+            return
 
         def pose_to_array(pose: Pose) -> np.ndarray:
             ar = np.zeros(6)
@@ -398,11 +441,6 @@ class QualisysLocalizer(Localizer):
 
         # Convert the pose message into an array for filtering
         pose_ar = pose_to_array(pose.pose)
-
-        # Check if any of the values in the array are NaN; if they are, then
-        # don't publish the state
-        if np.isnan(np.min(pose_ar)):
-            return
 
         # Add the pose to the circular buffer
         self.pose_buffer.append(pose_ar)
@@ -422,7 +460,7 @@ class QualisysLocalizer(Localizer):
                 ]
             )
 
-        filtered_pose_ar = lwma(pose_ar)
+        filtered_pose_ar = lwma(np.array(self.pose_buffer))
 
         def array_to_pose(ar: np.ndarray) -> Pose:
             pose = Pose()
