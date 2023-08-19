@@ -18,7 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
-from abc import ABC
+from abc import ABC, abstractmethod
 from collections import deque
 from typing import Any, Deque
 
@@ -27,9 +27,16 @@ import numpy as np
 import rclpy
 import tf2_geometry_msgs  # noqa
 from cv_bridge import CvBridge
-from geometry_msgs.msg import Pose, PoseStamped, TransformStamped
+from geometry_msgs.msg import (
+    Pose,
+    PoseStamped,
+    PoseWithCovarianceStamped,
+    TwistStamped,
+    TwistWithCovarianceStamped,
+)
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
+from rclpy.qos import qos_profile_sensor_data
 from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import Image
 from tf2_ros import TransformException  # type: ignore
@@ -45,6 +52,7 @@ class Localizer(Node, ABC):
     MAP_NED_FRAME = "map_ned"
     BASE_LINK_FRAME = "base_link"
     BASE_LINK_FRD_FRAME = "base_link_frd"
+    CAMERA_FRAME = "camera_link"
 
     def __init__(self, node_name: str) -> None:
         """Create a new localizer.
@@ -59,46 +67,82 @@ class Localizer(Node, ABC):
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-        # Poses are sent to the ArduPilot EKF
-        self.localization_pub = self.create_publisher(
-            PoseStamped, "/mavros/vision_pose/pose", 1
-        )
-        self.odometry_pub = self.create_publisher(Odometry, "/mavros/odometry/out", 1)
+    @abstractmethod
+    def publish(self, state: Any) -> None:
+        """Publish the current state.
 
-    @staticmethod
-    def convert_pose_to_transform(
-        node: Node, pose: Pose, reference_frame: str, child_frame: str
-    ) -> TransformStamped:
-        """Convert a Pose message into a TransformStamped.
+        This is intended to be a convenience class for handling state messages
+        with and without covariance.
 
         Args:
-            node: The ROS 2 node that is calling the method.
-            pose: The Pose message to convert into a TransformStamped message.
-            reference_frame: The frame that the TransformStamped transforms from.
-            child_frame: The frame that the TrasnformStamped transforms to.
-
-        Returns:
-            The converted TransformStamped message.
+            state: The state to publish to the EKF.
         """
-        tf = TransformStamped()
-
-        tf.header.stamp = node.get_clock().now().to_msg()
-        tf.header.frame_id = reference_frame
-        tf.child_frame_id = child_frame
-
-        tf.transform.translation.x = pose.position.x
-        tf.transform.translation.y = pose.position.y
-        tf.transform.translation.z = pose.position.z
-
-        tf.transform.rotation.x = pose.orientation.x
-        tf.transform.rotation.y = pose.orientation.y
-        tf.transform.rotation.z = pose.orientation.z
-        tf.transform.rotation.w = pose.orientation.w
-
-        return tf
+        ...
 
 
-class ArucoMarkerLocalizer(Localizer):
+class PoseLocalizer(Localizer):
+    """Interface for sending pose estimates to the ArduSub EKF."""
+
+    def __init__(self, node_name: str) -> None:
+        """Create a new pose localizer.
+
+        Args:
+            node_name: The name of the localizer node.
+        """
+        super().__init__(node_name)
+
+        # Poses are sent to the ArduPilot EKF
+        self.vision_pose_pub = self.create_publisher(
+            PoseStamped, "/mavros/vision_pose/pose", 1
+        )
+        self.vision_pose_cov_pub = self.create_publisher(
+            PoseWithCovarianceStamped, "/mavros/vision_pose/pose_cov", 1
+        )
+
+    def publish(self, pose: PoseStamped | PoseWithCovarianceStamped) -> None:
+        """Publish a pose message to the ArduSub EKF.
+
+        Args:
+            pose: The state message to send.
+        """
+        if isinstance(pose, PoseStamped):
+            self.vision_pose_pub.publish(pose)
+        else:
+            self.vision_pose_cov_pub.publish(pose)
+
+
+class TwistLocalizer(Localizer):
+    """Interface for sending pose estimates to the ArduSub EKF."""
+
+    def __init__(self, node_name: str) -> None:
+        """Create a new pose localizer.
+
+        Args:
+            node_name: The name of the localizer node.
+        """
+        super().__init__(node_name)
+
+        # Twists are sent to the ArduPilot EKF
+        self.vision_speed_pub = self.create_publisher(
+            TwistStamped, "/mavros/vision_speed/speed", 1
+        )
+        self.vision_speed_cov_pub = self.create_publisher(
+            TwistWithCovarianceStamped, "/mavros/vision_speed/speed_cov", 1
+        )
+
+    def publish(self, twist: TwistStamped | TwistWithCovarianceStamped) -> None:
+        """Publish a twist message to the ArduSub EKF.
+
+        Args:
+            twist: The state message to send.
+        """
+        if isinstance(twist, PoseStamped):
+            self.vision_speed_pub.publish(twist)
+        else:
+            self.vision_speed_cov_pub.publish(twist)
+
+
+class ArucoMarkerLocalizer(PoseLocalizer):
     """Performs localization using ArUco markers."""
 
     ARUCO_MARKER_TYPES = [
@@ -127,9 +171,9 @@ class ArucoMarkerLocalizer(Localizer):
 
         self.bridge = CvBridge()
 
-        self.declare_parameter("camera_matrix", [0.0 for _ in range(9)])
-        self.declare_parameter("projection_matrix", [0.0 for _ in range(12)])
-        self.declare_parameter("distortion_coefficients", [0.0 for _ in range(5)])
+        self.declare_parameter("camera_matrix", list(np.zeros(9)))
+        self.declare_parameter("projection_matrix", list(np.zeros(12)))
+        self.declare_parameter("distortion_coefficients", list(np.zeros(5)))
 
         # Get the camera intrinsics
         self.camera_matrix = np.array(
@@ -154,7 +198,7 @@ class ArucoMarkerLocalizer(Localizer):
         ).reshape(1, 5)
 
         self.camera_sub = self.create_subscription(
-            Image, "/blue/camera", self.extract_and_publish_pose_cb, 1
+            Image, "/camera", self.extract_and_publish_pose_cb, 1
         )
 
     def detect_markers(self, frame: np.ndarray) -> tuple[Any, Any] | None:
@@ -274,7 +318,7 @@ class ArucoMarkerLocalizer(Localizer):
 
         # Transform the pose from the `marker` frame to the `map` frame
         try:
-            pose = self.tf_buffer.transform(pose, "map")
+            pose = self.tf_buffer.transform(pose, self.MAP_FRAME)
         except TransformException as e:
             self.get_logger().warning(
                 f"Could not transform from frame marker_{marker_id} to map: {e}"
@@ -288,7 +332,7 @@ class ArucoMarkerLocalizer(Localizer):
         # Start by getting the camera to base_link transform
         try:
             tf_camera_to_base = self.tf_buffer.lookup_transform(
-                "camera_link", "base_link", Time()
+                self.CAMERA_FRAME, self.BASE_LINK_FRAME, Time()
             )
         except TransformException as e:
             self.get_logger().warning(f"Could not access transform: {e}")
@@ -347,10 +391,10 @@ class ArucoMarkerLocalizer(Localizer):
             pose.pose.orientation.w,  # type: ignore
         ) = R.from_matrix(tf_map_to_base_mat[:3, :3]).as_quat()
 
-        self.localization_pub.publish(pose)
+        self.publish(pose)  # type: ignore
 
 
-class QualisysLocalizer(Localizer):
+class QualisysLocalizer(PoseLocalizer):
     """Localize the BlueROV2 using the Qualisys motion capture system."""
 
     def __init__(self) -> None:
@@ -366,20 +410,23 @@ class QualisysLocalizer(Localizer):
         )
 
         self.mocap_sub = self.create_subscription(
-            PoseStamped, f"/blue/mocap/qualisys/{body}", self.proxy_pose_cb, 1
+            PoseWithCovarianceStamped,
+            f"/blue/mocap/qualisys/{body}",
+            self.proxy_pose_cb,
+            qos_profile_sensor_data,
         )
 
         # Store the pose information in a buffer and apply an LWMA filter to it
         self.pose_buffer: Deque[np.ndarray] = deque(maxlen=filter_len)
 
     @staticmethod
-    def check_isnan(pose: PoseStamped) -> bool:
+    def check_isnan(pose_cov: PoseWithCovarianceStamped) -> bool:
         """Check if a pose message has NaN values.
 
         NaN values are not uncommon when dealing with MoCap data.
 
         Args:
-            pose: The message to check for NaN values.
+            pose_cov: The message to check for NaN values.
 
         Returns:
             Whether or not the message has any NaN values.
@@ -388,7 +435,11 @@ class QualisysLocalizer(Localizer):
         if np.isnan(
             np.min(
                 np.array(
-                    [pose.pose.position.x, pose.pose.position.y, pose.pose.position.z]
+                    [
+                        pose_cov.pose.pose.position.x,
+                        pose_cov.pose.pose.position.y,
+                        pose_cov.pose.pose.position.z,
+                    ]
                 )
             )
         ):
@@ -399,10 +450,10 @@ class QualisysLocalizer(Localizer):
             np.min(
                 np.array(
                     [
-                        pose.pose.orientation.x,
-                        pose.pose.orientation.y,
-                        pose.pose.orientation.z,
-                        pose.pose.orientation.w,
+                        pose_cov.pose.pose.orientation.x,
+                        pose_cov.pose.pose.orientation.y,
+                        pose_cov.pose.pose.orientation.z,
+                        pose_cov.pose.pose.orientation.w,
                     ]
                 )
             )
@@ -411,18 +462,18 @@ class QualisysLocalizer(Localizer):
 
         return True
 
-    def proxy_pose_cb(self, pose: PoseStamped) -> None:
+    def proxy_pose_cb(self, pose_cov: PoseWithCovarianceStamped) -> None:
         """Proxy the pose to the ArduSub EKF.
 
         We need to do some filtering here to handle the noise from the measurements.
         The filter that we apply in this case is the LWMA filter.
 
         Args:
-            pose: The pose of the BlueROV2 identified by the motion capture system.
+            pose_cov: The pose of the BlueROV2 identified by the motion capture system.
         """
         # Check if any of the values in the array are NaN; if they are, then
         # discard the reading
-        if not self.check_isnan(pose):
+        if not self.check_isnan(pose_cov):
             return
 
         def pose_to_array(pose: Pose) -> np.ndarray:
@@ -440,7 +491,7 @@ class QualisysLocalizer(Localizer):
             return ar
 
         # Convert the pose message into an array for filtering
-        pose_ar = pose_to_array(pose.pose)
+        pose_ar = pose_to_array(pose_cov.pose.pose)
 
         # Add the pose to the circular buffer
         self.pose_buffer.append(pose_ar)
@@ -452,6 +503,8 @@ class QualisysLocalizer(Localizer):
         def lwma(measurements: np.ndarray) -> np.ndarray:
             # Get the linear weights
             weights = np.arange(len(measurements)) + 1
+
+            # Apply the LWMA filter and return
             return np.array(
                 [
                     np.sum(np.prod(np.vstack((axis, weights)), axis=0))
@@ -474,12 +527,12 @@ class QualisysLocalizer(Localizer):
             return pose
 
         # Update the pose to be the new filtered pose
-        pose.pose = array_to_pose(filtered_pose_ar)
+        pose_cov.pose.pose = array_to_pose(filtered_pose_ar)
 
-        self.localization_pub.publish(pose)
+        self.publish(pose_cov)
 
 
-class GazeboLocalizer(Localizer):
+class GazeboLocalizer(PoseLocalizer):
     """Localize the BlueROV2 using the Gazebo ground-truth data."""
 
     def __init__(self) -> None:
@@ -503,16 +556,15 @@ class GazeboLocalizer(Localizer):
         Args:
             msg: The Gazebo ground-truth odometry for the BlueROV2.
         """
-        pose = PoseStamped()
+        pose = PoseWithCovarianceStamped()
 
         # Pose is provided in the parent header frame
         pose.header.frame_id = msg.header.frame_id
         pose.header.stamp = msg.header.stamp
 
-        # We only need the pose; we don't need the covariance
-        pose.pose = msg.pose.pose
+        pose.pose = msg.pose
 
-        self.localization_pub.publish(pose)
+        self.publish(pose)
 
 
 def main_aruco(args: list[str] | None = None):
