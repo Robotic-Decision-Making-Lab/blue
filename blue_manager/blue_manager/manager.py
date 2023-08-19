@@ -180,7 +180,7 @@ class Manager(Node):
         # subscriber. Consequently, we need to publish this every once-in-a-while
         # to make sure that it gets set
         self.set_ekf_origin_timer = self.create_timer(
-            30.0,
+            15.0,
             lambda: self.set_ekf_origin_cb(
                 GeoPoint(latitude=origin_lat, longitude=origin_lon, altitude=origin_alt)
             ),
