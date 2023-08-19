@@ -198,7 +198,7 @@ class ArucoMarkerLocalizer(PoseLocalizer):
         ).reshape(1, 5)
 
         self.camera_sub = self.create_subscription(
-            Image, "/camera/image_raw", self.extract_and_publish_pose_cb, 1
+            Image, "/camera", self.extract_and_publish_pose_cb, 1
         )
 
     def detect_markers(self, frame: np.ndarray) -> tuple[Any, Any] | None:

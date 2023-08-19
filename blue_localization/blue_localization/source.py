@@ -67,7 +67,7 @@ class Camera(Source):
 
         self.declare_parameter("port", 5600)
 
-        self.camera_frame_pub = self.create_publisher(Image, "/camera/image_raw", 1)
+        self.camera_frame_pub = self.create_publisher(Image, "/camera", 1)
 
         # Start the GStreamer stream
         self.video_pipe, self.video_sink = self.init_stream(

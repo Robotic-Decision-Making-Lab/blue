@@ -99,7 +99,7 @@ def generate_launch_description() -> LaunchDescription:
             executable="parameter_bridge",
             arguments=[
                 # Camera (IGN -> ROS 2)
-                "/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image"
+                "/camera@sensor_msgs/msg/Image[gz.msgs.Image"
             ],
             output="screen",
         ),
