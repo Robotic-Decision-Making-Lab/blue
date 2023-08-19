@@ -236,7 +236,6 @@ class Manager(Node):
 
         # Change the values of only the thruster channels
         channels = pwm + [OverrideRCIn.CHAN_NOCHANGE] * (18 - self.num_thrusters)
-
         self.override_rc_in_pub.publish(OverrideRCIn(channels=channels))
 
     def stop_thrusters(self) -> None:
