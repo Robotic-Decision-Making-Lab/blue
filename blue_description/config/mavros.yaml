@@ -9,6 +9,7 @@ mavros:
       - rc_io
       - param
       - vision_pose
+      - vision_speed
       - global_position
 
 mavros_node:
