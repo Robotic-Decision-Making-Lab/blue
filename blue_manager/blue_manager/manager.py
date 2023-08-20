@@ -29,6 +29,7 @@ from rcl_interfaces.srv import SetParameters
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
+from rclpy.qos import qos_profile_default, qos_profile_parameter_events
 from std_srvs.srv import SetBool
 
 
@@ -44,7 +45,11 @@ class Manager(Node):
         self.declare_parameter("num_thrusters", 8)
         self.declare_parameters(
             namespace="message_intervals",
-            parameters=[("ids", [31, 32]), ("rates", [100.0, 100.0])],  # type: ignore
+            parameters=[  # type: ignore
+                ("ids", [31, 32]),
+                ("rates", [100.0, 100.0]),
+                ("request_interval", 30),
+            ],
         )
         self.declare_parameters(
             namespace="mode_change",
@@ -82,15 +87,20 @@ class Manager(Node):
 
         # Publishers
         self.override_rc_in_pub = self.create_publisher(
-            OverrideRCIn, "/mavros/rc/override", 1
+            OverrideRCIn, "/mavros/rc/override", qos_profile_default
         )
         self.gp_origin_pub = self.create_publisher(
-            GeoPointStamped, "/mavros/global_position/set_gp_origin", 1
+            GeoPointStamped,
+            "/mavros/global_position/set_gp_origin",
+            qos_profile_default,
         )
 
         # Subscribers
         self.param_event_sub = self.create_subscription(
-            ParamEvent, "/mavros/param/event", self.backup_thruster_params_cb, 50
+            ParamEvent,
+            "/mavros/param/event",
+            self.backup_thruster_params_cb,
+            qos_profile_parameter_events,
         )
 
         # Services
@@ -118,6 +128,7 @@ class Manager(Node):
         wait_for_client(self.set_param_srv_client)
         wait_for_client(self.set_message_rates_client)
 
+        # Set the intervals at which the desired MAVLink messages are sent
         def set_message_rates(
             message_ids: list[int], message_rates: list[float]
         ) -> None:
@@ -126,36 +137,52 @@ class Manager(Node):
                     MessageInterval.Request(message_id=msg, message_rate=rate)
                 )
 
-        self.message_rate_timer = self.create_timer(
-            10,
-            lambda: set_message_rates(
-                list(
-                    self.get_parameter("message_intervals.ids")
-                    .get_parameter_value()
-                    .integer_array_value
-                ),
-                list(
-                    self.get_parameter("message_intervals.rates")
-                    .get_parameter_value()
-                    .double_array_value
-                ),
-            ),
+        request_rate = (
+            self.get_parameter("message_intervals.request_interval")
+            .get_parameter_value()
+            .double_value
+        )
+        message_ids = list(
+            self.get_parameter("message_intervals.ids")
+            .get_parameter_value()
+            .integer_array_value
+        )
+        message_rates = list(
+            self.get_parameter("message_intervals.rates")
+            .get_parameter_value()
+            .double_array_value
         )
 
+        # We set the intervals periodically to handle the situation in which
+        # users launch QGC which requests different rates on boot.
+        # Inspiration for this is taken from the Orca4 project here:
+        # https://github.com/clydemcqueen/orca4/blob/77152829e1d65781717ca55379c229145d6006e9/orca_base/src/manager.cpp#L407
+        self.message_rate_timer = self.create_timer(
+            request_rate, lambda: set_message_rates(message_ids, message_rates)
+        )
+
+        # Now set the EKF origin. This is necessary to enable GUIDED mode and other
+        # autonomy features with ArduSub
+        origin_lat = (
+            self.get_parameter("ekf_origin.latitude").get_parameter_value().double_value
+        )
+        origin_lon = (
+            self.get_parameter("ekf_origin.longitude")
+            .get_parameter_value()
+            .double_value
+        )
+        origin_alt = (
+            self.get_parameter("ekf_origin.altitude").get_parameter_value().double_value
+        )
+
+        # Normally, we would like to set the QoS policy to use transient local
+        # durability, but MAVROS uses the volitile durability setting for its
+        # subscriber. Consequently, we need to publish this every once-in-a-while
+        # to make sure that it gets set
         self.set_ekf_origin_timer = self.create_timer(
-            10,
+            15.0,
             lambda: self.set_ekf_origin_cb(
-                GeoPoint(
-                    latitude=self.get_parameter("ekf_origin.latitude")
-                    .get_parameter_value()
-                    .double_value,
-                    longitude=self.get_parameter("ekf_origin.longitude")
-                    .get_parameter_value()
-                    .double_value,
-                    altitude=self.get_parameter("ekf_origin.altitude")
-                    .get_parameter_value()
-                    .double_value,
-                )
+                GeoPoint(latitude=origin_lat, longitude=origin_lon, altitude=origin_alt)
             ),
         )
 
@@ -209,7 +236,6 @@ class Manager(Node):
 
         # Change the values of only the thruster channels
         channels = pwm + [OverrideRCIn.CHAN_NOCHANGE] * (18 - self.num_thrusters)
-
         self.override_rc_in_pub.publish(OverrideRCIn(channels=channels))
 
     def stop_thrusters(self) -> None:
