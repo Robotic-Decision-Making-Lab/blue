@@ -63,14 +63,20 @@ ISMC::ISMC()
   use_battery_state_ = this->get_parameter("use_battery_state").as_bool();
 
   // Publish the desired wrench and errors to help with tuning and visualization
-  desired_wrench_pub_ =
-    this->create_publisher<geometry_msgs::msg::WrenchStamped>("/blue/ismc/desired_wrench", 1);
-  velocity_error_pub_ =
-    this->create_publisher<geometry_msgs::msg::TwistStamped>("/blue/ismc/velocity_error", 1);
+  std::stringstream wrench_ss;
+  wrench_ss << "/blue/" << this->get_name() << "/desired_wrench";
+  std::stringstream twist_ss;
+  twist_ss << "/blue/" << this->get_name() << "/velocity_error";
+  desired_wrench_pub_ = this->create_publisher<geometry_msgs::msg::WrenchStamped>(
+    wrench_ss.str(), rclcpp::SensorDataQoS());
+  velocity_error_pub_ = this->create_publisher<geometry_msgs::msg::TwistStamped>(
+    twist_ss.str(), rclcpp::SensorDataQoS());
 
   // Update the reference signal when a new command is received
+  std::stringstream topic_ss;
+  topic_ss << "/blue/" << this->get_name() << "/cmd_vel";
   cmd_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
-    "/blue/ismc/cmd_vel", 1,
+    topic_ss.str(), rclcpp::SensorDataQoS(),
     [this](geometry_msgs::msg::Twist::ConstSharedPtr msg) -> void  // NOLINT
     { cmd_ = *msg; });
 }
