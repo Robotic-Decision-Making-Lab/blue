@@ -101,7 +101,7 @@ Controller::Controller(const std::string & node_name)
   accel_pub_ = this->create_publisher<geometry_msgs::msg::AccelStamped>(
     "/blue/state/accel", rclcpp::SensorDataQoS());
   rc_override_pub_ = this->create_publisher<mavros_msgs::msg::OverrideRCIn>(
-    "mavros/rc/override", rclcpp::BestAvailableQoS());
+    "mavros/rc/override", rclcpp::SystemDefaultsQoS());
 
   // clang-tidy and ROS conflict when creating subscriptions with ConstSharedPtr
   // NOLINTBEGIN(performance-unnecessary-value-param)
