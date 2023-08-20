@@ -5,11 +5,10 @@ mavros:
       - sys_status
       - command
       - imu
-      - local_position
       - rc_io
       - param
-      - vision_pose
-      - vision_speed
+      - vision*
+      - local*
       - global_position
 
 mavros_node:
