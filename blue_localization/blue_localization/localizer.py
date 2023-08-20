@@ -81,8 +81,8 @@ class Localizer(Node, ABC):
 
         # Publish the current state at the provided rate. Note that, if the localizer
         # receives state messages at a lower rate, the state will be published at the
-        # at which it is received (basically just a low-pass filter). The reason
-        # for applying a rate is to ensure that high-frequency state updates don't
+        # rate at which it is received (basically just a low-pass filter). The reason
+        # for applying a filter is to ensure that high-frequency state updates don't
         # overload the FCU.
         self._state = None
         self._update_rate = 1 / (
@@ -158,8 +158,14 @@ class PoseLocalizer(Localizer):
         """Publish a pose message to the ArduSub EKF."""
         if isinstance(self.state, PoseStamped):
             self.vision_pose_pub.publish(self.state)
-        else:
+        elif isinstance(self.state, PoseWithCovarianceStamped):
             self.vision_pose_cov_pub.publish(self.state)
+        else:
+            raise TypeError(
+                "Invalid state type provided for publishing. Expected one of"
+                f" {PoseStamped.__name__}, {PoseWithCovarianceStamped.__name__}: got"
+                f" {self.state.__class__.__name__}"
+            )
 
 
 class TwistLocalizer(Localizer):
@@ -185,10 +191,16 @@ class TwistLocalizer(Localizer):
 
     def publish(self) -> None:
         """Publish a twist message to the ArduSub EKF."""
-        if isinstance(self.state, PoseStamped):
+        if isinstance(self.state, TwistStamped):
             self.vision_speed_pub.publish(self.state)
-        else:
+        elif isinstance(self.state, TwistWithCovarianceStamped):
             self.vision_speed_cov_pub.publish(self.state)
+        else:
+            raise TypeError(
+                "Invalid state type provided for publishing. Expected one of"
+                f" {TwistStamped.__name__}, {TwistWithCovarianceStamped.__name__}: got"
+                f" {self.state.__class__.__name__}"
+            )
 
 
 class ArucoMarkerLocalizer(PoseLocalizer):
