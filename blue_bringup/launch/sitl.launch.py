@@ -84,9 +84,29 @@ def generate_launch_description() -> LaunchDescription:
             executable="parameter_bridge",
             arguments=[
                 # Clock (IGN -> ROS 2)
-                "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
+                "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"
+            ],
+            output="screen",
+        ),
+        Node(
+            package="ros_gz_bridge",
+            executable="parameter_bridge",
+            arguments=[
                 # Camera (IGN -> ROS 2)
                 "/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
+                # Odom (IGN -> ROS 2)
+                [
+                    "/model/",
+                    configuration_type,
+                    "/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
+                ],
+            ],
+            output="screen",
+        ),
+        Node(
+            package="ros_gz_bridge",
+            executable="parameter_bridge",
+            arguments=[
                 # Odom (IGN -> ROS 2)
                 [
                     "/model/",
