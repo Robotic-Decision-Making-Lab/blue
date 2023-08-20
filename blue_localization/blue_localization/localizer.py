@@ -36,7 +36,7 @@ from geometry_msgs.msg import (
 )
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import qos_profile_default, qos_profile_sensor_data
 from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import Image
 from tf2_ros import TransformException  # type: ignore
@@ -93,10 +93,12 @@ class PoseLocalizer(Localizer):
 
         # Poses are sent to the ArduPilot EKF
         self.vision_pose_pub = self.create_publisher(
-            PoseStamped, "/mavros/vision_pose/pose", 1
+            PoseStamped, "/mavros/vision_pose/pose", qos_profile_default
         )
         self.vision_pose_cov_pub = self.create_publisher(
-            PoseWithCovarianceStamped, "/mavros/vision_pose/pose_cov", 1
+            PoseWithCovarianceStamped,
+            "/mavros/vision_pose/pose_cov",
+            qos_profile_default,
         )
 
     def publish(self, pose: PoseStamped | PoseWithCovarianceStamped) -> None:
@@ -124,10 +126,12 @@ class TwistLocalizer(Localizer):
 
         # Twists are sent to the ArduPilot EKF
         self.vision_speed_pub = self.create_publisher(
-            TwistStamped, "/mavros/vision_speed/speed", 1
+            TwistStamped, "/mavros/vision_speed/speed", qos_profile_default
         )
         self.vision_speed_cov_pub = self.create_publisher(
-            TwistWithCovarianceStamped, "/mavros/vision_speed/speed_cov", 1
+            TwistWithCovarianceStamped,
+            "/mavros/vision_speed/speed_cov",
+            qos_profile_default,
         )
 
     def publish(self, twist: TwistStamped | TwistWithCovarianceStamped) -> None:
@@ -198,7 +202,7 @@ class ArucoMarkerLocalizer(PoseLocalizer):
         ).reshape(1, 5)
 
         self.camera_sub = self.create_subscription(
-            Image, "/camera", self.extract_and_publish_pose_cb, 1
+            Image, "/camera", self.extract_and_publish_pose_cb, qos_profile_sensor_data
         )
 
     def detect_markers(self, frame: np.ndarray) -> tuple[Any, Any] | None:
@@ -543,11 +547,11 @@ class GazeboLocalizer(PoseLocalizer):
         self.declare_parameter("gazebo_odom_topic", "")
 
         # Subscribe to that topic so that we can proxy messages to the ArduSub EKF
-        self.create_subscription(
-            Odometry,
-            self.get_parameter("gazebo_odom_topic").get_parameter_value().string_value,
-            self.proxy_odom_cb,
-            1,
+        odom_topic = (
+            self.get_parameter("gazebo_odom_topic").get_parameter_value().string_value
+        )
+        self.odom_sub = self.create_subscription(
+            Odometry, odom_topic, self.proxy_odom_cb, qos_profile_sensor_data
         )
 
     def proxy_odom_cb(self, msg: Odometry) -> None:

@@ -98,9 +98,10 @@ Controller::Controller(const std::string & node_name)
   tf_listener_ = std::make_unique<tf2_ros::TransformListener>(*tf_buffer_);
   tf_broadcaster_ = std::make_unique<tf2_ros::TransformBroadcaster>(this);
 
-  accel_pub_ = this->create_publisher<geometry_msgs::msg::AccelStamped>("/blue/state/accel", 1);
-  rc_override_pub_ =
-    this->create_publisher<mavros_msgs::msg::OverrideRCIn>("mavros/rc/override", 1);
+  accel_pub_ = this->create_publisher<geometry_msgs::msg::AccelStamped>(
+    "/blue/state/accel", rclcpp::SensorDataQoS());
+  rc_override_pub_ = this->create_publisher<mavros_msgs::msg::OverrideRCIn>(
+    "mavros/rc/override", rclcpp::SystemDefaultsQoS());
 
   // clang-tidy and ROS conflict when creating subscriptions with ConstSharedPtr
   // NOLINTBEGIN(performance-unnecessary-value-param)
