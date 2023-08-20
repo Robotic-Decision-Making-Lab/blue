@@ -36,9 +36,16 @@ from geometry_msgs.msg import (
 )
 from nav_msgs.msg import Odometry
 from rclpy.node import Node
-from rclpy.qos import qos_profile_default, qos_profile_sensor_data
+from rclpy.qos import (
+    DurabilityPolicy,
+    HistoryPolicy,
+    QoSProfile,
+    ReliabilityPolicy,
+    qos_profile_default,
+    qos_profile_sensor_data,
+)
 from scipy.spatial.transform import Rotation as R
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CameraInfo, Image
 from tf2_ros import TransformException  # type: ignore
 from tf2_ros import Time
 from tf2_ros.buffer import Buffer
@@ -174,36 +181,33 @@ class ArucoMarkerLocalizer(PoseLocalizer):
         super().__init__("aruco_marker_localizer")
 
         self.bridge = CvBridge()
+        self.camera_info: CameraInfo | None = None
 
-        self.declare_parameter("camera_matrix", list(np.zeros(9)))
-        self.declare_parameter("projection_matrix", list(np.zeros(12)))
-        self.declare_parameter("distortion_coefficients", list(np.zeros(5)))
-
-        # Get the camera intrinsics
-        self.camera_matrix = np.array(
-            self.get_parameter("camera_matrix")
-            .get_parameter_value()
-            .double_array_value,
-            np.float32,
-        ).reshape(3, 3)
-
-        self.projection_matrix = np.array(
-            self.get_parameter("projection_matrix")
-            .get_parameter_value()
-            .double_array_value,
-            np.float32,
-        ).reshape(3, 4)
-
-        self.distortion_coefficients = np.array(
-            self.get_parameter("distortion_coefficients")
-            .get_parameter_value()
-            .double_array_value,
-            np.float32,
-        ).reshape(1, 5)
-
-        self.camera_sub = self.create_subscription(
-            Image, "/camera", self.extract_and_publish_pose_cb, qos_profile_sensor_data
+        self.camera_info_sub = self.create_subscription(
+            CameraInfo,
+            "/camera/camera_info",
+            self.get_camera_info_cb,
+            QoSProfile(
+                reliability=ReliabilityPolicy.RELIABLE,
+                durability=DurabilityPolicy.TRANSIENT_LOCAL,
+                history=HistoryPolicy.KEEP_LAST,
+                depth=1,
+            ),
         )
+        self.camera_sub = self.create_subscription(
+            Image,
+            "/camera/image_raw",
+            self.extract_and_publish_pose_cb,
+            qos_profile_sensor_data,
+        )
+
+    def get_camera_info_cb(self, info: CameraInfo) -> None:
+        """Get the camera info from the camera.
+
+        Args:
+            info: The camera meta information.
+        """
+        self.camera_info = info
 
     def detect_markers(self, frame: np.ndarray) -> tuple[Any, Any] | None:
         """Detect any ArUco markers in the frame.
@@ -251,6 +255,10 @@ class ArucoMarkerLocalizer(PoseLocalizer):
             frame and the ID of the marker detected. If no marker was detected,
             returns None.
         """
+        # Wait to process frames until we get the camera meta info
+        if self.camera_info is None:
+            return None
+
         # Convert to greyscale image then try to detect the tag(s)
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         detection = self.detect_markers(gray)
@@ -271,12 +279,12 @@ class ArucoMarkerLocalizer(PoseLocalizer):
         min_side_idx = side_lengths.index(max(side_lengths))
         min_marker_id = ids[min_side_idx]
 
+        camera_matrix = np.array(self.camera_info.k, dtype=np.float64).reshape(3, 4)
+        projection_matrix = np.array(self.camera_info.d, dtype=np.float64).reshape(1, 5)
+
         # Get the estimated pose
         rot_vec, trans_vec, _ = cv2.aruco.estimatePoseSingleMarkers(
-            corners[min_side_idx],
-            min_marker_id,
-            self.camera_matrix,
-            self.distortion_coefficients,
+            corners[min_side_idx], min_marker_id, camera_matrix, projection_matrix
         )
 
         return rot_vec, trans_vec, min_marker_id

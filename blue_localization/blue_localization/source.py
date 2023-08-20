@@ -30,9 +30,15 @@ import rclpy
 from cv_bridge import CvBridge
 from geometry_msgs.msg import PoseWithCovarianceStamped
 from rclpy.node import Node
-from rclpy.qos import qos_profile_sensor_data
+from rclpy.qos import (
+    DurabilityPolicy,
+    HistoryPolicy,
+    QoSProfile,
+    ReliabilityPolicy,
+    qos_profile_sensor_data,
+)
 from scipy.spatial.transform import Rotation as R
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CameraInfo, Image
 
 gi.require_version("Gst", "1.0")
 from gi.repository import Gst  # noqa # type: ignore
@@ -66,9 +72,66 @@ class Camera(Source):
         self.bridge = CvBridge()
 
         self.declare_parameter("port", 5600)
+        self.declare_parameter("camera_matrix", list(np.zeros(9)))
+        self.declare_parameter("projection_matrix", list(np.zeros(12)))
+        self.declare_parameter("distortion_coefficients", list(np.zeros(5)))
+        self.declare_parameter("frame.height", 1080)
+        self.declare_parameter("frame.width", 1920)
+        self.declare_parameter("distortion_model", "plumb_bob")
+
+        # Get the camera intrinsics
+        camera_matrix = (
+            self.get_parameter("camera_matrix").get_parameter_value().double_array_value
+        )
+        projection_matrix = (
+            self.get_parameter("projection_matrix")
+            .get_parameter_value()
+            .double_array_value
+        )
+        distortion_coefficients = (
+            self.get_parameter("distortion_coefficients")
+            .get_parameter_value()
+            .double_array_value
+        )
+        frame_height = (
+            self.get_parameter("frame.height").get_parameter_value().integer_value
+        )
+        frame_width = (
+            self.get_parameter("frame.width").get_parameter_value().integer_value
+        )
+        distortion_model = (
+            self.get_parameter("distortion_model").get_parameter_value().string_value
+        )
+
+        # Create a message with the camera info
+        camera_info = CameraInfo()
+        camera_info.header.stamp = self.get_clock().now().to_msg()
+        camera_info.header.frame_id = "camera_link"
+        camera_info.height = frame_height
+        camera_info.width = frame_width
+        camera_info.distortion_model = distortion_model
+        camera_info.d = distortion_coefficients
+        camera_info.k = camera_matrix
+        camera_info.p = projection_matrix
+
+        self.camera_info_pub = self.create_publisher(
+            CameraInfo,
+            "/camera/camera_info",
+            QoSProfile(
+                reliability=ReliabilityPolicy.RELIABLE,
+                durability=DurabilityPolicy.TRANSIENT_LOCAL,
+                history=HistoryPolicy.KEEP_LAST,
+                depth=1,
+            ),
+        )
+
+        # Go ahead and publish the camera info now
+        # This uses transient local durability, so this message will persist for
+        # subscribers
+        self.camera_info_pub.publish(camera_info)
 
         self.camera_frame_pub = self.create_publisher(
-            Image, "/camera", qos_profile_sensor_data
+            Image, "/camera/image_raw", qos_profile_sensor_data
         )
 
         # Start the GStreamer stream
