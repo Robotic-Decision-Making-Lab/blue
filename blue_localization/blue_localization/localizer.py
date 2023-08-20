@@ -279,12 +279,12 @@ class ArucoMarkerLocalizer(PoseLocalizer):
         min_side_idx = side_lengths.index(max(side_lengths))
         min_marker_id = ids[min_side_idx]
 
+        camera_matrix = np.array(self.camera_info.k, dtype=np.float64).reshape(3, 4)
+        projection_matrix = np.array(self.camera_info.d, dtype=np.float64).reshape(1, 5)
+
         # Get the estimated pose
         rot_vec, trans_vec, _ = cv2.aruco.estimatePoseSingleMarkers(
-            corners[min_side_idx],
-            min_marker_id,
-            self.camera_info.k,
-            self.camera_info.d,
+            corners[min_side_idx], min_marker_id, camera_matrix, projection_matrix
         )
 
         return rot_vec, trans_vec, min_marker_id
