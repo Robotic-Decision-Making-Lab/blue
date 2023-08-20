@@ -35,6 +35,8 @@ from geometry_msgs.msg import (
     TwistWithCovarianceStamped,
 )
 from nav_msgs.msg import Odometry
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import (
     DurabilityPolicy,
@@ -70,19 +72,34 @@ class Localizer(Node, ABC):
         Node.__init__(self, node_name)
         ABC.__init__(self)
 
+        self.declare_parameter("update_rate", 30.0)
+
         # Provide access to TF2
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-    @abstractmethod
-    def publish(self, state: Any) -> None:
-        """Publish the current state.
+        # Publish the current state at the provided rate. The primary reason for this
+        # is to ensure that high-frequency state updates don't overload the FCU.
+        update_rate = 1 / (
+            self.get_parameter("update_rate").get_parameter_value().double_value
+        )
+        self.update_state_timer = self.create_timer(
+            update_rate, self.publish, MutuallyExclusiveCallbackGroup()
+        )
 
-        This is intended to be a convenience class for handling state messages
-        with and without covariance.
+    def update(self, state: Any) -> None:
+        """Set the current state to be published by the EKF.
 
         Args:
-            state: The state to publish to the EKF.
+            state: The current state.
+        """
+        self.state = state
+
+    @abstractmethod
+    def publish(self) -> None:
+        """Publish the state to the ArduSub EKF.
+
+        This is automatically called by the localizer timer.
         """
         ...
 
@@ -108,16 +125,16 @@ class PoseLocalizer(Localizer):
             qos_profile_default,
         )
 
-    def publish(self, pose: PoseStamped | PoseWithCovarianceStamped) -> None:
+    def publish(self) -> None:
         """Publish a pose message to the ArduSub EKF.
 
         Args:
             pose: The state message to send.
         """
-        if isinstance(pose, PoseStamped):
-            self.vision_pose_pub.publish(pose)
+        if isinstance(self.state, PoseStamped):
+            self.vision_pose_pub.publish(self.state)
         else:
-            self.vision_pose_cov_pub.publish(pose)
+            self.vision_pose_cov_pub.publish(self.state)
 
 
 class TwistLocalizer(Localizer):
@@ -141,16 +158,16 @@ class TwistLocalizer(Localizer):
             qos_profile_default,
         )
 
-    def publish(self, twist: TwistStamped | TwistWithCovarianceStamped) -> None:
+    def publish(self) -> None:
         """Publish a twist message to the ArduSub EKF.
 
         Args:
             twist: The state message to send.
         """
-        if isinstance(twist, PoseStamped):
-            self.vision_speed_pub.publish(twist)
+        if isinstance(self.state, PoseStamped):
+            self.vision_speed_pub.publish(self.state)
         else:
-            self.vision_speed_cov_pub.publish(twist)
+            self.vision_speed_cov_pub.publish(self.state)
 
 
 class ArucoMarkerLocalizer(PoseLocalizer):
@@ -403,7 +420,7 @@ class ArucoMarkerLocalizer(PoseLocalizer):
             pose.pose.orientation.w,  # type: ignore
         ) = R.from_matrix(tf_map_to_base_mat[:3, :3]).as_quat()
 
-        self.publish(pose)  # type: ignore
+        self.update(pose)  # type: ignore
 
 
 class QualisysLocalizer(PoseLocalizer):
@@ -541,7 +558,7 @@ class QualisysLocalizer(PoseLocalizer):
         # Update the pose to be the new filtered pose
         pose_cov.pose.pose = array_to_pose(filtered_pose_ar)
 
-        self.publish(pose_cov)
+        self.update(pose_cov)
 
 
 class GazeboLocalizer(PoseLocalizer):
@@ -576,7 +593,7 @@ class GazeboLocalizer(PoseLocalizer):
 
         pose.pose = msg.pose
 
-        self.publish(pose)
+        self.update(pose)
 
 
 def main_aruco(args: list[str] | None = None):
@@ -584,7 +601,8 @@ def main_aruco(args: list[str] | None = None):
     rclpy.init(args=args)
 
     node = ArucoMarkerLocalizer()
-    rclpy.spin(node)
+    executor = MultiThreadedExecutor()
+    rclpy.spin(node, executor)
 
     node.destroy_node()
     rclpy.shutdown()
@@ -595,7 +613,8 @@ def main_qualisys(args: list[str] | None = None):
     rclpy.init(args=args)
 
     node = QualisysLocalizer()
-    rclpy.spin(node)
+    executor = MultiThreadedExecutor()
+    rclpy.spin(node, executor)
 
     node.destroy_node()
     rclpy.shutdown()
@@ -606,7 +625,8 @@ def main_gazebo(args: list[str] | None = None):
     rclpy.init(args=args)
 
     node = GazeboLocalizer()
-    rclpy.spin(node)
+    executor = MultiThreadedExecutor()
+    rclpy.spin(node, executor)
 
     node.destroy_node()
     rclpy.shutdown()
