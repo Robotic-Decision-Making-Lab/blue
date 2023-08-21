@@ -23,7 +23,7 @@ from copy import deepcopy
 import rclpy
 from geographic_msgs.msg import GeoPoint, GeoPointStamped
 from mavros_msgs.msg import OverrideRCIn, ParamEvent
-from mavros_msgs.srv import MessageInterval
+from mavros_msgs.srv import CommandHome, MessageInterval
 from rcl_interfaces.msg import Parameter
 from rcl_interfaces.srv import SetParameters
 from rclpy.callback_groups import ReentrantCallbackGroup
@@ -61,6 +61,16 @@ class Manager(Node):
                 ("latitude", 44.65870),
                 ("longitude", -124.06556),
                 ("altitude", 0.0),
+            ],
+        )
+        self.declare_parameters(
+            namespace="home_position",
+            parameters=[  # type: ignore
+                ("latitude", 44.65870),
+                ("longitude", -124.06556),
+                ("altitude", 0.0),
+                ("yaw", 270.0),
+                ("request_interval", 30.0),
             ],
         )
 
@@ -124,9 +134,13 @@ class Manager(Node):
         self.set_message_rates_client = self.create_client(
             MessageInterval, "/mavros/set_message_interval"
         )
+        self.set_home_pos_client = self.create_client(
+            CommandHome, "/mavros/cmd/set_home"
+        )
 
         wait_for_client(self.set_param_srv_client)
         wait_for_client(self.set_message_rates_client)
+        wait_for_client(self.set_home_pos_client)
 
         # Set the intervals at which the desired MAVLink messages are sent
         def set_message_rates(
@@ -137,7 +151,7 @@ class Manager(Node):
                     MessageInterval.Request(message_id=msg, message_rate=rate)
                 )
 
-        request_rate = (
+        message_request_rate = (
             self.get_parameter("message_intervals.request_interval")
             .get_parameter_value()
             .double_value
@@ -158,10 +172,55 @@ class Manager(Node):
         # Inspiration for this is taken from the Orca4 project here:
         # https://github.com/clydemcqueen/orca4/blob/77152829e1d65781717ca55379c229145d6006e9/orca_base/src/manager.cpp#L407
         self.message_rate_timer = self.create_timer(
-            request_rate, lambda: set_message_rates(message_ids, message_rates)
+            message_request_rate, lambda: set_message_rates(message_ids, message_rates)
         )
 
-        # Now set the EKF origin. This is necessary to enable GUIDED mode and other
+        # Set the home position
+        def set_home_pos(lat: float, lon: float, alt: float, yaw: float) -> None:
+            self.set_home_pos_client.call_async(
+                CommandHome.Request(
+                    current_gps=False,
+                    yaw=yaw,
+                    latitude=lat,
+                    longitude=lon,
+                    altitude=alt,
+                )
+            )
+
+        # Set the home position. Some folks have discussed that this is necessary for
+        # GUIDED mode
+        home_lat = (
+            self.get_parameter("home_position.latitude")
+            .get_parameter_value()
+            .double_value
+        )
+        home_lon = (
+            self.get_parameter("home_position.longitude")
+            .get_parameter_value()
+            .double_value
+        )
+        home_alt = (
+            self.get_parameter("home_position.altitude")
+            .get_parameter_value()
+            .double_value
+        )
+        home_yaw = (
+            self.get_parameter("home_position.yaw").get_parameter_value().double_value
+        )
+        hp_request_rate = (
+            self.get_parameter("home_position.request_interval")
+            .get_parameter_value()
+            .double_value
+        )
+
+        # Similar to the message rates, we set the home position periodically to handle
+        # the case in which the home position is set by QGC to a different location
+        self.message_rate_timer = self.create_timer(
+            hp_request_rate,
+            lambda: set_home_pos(home_lat, home_lon, home_alt, home_yaw),
+        )
+
+        # Now, set the EKF origin. This is necessary to enable GUIDED mode and other
         # autonomy features with ArduSub
         origin_lat = (
             self.get_parameter("ekf_origin.latitude").get_parameter_value().double_value
