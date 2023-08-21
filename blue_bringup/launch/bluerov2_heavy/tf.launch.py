@@ -57,7 +57,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster1"],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="tf2_ros",
@@ -81,7 +81,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster2"],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="tf2_ros",
@@ -105,7 +105,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster3"],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="tf2_ros",
@@ -129,7 +129,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster4"],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="tf2_ros",
@@ -147,7 +147,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster5"],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="tf2_ros",
@@ -165,7 +165,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster6"],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="tf2_ros",
@@ -183,7 +183,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster7"],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="tf2_ros",
@@ -201,7 +201,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster8"],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="tf2_ros",
@@ -219,7 +219,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "base_link"],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="tf2_ros",
@@ -237,7 +237,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "base_footprint"],
             ],
-            output="screen",
+            output="both",
         ),
     ]
 

@@ -86,7 +86,7 @@ def generate_launch_description() -> LaunchDescription:
                 # Clock (IGN -> ROS 2)
                 "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="ros_gz_bridge",
@@ -101,7 +101,7 @@ def generate_launch_description() -> LaunchDescription:
                     "/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
                 ],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="ros_gz_bridge",
@@ -114,7 +114,7 @@ def generate_launch_description() -> LaunchDescription:
                     "/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
                 ],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="ros_gz_sim",
@@ -138,7 +138,7 @@ def generate_launch_description() -> LaunchDescription:
                 "--home",
                 "44.65870,-124.06556,0.0,270.0",  # my not-so-secret surf spot
             ],
-            output="screen",
+            output="both",
         ),
     ]
 

@@ -59,7 +59,7 @@ def generate_launch_description() -> LaunchDescription:
             package="blue_control",
             executable=controller,
             name=controller,
-            output="screen",
+            output="both",
             parameters=[
                 LaunchConfiguration("config_filepath"),
                 {"use_sim_time": LaunchConfiguration("use_sim_time")},

@@ -10,6 +10,7 @@ mavros:
       - vision*
       - local*
       - global_position
+      - home_position
 
 mavros_node:
   ros__parameters:
