@@ -146,7 +146,9 @@ class PoseLocalizer(Localizer):
 
         # Poses are sent to the ArduPilot EKF
         self.vision_pose_pub = self.create_publisher(
-            PoseStamped, "/mavros/vision_pose/pose", qos_profile_default
+            PoseStamped,
+            "/mavros/vision_pose/pose",
+            qos_profile_default,
         )
         self.vision_pose_cov_pub = self.create_publisher(
             PoseWithCovarianceStamped,
@@ -472,23 +474,30 @@ class QualisysLocalizer(PoseLocalizer):
         )
 
         self.mocap_sub = self.create_subscription(
-            PoseWithCovarianceStamped,
+            PoseStamped,
             f"/blue/mocap/qualisys/{body}",
             self.update_pose_cb,
             qos_profile_sensor_data,
+        )
+
+        # Publish to the MoCap interface instead of the default pose interface
+        self.mocap_pose_pub = self.create_publisher(
+            PoseStamped,
+            "/mavros/mocap/pose",
+            qos_profile_default,
         )
 
         # Store the pose information in a buffer and apply an LWMA filter to it
         self.pose_buffer: Deque[np.ndarray] = deque(maxlen=filter_len)
 
     @staticmethod
-    def check_isnan(pose_cov: PoseWithCovarianceStamped) -> bool:
+    def check_isnan(pose: PoseStamped) -> bool:
         """Check if a pose message has NaN values.
 
         NaN values are not uncommon when dealing with MoCap data.
 
         Args:
-            pose_cov: The message to check for NaN values.
+            pose: The message to check for NaN values.
 
         Returns:
             Whether or not the message has any NaN values.
@@ -497,11 +506,7 @@ class QualisysLocalizer(PoseLocalizer):
         if np.isnan(
             np.min(
                 np.array(
-                    [
-                        pose_cov.pose.pose.position.x,
-                        pose_cov.pose.pose.position.y,
-                        pose_cov.pose.pose.position.z,
-                    ]
+                    [pose.pose.position.x, pose.pose.position.y, pose.pose.position.z]
                 )
             )
         ):
@@ -512,10 +517,10 @@ class QualisysLocalizer(PoseLocalizer):
             np.min(
                 np.array(
                     [
-                        pose_cov.pose.pose.orientation.x,
-                        pose_cov.pose.pose.orientation.y,
-                        pose_cov.pose.pose.orientation.z,
-                        pose_cov.pose.pose.orientation.w,
+                        pose.pose.orientation.x,
+                        pose.pose.orientation.y,
+                        pose.pose.orientation.z,
+                        pose.pose.orientation.w,
                     ]
                 )
             )
@@ -524,18 +529,26 @@ class QualisysLocalizer(PoseLocalizer):
 
         return True
 
-    def update_pose_cb(self, pose_cov: PoseWithCovarianceStamped) -> None:
+    def publish(self) -> None:
+        """Publish the current MoCap state.
+
+        This overrides the default PoseLocalizer publish interface to send the pose
+        state information to the MAVROS MoCap plugin.
+        """
+        self.mocap_pose_pub.publish(self.state)
+
+    def update_pose_cb(self, pose: PoseStamped) -> None:
         """Proxy the pose to the ArduSub EKF.
 
         We need to do some filtering here to handle the noise from the measurements.
         The filter that we apply in this case is the LWMA filter.
 
         Args:
-            pose_cov: The pose of the BlueROV2 identified by the motion capture system.
+            pose: The pose of the BlueROV2 identified by the motion capture system.
         """
         # Check if any of the values in the array are NaN; if they are, then
         # discard the reading
-        if not self.check_isnan(pose_cov):
+        if not self.check_isnan(pose):
             return
 
         def pose_to_array(pose: Pose) -> np.ndarray:
@@ -553,7 +566,7 @@ class QualisysLocalizer(PoseLocalizer):
             return ar
 
         # Convert the pose message into an array for filtering
-        pose_ar = pose_to_array(pose_cov.pose.pose)
+        pose_ar = pose_to_array(pose.pose)
 
         # Add the pose to the circular buffer
         self.pose_buffer.append(pose_ar)
@@ -589,9 +602,9 @@ class QualisysLocalizer(PoseLocalizer):
             return pose
 
         # Update the pose to be the new filtered pose
-        pose_cov.pose.pose = array_to_pose(filtered_pose_ar)
+        pose.pose = array_to_pose(filtered_pose_ar)
 
-        self.state = pose_cov
+        self.state = pose
 
 
 class GazeboLocalizer(PoseLocalizer):
@@ -619,11 +632,7 @@ class GazeboLocalizer(PoseLocalizer):
             msg: The Gazebo ground-truth odometry for the BlueROV2.
         """
         pose_cov = PoseWithCovarianceStamped()
-
-        # Pose is provided in the parent header frame
-        pose_cov.header.frame_id = msg.header.frame_id
-        pose_cov.header.stamp = msg.header.stamp
-
+        pose_cov.header = msg.header
         pose_cov.pose = msg.pose
 
         self.state = pose_cov
