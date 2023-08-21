@@ -11,6 +11,7 @@ mavros:
       - local*
       - global_position
       - home_position
+      - mocap_pose_estimate
 
 mavros_node:
   ros__parameters:

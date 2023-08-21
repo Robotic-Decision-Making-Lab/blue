@@ -28,7 +28,7 @@ import numpy as np
 import qtm
 import rclpy
 from cv_bridge import CvBridge
-from geometry_msgs.msg import PoseWithCovarianceStamped
+from geometry_msgs.msg import PoseStamped
 from rclpy.node import Node
 from rclpy.qos import (
     DurabilityPolicy,
@@ -220,22 +220,16 @@ class QualisysMotionCapture(Source):
         self.declare_parameter("port", 22223)
         self.declare_parameter("version", "1.22")
         self.declare_parameter("body", "ROV")
-        self.declare_parameter("covariance", list(np.zeros(36, dtype=np.float64)))
 
         # Load the parameters
         self.ip = self.get_parameter("ip").get_parameter_value().string_value
         self.port = self.get_parameter("port").get_parameter_value().integer_value
         self.version = self.get_parameter("version").get_parameter_value().string_value
         self.body = self.get_parameter("body").get_parameter_value().string_value
-        self.covariance = (
-            self.get_parameter("covariance").get_parameter_value().double_array_value
-        )
 
         # Publish the pose using the name of the body as the topic
         self.mocap_pub = self.create_publisher(
-            PoseWithCovarianceStamped,
-            f"/blue/mocap/qualisys/{self.body}",
-            qos_profile_sensor_data,
+            PoseStamped, f"/blue/mocap/qualisys/{self.body}", qos_profile_sensor_data
         )
 
     @staticmethod
@@ -296,28 +290,25 @@ class QualisysMotionCapture(Source):
 
             position, rotation = bodies[body_index[self.body]]
 
-            pose_msg = PoseWithCovarianceStamped()
+            pose_msg = PoseStamped()
 
             pose_msg.header.frame_id = "map"
             pose_msg.header.stamp = self.get_clock().now().to_msg()
 
             # Convert from mm to m and save the position to the message
             (
-                pose_msg.pose.pose.position.x,
-                pose_msg.pose.pose.position.y,
-                pose_msg.pose.pose.position.z,
+                pose_msg.pose.position.x,
+                pose_msg.pose.position.y,
+                pose_msg.pose.position.z,
             ) = (position.x / 1000, position.y / 1000, position.z / 1000)
 
             # Convert from a column-major rotation matrix to a quaternion
             (
-                pose_msg.pose.pose.orientation.x,
-                pose_msg.pose.pose.orientation.y,
-                pose_msg.pose.pose.orientation.z,
-                pose_msg.pose.pose.orientation.w,
+                pose_msg.pose.orientation.x,
+                pose_msg.pose.orientation.y,
+                pose_msg.pose.orientation.z,
+                pose_msg.pose.orientation.w,
             ) = R.from_matrix(np.array(rotation.matrix).reshape((3, 3)).T).as_quat()
-
-            # Set the covariance
-            pose_msg.pose.covariance = self.covariance
 
             self.mocap_pub.publish(pose_msg)
 
