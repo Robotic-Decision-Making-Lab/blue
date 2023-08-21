@@ -48,7 +48,7 @@ class Manager(Node):
             parameters=[  # type: ignore
                 ("ids", [31, 32]),
                 ("rates", [100.0, 100.0]),
-                ("request_interval", 30),
+                ("request_interval", 30.0),
             ],
         )
         self.declare_parameters(

@@ -82,7 +82,7 @@ def generate_launch_description() -> LaunchDescription:
             package="blue_localization",
             executable="camera",
             name="camera",
-            output="screen",
+            output="both",
             parameters=[
                 LaunchConfiguration("config_filepath"),
                 {"use_sim_time": use_sim_time},
@@ -103,7 +103,7 @@ def generate_launch_description() -> LaunchDescription:
             package="blue_localization",
             executable="aruco_marker_localizer",
             name="aruco_marker_localizer",
-            output="screen",
+            output="both",
             parameters=[
                 LaunchConfiguration("config_filepath"),
                 {"use_sim_time": use_sim_time},
@@ -116,7 +116,7 @@ def generate_launch_description() -> LaunchDescription:
             package="blue_localization",
             executable="qualisys_mocap",
             name="qualisys_mocap",
-            output="screen",
+            output="both",
             parameters=[
                 LaunchConfiguration("config_filepath"),
                 {"use_sim_time": use_sim_time},
@@ -137,7 +137,7 @@ def generate_launch_description() -> LaunchDescription:
             package="blue_localization",
             executable="qualisys_localizer",
             name="qualisys_localizer",
-            output="screen",
+            output="both",
             parameters=[
                 LaunchConfiguration("config_filepath"),
                 {"use_sim_time": use_sim_time},
@@ -150,7 +150,7 @@ def generate_launch_description() -> LaunchDescription:
             package="blue_localization",
             executable="gazebo_localizer",
             name="gazebo_localizer",
-            output="screen",
+            output="both",
             parameters=[
                 LaunchConfiguration("config_filepath"),
                 {"use_sim_time": use_sim_time},

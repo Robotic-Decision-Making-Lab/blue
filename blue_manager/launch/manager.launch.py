@@ -48,7 +48,7 @@ def generate_launch_description() -> LaunchDescription:
             package="blue_manager",
             executable="blue_manager",
             name="blue_manager",
-            output="screen",
+            output="both",
             parameters=[
                 LaunchConfiguration("config_filepath"),
                 {"use_sim_time": LaunchConfiguration("use_sim_time")},
