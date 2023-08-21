@@ -18,6 +18,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import time
 from abc import ABC, abstractmethod
 from collections import deque
 from typing import Any, Deque
@@ -35,6 +36,8 @@ from geometry_msgs.msg import (
     TwistWithCovarianceStamped,
 )
 from nav_msgs.msg import Odometry
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import (
     DurabilityPolicy,
@@ -70,19 +73,62 @@ class Localizer(Node, ABC):
         Node.__init__(self, node_name)
         ABC.__init__(self)
 
+        self.declare_parameter("update_rate", 30.0)
+
         # Provide access to TF2
         self.tf_buffer = Buffer()
         self.tf_listener = TransformListener(self.tf_buffer, self)
 
-    @abstractmethod
-    def publish(self, state: Any) -> None:
-        """Publish the current state.
+        # Publish the current state at the provided rate. Note that, if the localizer
+        # receives state messages at a lower rate, the state will be published at the
+        # rate at which it is received (basically just a low-pass filter). The reason
+        # for applying a filter is to ensure that high-frequency state updates don't
+        # overload the FCU.
+        self._state = None
+        self._update_rate = 1 / (
+            self.get_parameter("update_rate").get_parameter_value().double_value
+        )
+        self._last_update = time.time()
+        self.update_state_timer = self.create_timer(
+            self._update_rate, self._publish_wrapper, MutuallyExclusiveCallbackGroup()
+        )
 
-        This is intended to be a convenience class for handling state messages
-        with and without covariance.
+    @property
+    def state(self) -> Any:
+        """Get the current state obtained by a localizer.
+
+        Returns:
+            The current state.
+        """
+        return self._state
+
+    @state.setter
+    def state(self, state: Any) -> None:
+        """Set the current state to be published by the EKF.
 
         Args:
-            state: The state to publish to the EKF.
+            state: The current state.
+        """
+        self._last_update = time.time()
+        self._state = state
+
+    def _publish_wrapper(self) -> None:
+        """Publish the state at the max allowable frequency.
+
+        If the state hasn't been updated since the last loop iteration, don't publish
+        the state again: only publish a state once.
+        """
+        if self.state is None or time.time() - self._last_update > self._update_rate:
+            return
+
+        self.publish()
+
+    @abstractmethod
+    def publish(self) -> None:
+        """Publish the state to the ArduSub EKF.
+
+        This is automatically called by the localizer timer and should not be called
+        manually.
         """
         ...
 
@@ -108,16 +154,18 @@ class PoseLocalizer(Localizer):
             qos_profile_default,
         )
 
-    def publish(self, pose: PoseStamped | PoseWithCovarianceStamped) -> None:
-        """Publish a pose message to the ArduSub EKF.
-
-        Args:
-            pose: The state message to send.
-        """
-        if isinstance(pose, PoseStamped):
-            self.vision_pose_pub.publish(pose)
+    def publish(self) -> None:
+        """Publish a pose message to the ArduSub EKF."""
+        if isinstance(self.state, PoseStamped):
+            self.vision_pose_pub.publish(self.state)
+        elif isinstance(self.state, PoseWithCovarianceStamped):
+            self.vision_pose_cov_pub.publish(self.state)
         else:
-            self.vision_pose_cov_pub.publish(pose)
+            raise TypeError(
+                "Invalid state type provided for publishing. Expected one of"
+                f" {PoseStamped.__name__}, {PoseWithCovarianceStamped.__name__}: got"
+                f" {self.state.__class__.__name__}"
+            )
 
 
 class TwistLocalizer(Localizer):
@@ -141,16 +189,18 @@ class TwistLocalizer(Localizer):
             qos_profile_default,
         )
 
-    def publish(self, twist: TwistStamped | TwistWithCovarianceStamped) -> None:
-        """Publish a twist message to the ArduSub EKF.
-
-        Args:
-            twist: The state message to send.
-        """
-        if isinstance(twist, PoseStamped):
-            self.vision_speed_pub.publish(twist)
+    def publish(self) -> None:
+        """Publish a twist message to the ArduSub EKF."""
+        if isinstance(self.state, TwistStamped):
+            self.vision_speed_pub.publish(self.state)
+        elif isinstance(self.state, TwistWithCovarianceStamped):
+            self.vision_speed_cov_pub.publish(self.state)
         else:
-            self.vision_speed_cov_pub.publish(twist)
+            raise TypeError(
+                "Invalid state type provided for publishing. Expected one of"
+                f" {TwistStamped.__name__}, {TwistWithCovarianceStamped.__name__}: got"
+                f" {self.state.__class__.__name__}"
+            )
 
 
 class ArucoMarkerLocalizer(PoseLocalizer):
@@ -197,7 +247,7 @@ class ArucoMarkerLocalizer(PoseLocalizer):
         self.camera_sub = self.create_subscription(
             Image,
             "/camera/image_raw",
-            self.extract_and_publish_pose_cb,
+            self.update_pose_cb,
             qos_profile_sensor_data,
         )
 
@@ -289,7 +339,7 @@ class ArucoMarkerLocalizer(PoseLocalizer):
 
         return rot_vec, trans_vec, min_marker_id
 
-    def extract_and_publish_pose_cb(self, frame: Image) -> None:
+    def update_pose_cb(self, frame: Image) -> None:
         """Get the camera pose relative to the marker and send to the ArduSub EKF.
 
         Args:
@@ -403,7 +453,7 @@ class ArucoMarkerLocalizer(PoseLocalizer):
             pose.pose.orientation.w,  # type: ignore
         ) = R.from_matrix(tf_map_to_base_mat[:3, :3]).as_quat()
 
-        self.publish(pose)  # type: ignore
+        self.state = pose
 
 
 class QualisysLocalizer(PoseLocalizer):
@@ -424,7 +474,7 @@ class QualisysLocalizer(PoseLocalizer):
         self.mocap_sub = self.create_subscription(
             PoseWithCovarianceStamped,
             f"/blue/mocap/qualisys/{body}",
-            self.proxy_pose_cb,
+            self.update_pose_cb,
             qos_profile_sensor_data,
         )
 
@@ -474,7 +524,7 @@ class QualisysLocalizer(PoseLocalizer):
 
         return True
 
-    def proxy_pose_cb(self, pose_cov: PoseWithCovarianceStamped) -> None:
+    def update_pose_cb(self, pose_cov: PoseWithCovarianceStamped) -> None:
         """Proxy the pose to the ArduSub EKF.
 
         We need to do some filtering here to handle the noise from the measurements.
@@ -541,7 +591,7 @@ class QualisysLocalizer(PoseLocalizer):
         # Update the pose to be the new filtered pose
         pose_cov.pose.pose = array_to_pose(filtered_pose_ar)
 
-        self.publish(pose_cov)
+        self.state = pose_cov
 
 
 class GazeboLocalizer(PoseLocalizer):
@@ -559,24 +609,24 @@ class GazeboLocalizer(PoseLocalizer):
             self.get_parameter("gazebo_odom_topic").get_parameter_value().string_value
         )
         self.odom_sub = self.create_subscription(
-            Odometry, odom_topic, self.proxy_odom_cb, qos_profile_sensor_data
+            Odometry, odom_topic, self.update_odom_cb, qos_profile_sensor_data
         )
 
-    def proxy_odom_cb(self, msg: Odometry) -> None:
+    def update_odom_cb(self, msg: Odometry) -> None:
         """Proxy the pose data from the Gazebo odometry ground-truth data.
 
         Args:
             msg: The Gazebo ground-truth odometry for the BlueROV2.
         """
-        pose = PoseWithCovarianceStamped()
+        pose_cov = PoseWithCovarianceStamped()
 
         # Pose is provided in the parent header frame
-        pose.header.frame_id = msg.header.frame_id
-        pose.header.stamp = msg.header.stamp
+        pose_cov.header.frame_id = msg.header.frame_id
+        pose_cov.header.stamp = msg.header.stamp
 
-        pose.pose = msg.pose
+        pose_cov.pose = msg.pose
 
-        self.publish(pose)
+        self.state = pose_cov
 
 
 def main_aruco(args: list[str] | None = None):
@@ -584,7 +634,8 @@ def main_aruco(args: list[str] | None = None):
     rclpy.init(args=args)
 
     node = ArucoMarkerLocalizer()
-    rclpy.spin(node)
+    executor = MultiThreadedExecutor()
+    rclpy.spin(node, executor)
 
     node.destroy_node()
     rclpy.shutdown()
@@ -595,7 +646,8 @@ def main_qualisys(args: list[str] | None = None):
     rclpy.init(args=args)
 
     node = QualisysLocalizer()
-    rclpy.spin(node)
+    executor = MultiThreadedExecutor()
+    rclpy.spin(node, executor)
 
     node.destroy_node()
     rclpy.shutdown()
@@ -606,7 +658,8 @@ def main_gazebo(args: list[str] | None = None):
     rclpy.init(args=args)
 
     node = GazeboLocalizer()
-    rclpy.spin(node)
+    executor = MultiThreadedExecutor()
+    rclpy.spin(node, executor)
 
     node.destroy_node()
     rclpy.shutdown()
