@@ -121,7 +121,19 @@ def generate_launch_description() -> LaunchDescription:
                 LaunchConfiguration("config_filepath"),
                 {"use_sim_time": use_sim_time},
             ],
-            condition=IfCondition(use_mocap),
+            condition=IfCondition(
+                PythonExpression(
+                    [
+                        "'",
+                        localization_source,
+                        "' == 'mocap' or '",
+                        use_mocap,
+                        "' == 'true' or '",
+                        localization_source,
+                        "' == 'hinsdale'",
+                    ]
+                )
+            ),
         ),
         Node(
             package="blue_localization",
