@@ -51,6 +51,7 @@ setup(
             "aruco_marker_localizer = blue_localization.localizer:main_aruco",
             "qualisys_localizer = blue_localization.localizer:main_qualisys",
             "gazebo_localizer = blue_localization.localizer:main_gazebo",
+            "hinsdale_localizer = blue_localization.localizer:main_hinsdale_qualisys",
         ],
     },
 )

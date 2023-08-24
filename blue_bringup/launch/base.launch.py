@@ -93,7 +93,7 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "localization_source",
             default_value="gazebo",
-            choices=["mocap", "camera", "gazebo"],
+            choices=["mocap", "camera", "gazebo", "hinsdale"],
             description="The localization source to stream from.",
         ),
         DeclareLaunchArgument(

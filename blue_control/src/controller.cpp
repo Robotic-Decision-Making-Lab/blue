@@ -110,7 +110,7 @@ Controller::Controller(const std::string & node_name)
     [this](sensor_msgs::msg::BatteryState::ConstSharedPtr msg) -> void { battery_state_ = *msg; });
 
   odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
-    "/mavros/local_position/odom", rclcpp::SensorDataQoS(),
+    "/blue/local_position/odom", rclcpp::SensorDataQoS(),
     [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) -> void { updateOdomCb(msg); });
 
   arm_srv_ = this->create_service<std_srvs::srv::SetBool>(

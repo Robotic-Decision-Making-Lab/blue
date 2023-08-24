@@ -46,7 +46,7 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "localization_source",
             default_value="mocap",
-            choices=["mocap", "camera", "gazebo"],
+            choices=["mocap", "camera", "gazebo", "hinsdale"],
             description="The localization source to stream from.",
         ),
         DeclareLaunchArgument(
@@ -121,17 +121,7 @@ def generate_launch_description() -> LaunchDescription:
                 LaunchConfiguration("config_filepath"),
                 {"use_sim_time": use_sim_time},
             ],
-            condition=IfCondition(
-                PythonExpression(
-                    [
-                        "'",
-                        localization_source,
-                        "' == 'mocap' or '",
-                        use_mocap,
-                        "' == 'true'",
-                    ]
-                )
-            ),
+            condition=IfCondition(use_mocap),
         ),
         Node(
             package="blue_localization",
@@ -157,6 +147,19 @@ def generate_launch_description() -> LaunchDescription:
             ],
             condition=IfCondition(
                 PythonExpression(["'", localization_source, "' == 'gazebo'"])
+            ),
+        ),
+        Node(
+            package="blue_localization",
+            executable="hinsdale_localizer",
+            name="hinsdale_localizer",
+            output="both",
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {"use_sim_time": use_sim_time},
+            ],
+            condition=IfCondition(
+                PythonExpression(["'", localization_source, "' == 'hinsdale'"])
             ),
         ),
     ]

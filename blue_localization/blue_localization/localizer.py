@@ -35,6 +35,7 @@ from geometry_msgs.msg import (
     TwistStamped,
     TwistWithCovarianceStamped,
 )
+from message_filters import ApproximateTimeSynchronizer, Subscriber
 from nav_msgs.msg import Odometry
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
@@ -529,6 +530,27 @@ class QualisysLocalizer(PoseLocalizer):
 
         return True
 
+    @staticmethod
+    def lwma(measurements: np.ndarray) -> np.ndarray:
+        """Apply an LWMA filter to a set of measurements.
+
+        Args:
+            measurements: The measurements to filter.
+
+        Returns:
+            The resulting filtered state.
+        """
+        # Get the linear weights
+        weights = np.arange(len(measurements)) + 1
+
+        # Apply the LWMA filter and return
+        return np.array(
+            [
+                np.sum(np.prod(np.vstack((axis, weights)), axis=0)) / np.sum(weights)
+                for axis in measurements.T
+            ]
+        )
+
     def publish(self) -> None:
         """Publish the current MoCap state.
 
@@ -575,20 +597,7 @@ class QualisysLocalizer(PoseLocalizer):
         if len(self.pose_buffer) < self.pose_buffer.maxlen:  # type: ignore
             return
 
-        def lwma(measurements: np.ndarray) -> np.ndarray:
-            # Get the linear weights
-            weights = np.arange(len(measurements)) + 1
-
-            # Apply the LWMA filter and return
-            return np.array(
-                [
-                    np.sum(np.prod(np.vstack((axis, weights)), axis=0))
-                    / np.sum(weights)
-                    for axis in measurements.T
-                ]
-            )
-
-        filtered_pose_ar = lwma(np.array(self.pose_buffer))
+        filtered_pose_ar = self.lwma(np.array(self.pose_buffer))
 
         def array_to_pose(ar: np.ndarray) -> Pose:
             pose = Pose()
@@ -638,6 +647,176 @@ class GazeboLocalizer(PoseLocalizer):
         self.state = pose_cov
 
 
+class HinsdaleQualisysLocalizer(Localizer):
+    """Localize the BlueROV2 using the Qualisys motion capture system.
+
+    Due to some parameter configuration issues during Hinsdale 2023 testing, this does
+    not use the standard EKF interface that the other localizers use. Instead, this
+    captures fused DVL data from the EKF and merges this with the filtered MoCap data.
+    """
+
+    def __init__(self) -> None:
+        """Create a new Hinsdale Qualisys motion capture localizer."""
+        super().__init__("hinsdale_odom_localizer")
+
+        self.declare_parameter("body", "bluerov")
+        self.declare_parameter("filter_len", 20)
+
+        body = self.get_parameter("body").get_parameter_value().string_value
+        filter_len = (
+            self.get_parameter("filter_len").get_parameter_value().integer_value
+        )
+
+        self.odom_pub = self.create_publisher(
+            Odometry, "/blue/local_position/odom", qos_profile_sensor_data
+        )
+
+        self.mocap_sub = Subscriber(
+            self, PoseStamped, f"/blue/mocap/qualisys/{body}", qos_profile_sensor_data
+        )
+        self.dvl_sub = Subscriber(
+            self,
+            TwistStamped,
+            "/mavros/local_position/velocity_body",
+            qos_profile_sensor_data,
+        )
+
+        # Create a new message filter
+        self.ts = ApproximateTimeSynchronizer([self.mocap_sub, self.dvl_sub], 5, 0.05)
+        self.ts.registerCallback(self.update_odom_cb)
+
+        # Store the pose information in a buffer and apply an LWMA filter to it
+        self.pose_buffer: Deque[np.ndarray] = deque(maxlen=filter_len)
+
+    @staticmethod
+    def check_isnan(pose: PoseStamped) -> bool:
+        """Check if a pose message has NaN values.
+
+        NaN values are not uncommon when dealing with MoCap data.
+
+        Args:
+            pose: The message to check for NaN values.
+
+        Returns:
+            Whether or not the message has any NaN values.
+        """
+        # Check the position
+        if np.isnan(
+            np.min(
+                np.array(
+                    [pose.pose.position.x, pose.pose.position.y, pose.pose.position.z]
+                )
+            )
+        ):
+            return False
+
+        # Check the orientation
+        if np.isnan(
+            np.min(
+                np.array(
+                    [
+                        pose.pose.orientation.x,
+                        pose.pose.orientation.y,
+                        pose.pose.orientation.z,
+                        pose.pose.orientation.w,
+                    ]
+                )
+            )
+        ):
+            return False
+
+        return True
+
+    @staticmethod
+    def lwma(measurements: np.ndarray) -> np.ndarray:
+        """Apply an LWMA filter to a set of measurements.
+
+        Args:
+            measurements: The measurements to filter.
+
+        Returns:
+            The resulting filtered state.
+        """
+        # Get the linear weights
+        weights = np.arange(len(measurements)) + 1
+
+        # Apply the LWMA filter and return
+        return np.array(
+            [
+                np.sum(np.prod(np.vstack((axis, weights)), axis=0)) / np.sum(weights)
+                for axis in measurements.T
+            ]
+        )
+
+    def publish(self) -> None:
+        """Publish the current odometry state."""
+        if self.state is not None:
+            self.odom_pub.publish(self.state)
+
+    def update_odom_cb(self, pose: PoseStamped, twist: TwistStamped) -> None:
+        """Update the current odometry reading.
+
+        Args:
+            pose: The current vehicle pose.
+            twist: The current vehicle twist.
+        """
+        # Check if any of the MoCap values in the array are NaN; if they are, then
+        # discard the reading
+        if not self.check_isnan(pose):
+            return
+
+        def pose_to_array(pose: Pose) -> np.ndarray:
+            ar = np.zeros(6)
+            ar[:3] = [pose.position.x, pose.position.y, pose.position.z]
+            ar[3:] = R.from_quat(
+                [
+                    pose.orientation.x,
+                    pose.orientation.y,
+                    pose.orientation.z,
+                    pose.orientation.w,
+                ]
+            ).as_euler("xyz")
+
+            return ar
+
+        # Convert the pose message into an array for filtering
+        pose_ar = pose_to_array(pose.pose)
+
+        # Add the pose to the circular buffer
+        self.pose_buffer.append(pose_ar)
+
+        # Wait until our buffer is full to start publishing the state information
+        if len(self.pose_buffer) < self.pose_buffer.maxlen:  # type: ignore
+            return
+
+        filtered_pose_ar = self.lwma(np.array(self.pose_buffer))
+
+        def array_to_pose(ar: np.ndarray) -> Pose:
+            pose = Pose()
+            pose.position.x, pose.position.y, pose.position.z = ar[:3]
+            (
+                pose.orientation.x,
+                pose.orientation.y,
+                pose.orientation.z,
+                pose.orientation.w,
+            ) = R.from_euler("xyz", ar[3:]).as_quat()
+            return pose
+
+        odom = Odometry()
+
+        odom.header.frame_id = pose.header.frame_id
+        odom.header.stamp = pose.header.stamp
+        odom.child_frame_id = twist.header.frame_id
+
+        # Set the pose to the new filtered pose
+        odom.pose.pose = array_to_pose(filtered_pose_ar)
+
+        # Now set the twist
+        odom.twist.twist = twist.twist
+
+        self.state = odom
+
+
 def main_aruco(args: list[str] | None = None):
     """Run the ArUco marker detector."""
     rclpy.init(args=args)
@@ -667,6 +846,18 @@ def main_gazebo(args: list[str] | None = None):
     rclpy.init(args=args)
 
     node = GazeboLocalizer()
+    executor = MultiThreadedExecutor()
+    rclpy.spin(node, executor)
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+def main_hinsdale_qualisys(args: list[str] | None = None):
+    """Run the Hinsdale localizer."""
+    rclpy.init(args=args)
+
+    node = HinsdaleQualisysLocalizer()
     executor = MultiThreadedExecutor()
     rclpy.spin(node, executor)
 

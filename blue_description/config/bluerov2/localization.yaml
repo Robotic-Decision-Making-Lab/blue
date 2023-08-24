@@ -32,3 +32,8 @@ gazebo_localizer:
   ros__parameters:
     update_rate: 30.0
     gazebo_odom_topic: "/model/bluerov2/odometry"
+
+hinsdale_localizer:
+  ros__parameters:
+    update_rate: 100.0
+    body: "bluerov" # This should be the same as the body parameter setting for the qualisys_mocap node
