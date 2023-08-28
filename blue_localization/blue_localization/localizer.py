@@ -21,6 +21,7 @@
 import time
 from abc import ABC, abstractmethod
 from collections import deque
+from copy import deepcopy
 from typing import Any, Deque
 
 import cv2
@@ -32,10 +33,10 @@ from geometry_msgs.msg import (
     Pose,
     PoseStamped,
     PoseWithCovarianceStamped,
+    Twist,
     TwistStamped,
     TwistWithCovarianceStamped,
 )
-from message_filters import ApproximateTimeSynchronizer, Subscriber
 from nav_msgs.msg import Odometry
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
@@ -648,78 +649,6 @@ class GazeboLocalizer(PoseLocalizer):
         self.state = pose_cov
 
 
-class WaterLinkedDvlLocalizer(TwistLocalizer):
-    """Localization interface for the WaterLinked DVL A50."""
-
-    def __init__(self) -> None:
-        """Create a new localizer for the WaterLinked DVL data."""
-        super().__init__("waterlinked_dvl_localizer")
-
-        self.vel_sub = self.create_subscription(
-            TwistWithCovarianceStamped,
-            "/blue/dvl/twist_cov",
-            self.update_vel_cb,
-            qos_profile_sensor_data,
-        )
-
-    def update_vel_cb(self, twist_cov: TwistWithCovarianceStamped) -> None:
-        """Update the current velocity state.
-
-        Args:
-            twist_cov: The current velocity measurement from the DVL.
-        """
-        self.state = twist_cov
-
-
-class HinsdaleDvlLocalizer(Localizer):
-    """Localize the BlueROV2 using the DVL.
-
-    This is used only during Hinsdale 2023 testing for controller evaluation.
-    """
-
-    def __init__(self) -> None:
-        """Create a new DVL localizer."""
-        super().__init__("dvl")
-
-        self.odom_pub = self.create_publisher(
-            Odometry, "/blue/local_position/odom", qos_profile_sensor_data
-        )
-        # Override the original timer
-        self.update_state_timer.cancel()
-        self.update_state_timer = self.create_timer(
-            self._update_rate, self.publish, MutuallyExclusiveCallbackGroup()
-        )
-        self.dvl_sub = self.create_subscription(
-            TwistStamped,
-            "/mavros/local_position/velocity_body",
-            self.update_odom_cb,
-            qos_profile_sensor_data,
-        )
-
-    def publish(self) -> None:
-        """Publish the current odometry state."""
-        if self.state is not None:
-            self.odom_pub.publish(self.state)
-
-    def update_odom_cb(self, twist: TwistStamped) -> None:
-        """Update the current odometry reading.
-
-        Args:
-            pose: The current vehicle pose.
-            twist: The current vehicle twist.
-        """
-        odom = Odometry()
-
-        odom.header.frame_id = self.MAP_FRAME
-        odom.header.stamp = twist.header.stamp
-        odom.child_frame_id = twist.header.frame_id
-
-        # Set the twist
-        odom.twist.twist = twist.twist
-
-        self.state = odom
-
-
 class HinsdaleQualisysLocalizer(Localizer):
     """Localize the BlueROV2 using the Qualisys motion capture system.
 
@@ -740,23 +669,19 @@ class HinsdaleQualisysLocalizer(Localizer):
             self.get_parameter("filter_len").get_parameter_value().integer_value
         )
 
+        # Keep track of previous states for finite differencing :(
+        self.last_pose = np.zeros(6)
+        self.last_update_t = time.time()
+
         self.odom_pub = self.create_publisher(
             Odometry, "/blue/local_position/odom", qos_profile_sensor_data
         )
-
-        self.mocap_sub = Subscriber(
-            self, PoseStamped, f"/blue/mocap/qualisys/{body}", qos_profile_sensor_data
-        )
-        self.dvl_sub = Subscriber(
-            self,
-            TwistStamped,
-            "/mavros/local_position/velocity_body",
+        self.mocap_sub = self.create_subscription(
+            PoseStamped,
+            f"/blue/mocap/qualisys/{body}",
+            self.update_odom_cb,
             qos_profile_sensor_data,
         )
-
-        # Create a new message filter
-        self.ts = ApproximateTimeSynchronizer([self.mocap_sub, self.dvl_sub], 5, 0.05)
-        self.ts.registerCallback(self.update_odom_cb)
 
         # Store the pose information in a buffer and apply an LWMA filter to it
         self.pose_buffer: Deque[np.ndarray] = deque(maxlen=filter_len)
@@ -855,6 +780,15 @@ class HinsdaleQualisysLocalizer(Localizer):
         # Convert the pose message into an array for filtering
         pose_ar = pose_to_array(pose.pose)
 
+        # Update the measurements for finite differencing
+        dt = time.time() - self.last_update_t
+        self.last_update_t = time.time()
+
+        # Make a deepcopy here: we don't want to modify the last pose and screw
+        # this pose up
+        last_update = deepcopy(self.last_pose)
+        self.last_pose = pose_ar
+
         # Add the pose to the circular buffer
         self.pose_buffer.append(pose_ar)
 
@@ -862,7 +796,9 @@ class HinsdaleQualisysLocalizer(Localizer):
         if len(self.pose_buffer) < self.pose_buffer.maxlen:  # type: ignore
             return
 
+        # Get the position and velocity estimates
         filtered_pose_ar = self.lwma(np.array(self.pose_buffer))
+        vel = filtered_pose_ar - last_update / dt
 
         def array_to_pose(ar: np.ndarray) -> Pose:
             pose = Pose()
@@ -875,6 +811,12 @@ class HinsdaleQualisysLocalizer(Localizer):
             ) = R.from_euler("xyz", ar[3:]).as_quat()
             return pose
 
+        def array_to_twist(ar: np.ndarray) -> Twist:
+            twist = Twist()
+            twist.linear.x, twist.linear.y, twist.linear.z = ar[:3]
+            twist.angular.x, twist.angular.y, twist.angular.z = ar[3:]
+            return twist
+
         odom = Odometry()
 
         odom.header.frame_id = pose.header.frame_id
@@ -885,7 +827,7 @@ class HinsdaleQualisysLocalizer(Localizer):
         odom.pose.pose = array_to_pose(filtered_pose_ar)
 
         # Now set the twist
-        odom.twist.twist = twist.twist
+        odom.twist.twist = array_to_twist(vel)
 
         self.state = odom
 
@@ -931,30 +873,6 @@ def main_hinsdale_qualisys(args: list[str] | None = None):
     rclpy.init(args=args)
 
     node = HinsdaleQualisysLocalizer()
-    executor = MultiThreadedExecutor()
-    rclpy.spin(node, executor)
-
-    node.destroy_node()
-    rclpy.shutdown()
-
-
-def main_dvl(args: list[str] | None = None):
-    """Run the DVL localizer."""
-    rclpy.init(args=args)
-
-    node = HinsdaleDvlLocalizer()
-    executor = MultiThreadedExecutor()
-    rclpy.spin(node, executor)
-
-    node.destroy_node()
-    rclpy.shutdown()
-
-
-def main_waterlinked_dvl(args: list[str] | None = None):
-    """Run the WaterLinked DVL localizer."""
-    rclpy.init(args=args)
-
-    node = WaterLinkedDvlLocalizer()
     executor = MultiThreadedExecutor()
     rclpy.spin(node, executor)
 

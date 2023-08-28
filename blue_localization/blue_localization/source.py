@@ -19,11 +19,6 @@
 # THE SOFTWARE.
 
 import asyncio
-import json
-import select
-import socket
-import threading
-import time
 import xml.etree.ElementTree as ET
 from abc import ABC
 from typing import Any
@@ -33,11 +28,7 @@ import numpy as np
 import qtm
 import rclpy
 from cv_bridge import CvBridge
-from geometry_msgs.msg import (
-    PoseStamped,
-    TwistWithCovariance,
-    TwistWithCovarianceStamped,
-)
+from geometry_msgs.msg import PoseStamped
 from rclpy.node import Node
 from rclpy.qos import (
     DurabilityPolicy,
@@ -325,163 +316,6 @@ class QualisysMotionCapture(Source):
         await connection.stream_frames(components=["6d"], on_packet=proxy_pose_cb)
 
 
-class WaterLinkedDvl(Source):
-    """Interface for the WaterLinked DVL A50."""
-
-    def __init__(self) -> None:
-        """Create a new DVL interface."""
-        super().__init__("waterlinked_dvl")
-
-        self.declare_parameters(
-            namespace="",
-            parameters=[
-                ("ip", "192.168.2.95"),
-                ("speed_of_sound", 2000),
-                ("mounting_rotation_offset", 180.0),
-                ("acoustic_enabled", True),
-                ("dark_mode_enabled", False),
-                ("range_mode", "auto"),
-                ("periodic_cycling_enabled", True),
-            ],
-        )
-
-        self.vel_pub = self.create_publisher(
-            TwistWithCovarianceStamped, "/blue/dvl/twist_cov", qos_profile_sensor_data
-        )
-
-        self.socket: socket.socket | None = None
-        self._poll_t: threading.Thread | None = None
-
-        ip = self.get_parameter("ip").get_parameter_value().string_value
-        if not self.connect(ip):
-            self.get_logger().info(
-                "Failed to setup the DVL localization source. Exiting."
-            )
-            return
-
-    def destroy_node(self) -> bool:
-        """Shutdown the DVL localization source node.
-
-        Returns:
-            Whether or not the shutdown succeeded.
-        """
-        # Close the socket connection
-        if self.socket is not None and self._poll_t is not None:
-            self._running = False
-            self.socket.shutdown(socket.SHUT_RDWR)
-            self.socket.close()
-            self._poll_t.join()
-
-        return super().destroy_node()
-
-    def connect(self, ip: str, port=16171, timeout: float = 5.0) -> bool:
-        """Attempt to establish a connection with the DVL.
-
-        Args:
-            ip: The DVL IP address
-            port: The DVL port. This should not change.
-            timeout: The maximum time allowed to attempt connection before considering
-                the attempt failed. Defaults to 5.0 seconds.
-
-        Returns:
-            Whether or not the connection succeeded.
-        """
-        start_t = time.time()
-
-        while time.time() - start_t <= timeout:
-            try:
-                self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self.socket.connect((ip, port))
-                self.socket.setblocking(False)
-
-                # Start polling the thread
-                self._running = True
-                self._poll_t = threading.Thread(target=self._poll)
-                self._poll_t.daemon = True
-                self._poll_t.start()
-            except socket.error:
-                self.get_logger().error(
-                    f"Failed to establish a connection with the DVL at {ip}:{port}"
-                )
-                return False
-
-        return True
-
-    @staticmethod
-    def dvl_to_twist(dvl_data: dict[str, Any]) -> TwistWithCovariance:
-        """Convert a DVL velocity JSON message into a TwistWithCovariance message.
-
-        Args:
-            dvl_data: The DVL JSON data to convert.
-
-        Returns:
-            The resulting TwistWithCovariance message.
-        """
-        twist_cov = TwistWithCovariance()
-
-        twist_cov.twist.linear.x = dvl_data["vx"]
-        twist_cov.twist.linear.y = dvl_data["vy"]
-        twist_cov.twist.linear.z = dvl_data["vz"]
-
-        covariance = np.zeros((6, 6))
-        covariance[:3, :3] = np.array(dvl_data["covariance"])
-        twist_cov.covariance = list(covariance.reshape(-1))
-
-        return twist_cov
-
-    def _poll(self) -> None:
-        # This shouldn't happen, but add a check anyway to keep mypy happy
-        if self.socket is None:
-            self.get_logger().error(
-                "Cannot poll from the DVL socket without an active connection!"
-            )
-            return
-
-        data_buffer = ""
-
-        while self._running:
-            # Check if the socket is ready to read
-            ready_to_read, _, _ = select.select([self.socket], [], [], 60)
-
-            if ready_to_read:
-                try:
-                    data = self.socket.recv(1024).decode()
-
-                    if data:
-                        data_buffer += data
-                except socket.error as e:
-                    self.get_logger().debug(
-                        "An error occurred while attempting to read from the DVL"
-                        f" socket: {e}"
-                    )
-
-            if len(data_buffer) > 0:
-                if "\n" not in data_buffer:
-                    continue
-
-                lines = data_buffer.split("\n", 1)
-
-                if len(lines) > 1:
-                    data_buffer = lines[1]
-
-                    try:
-                        parsed_data = json.loads(lines[0])
-                    except json.decoder.JSONDecodeError:
-                        # Sometimes we get bad data
-                        continue
-
-                    if not parsed_data or "type" not in parsed_data:
-                        continue
-
-                    if parsed_data["type"] == "velocity":
-                        twist_cov = TwistWithCovarianceStamped()
-                        twist_cov.header.frame_id = "base_link"
-                        twist_cov.header.stamp = self.get_clock().now().to_msg()
-                        twist_cov.twist = self.dvl_to_twist(parsed_data)
-
-                        self.vel_pub.publish(twist_cov)
-
-
 async def spinning(node: Node) -> None:
     """Spin the ROS 2 node as an asyncio Task.
 
@@ -527,14 +361,3 @@ def main_qualisys_mocap(args: list[str] | None = None):
 
     loop = asyncio.new_event_loop()
     loop.run_until_complete(run_mocap(args, loop))
-
-
-def main_waterlinked_dvl(args: list[str] | None = None):
-    """Run the WaterLinked DVL source."""
-    rclpy.init(args=args)
-
-    node = WaterLinkedDvl()
-    rclpy.spin(node)
-
-    node.destroy_node()
-    rclpy.shutdown()
