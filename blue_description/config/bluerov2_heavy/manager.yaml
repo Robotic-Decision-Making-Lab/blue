@@ -6,8 +6,8 @@ blue_manager:
       retries: 3
     message_intervals:
       ids: [31, 32]
-      rates: [200.0, 200.0]
-      request_interval: 30.0
+      rates: [100.0, 100.0]
+      request_interval: 10.0
     ekf_origin:
       latitude: 44.65870
       longitude: -124.06556
@@ -16,4 +16,4 @@ blue_manager:
       latitude: 44.65870
       longitude: -124.06556
       altitude: 0.0
-      request_interval: 30.0
+      request_interval: 45.0

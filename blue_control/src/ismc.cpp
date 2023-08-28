@@ -149,10 +149,12 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   total_velocity_error_ += velocity_error * dt_;
 
   // Calculate the sliding surface
-  Eigen::Vector6d surface =
-    proportional_gain_ * velocity_error + integral_gain_ * total_velocity_error_ +
-    derivative_gain_ * accel_error - proportional_gain_ * initial_velocity_error_ -
-    initial_acceleration_error_;
+  // Eigen::Vector6d surface =
+  //   proportional_gain_ * velocity_error + integral_gain_ * total_velocity_error_ +
+  //   derivative_gain_ * accel_error - proportional_gain_ * initial_velocity_error_ -
+  //   initial_acceleration_error_;
+  Eigen::Vector6d surface = velocity_error + proportional_gain_ * total_velocity_error_ -
+                            proportional_gain_ * initial_velocity_error_;
 
   // Apply the sign function to the surface
   // We use the tanh function to help reduce some of the chatter
@@ -161,8 +163,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   // Calculate the computed torque control
   Eigen::Vector6d tau0 =
     hydrodynamics_.inertia.getInertia() *
-      (proportional_gain_ * velocity_error + integral_gain_ * total_velocity_error_ +
-       derivative_gain_ * accel_error) +
+      (proportional_gain_ * velocity_error + integral_gain_ * total_velocity_error_) +
     (hydrodynamics_.coriolis.calculateCoriolis(velocity) +
      hydrodynamics_.damping.calculateDamping(velocity)) *
       velocity +
@@ -173,12 +174,11 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
 
   Eigen::Vector6d forces = tau0 + tau1;
 
-  // Publish the desired wrench for debugging purposes
+  // Convert forces into a wrench message
   geometry_msgs::msg::WrenchStamped wrench;
   wrench.header.frame_id = blue::transforms::kBaseLinkFrameId;
   wrench.header.stamp = this->get_clock()->now();
   wrench.wrench = tf2::toMsg2(forces);
-  desired_wrench_pub_->publish(wrench);
 
   // Initialize an OverrideRCIn message with no change for the PWM values
   mavros_msgs::msg::OverrideRCIn msg;
@@ -207,6 +207,9 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   geometry_msgs::msg::WrenchStamped wrench_frd;
   tf2::doTransform(wrench, wrench_frd, transform);
   tf2::fromMsg(wrench_frd.wrench, forces);
+
+  // Publish the wrench for debugging purposes
+  desired_wrench_pub_->publish(wrench);
 
   // Multiply the desired forces by the pseudoinverse of the thruster configuration matrix
   // The size of this vector will depend on the number of thrusters so we don't assign it to a

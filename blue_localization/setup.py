@@ -52,6 +52,9 @@ setup(
             "qualisys_localizer = blue_localization.localizer:main_qualisys",
             "gazebo_localizer = blue_localization.localizer:main_gazebo",
             "hinsdale_localizer = blue_localization.localizer:main_hinsdale_qualisys",
+            "dvl_localizer = blue_localization.localizer:main_dvl",
+            "waterlinked_dvl = blue_localization.source:main_waterlinked_dvl",
+            "waterlinked_dvl_localizer = blue_localization.localizer:main_waterlinked_dvl",  # noqa
         ],
     },
 )

@@ -49,7 +49,7 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "localization_source",
             default_value="gazebo",
-            choices=["mocap", "camera", "gazebo", "hinsdale"],
+            choices=["mocap", "camera", "gazebo", "hinsdale", "dvl"],
             description="The localization source to stream from.",
         ),
         DeclareLaunchArgument(
@@ -67,6 +67,11 @@ def generate_launch_description() -> LaunchDescription:
                 "Launch the Qualisys motion capture stream. This is automatically"
                 " set to true when using the motion capture system for localization."
             ),
+        ),
+        DeclareLaunchArgument(
+            "use_dvl",
+            default_value="false",
+            description="Launch the DVL interface.",
         ),
         DeclareLaunchArgument(
             "use_sim",
@@ -127,6 +132,7 @@ def generate_launch_description() -> LaunchDescription:
                     "localization_source": LaunchConfiguration("localization_source"),
                     "use_camera": LaunchConfiguration("use_camera"),
                     "use_mocap": LaunchConfiguration("use_mocap"),
+                    "use_dvl": LaunchConfiguration("use_dvl"),
                     "use_sim": LaunchConfiguration("use_sim"),
                     "use_rviz": LaunchConfiguration("use_rviz"),
                     "rviz_config": LaunchConfiguration("rviz_config"),

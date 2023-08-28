@@ -46,7 +46,7 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "localization_source",
             default_value="mocap",
-            choices=["mocap", "camera", "gazebo", "hinsdale"],
+            choices=["mocap", "camera", "gazebo", "hinsdale", "dvl"],
             description="The localization source to stream from.",
         ),
         DeclareLaunchArgument(
@@ -66,6 +66,9 @@ def generate_launch_description() -> LaunchDescription:
             ),
         ),
         DeclareLaunchArgument(
+            "use_dvl", default_value="false", description="Launch the DVL interface."
+        ),
+        DeclareLaunchArgument(
             "use_sim_time",
             default_value="false",
             description=("Use the simulated Gazebo clock."),
@@ -75,6 +78,7 @@ def generate_launch_description() -> LaunchDescription:
     localization_source = LaunchConfiguration("localization_source")
     use_camera = LaunchConfiguration("use_camera")
     use_mocap = LaunchConfiguration("use_mocap")
+    use_dvl = LaunchConfiguration("use_dvl")
     use_sim_time = LaunchConfiguration("use_sim_time")
 
     nodes = [
@@ -137,6 +141,27 @@ def generate_launch_description() -> LaunchDescription:
         ),
         Node(
             package="blue_localization",
+            executable="waterlinked_dvl",
+            name="waterlinked_dvl",
+            output="both",
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {"use_sim_time": use_sim_time},
+            ],
+            condition=IfCondition(
+                PythonExpression(
+                    [
+                        "'",
+                        localization_source,
+                        "' == 'dvl' or '",
+                        use_dvl,
+                        "' == 'true'",
+                    ]
+                )
+            ),
+        ),
+        Node(
+            package="blue_localization",
             executable="qualisys_localizer",
             name="qualisys_localizer",
             output="both",
@@ -172,6 +197,19 @@ def generate_launch_description() -> LaunchDescription:
             ],
             condition=IfCondition(
                 PythonExpression(["'", localization_source, "' == 'hinsdale'"])
+            ),
+        ),
+        Node(
+            package="blue_localization",
+            executable="waterlinked_dvl_localizer",
+            name="waterlinked_dvl_localizer",
+            output="both",
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {"use_sim_time": use_sim_time},
+            ],
+            condition=IfCondition(
+                PythonExpression(["'", localization_source, "' == 'dvl'"])
             ),
         ),
     ]

@@ -143,13 +143,20 @@ class Manager(Node):
         wait_for_client(self.set_home_pos_client)
 
         # Set the intervals at which the desired MAVLink messages are sent
+        self._message_rates_set = False
+
+        def update_rate_set(future):
+            self.message_rates_set = future.result().success
+
         def set_message_rates(
             message_ids: list[int], message_rates: list[float]
         ) -> None:
-            for msg, rate in zip(message_ids, message_rates):
-                self.set_message_rates_client.call_async(
-                    MessageInterval.Request(message_id=msg, message_rate=rate)
-                )
+            if not self.message_rates_set:
+                for msg, rate in zip(message_ids, message_rates):
+                    future = self.set_message_rates_client.call_async(
+                        MessageInterval.Request(message_id=msg, message_rate=rate)
+                    )
+                    future.add_done_callback(update_rate_set)
 
         message_request_rate = (
             self.get_parameter("message_intervals.request_interval")
@@ -167,25 +174,29 @@ class Manager(Node):
             .double_array_value
         )
 
-        # We set the intervals periodically to handle the situation in which
-        # users launch QGC which requests different rates on boot.
-        # Inspiration for this is taken from the Orca4 project here:
-        # https://github.com/clydemcqueen/orca4/blob/77152829e1d65781717ca55379c229145d6006e9/orca_base/src/manager.cpp#L407
+        # Try setting the message rates until MAVROS indicates that they have been set
         self.message_rate_timer = self.create_timer(
             message_request_rate, lambda: set_message_rates(message_ids, message_rates)
         )
 
         # Set the home position
+        self._home_pos_set = False
+
+        def update_home_position_set(future):
+            self.home_position_set = future.result().success
+
         def set_home_pos(lat: float, lon: float, alt: float, yaw: float) -> None:
-            self.set_home_pos_client.call_async(
-                CommandHome.Request(
-                    current_gps=False,
-                    yaw=yaw,
-                    latitude=lat,
-                    longitude=lon,
-                    altitude=alt,
+            if not self.home_position_set:
+                future = self.set_home_pos_client.call_async(
+                    CommandHome.Request(
+                        current_gps=False,
+                        yaw=yaw,
+                        latitude=lat,
+                        longitude=lon,
+                        altitude=alt,
+                    )
                 )
-            )
+                future.add_done_callback(update_home_position_set)
 
         # Set the home position. Some folks have discussed that this is necessary for
         # GUIDED mode
@@ -213,8 +224,7 @@ class Manager(Node):
             .double_value
         )
 
-        # Similar to the message rates, we set the home position periodically to handle
-        # the case in which the home position is set by QGC to a different location
+        # Try setting the home position until MAVROS indicates success
         self.message_rate_timer = self.create_timer(
             hp_request_rate,
             lambda: set_home_pos(home_lat, home_lon, home_alt, home_yaw),
@@ -244,6 +254,52 @@ class Manager(Node):
                 GeoPoint(latitude=origin_lat, longitude=origin_lon, altitude=origin_alt)
             ),
         )
+
+    @property
+    def message_rates_set(self) -> bool:
+        """Indicate whether or not the message intervals have been properly set.
+
+        Returns:
+            Message intervals have been successfully set.
+        """
+        return self._message_rates_set
+
+    @message_rates_set.setter
+    def message_rates_set(self, rates_set: bool) -> None:
+        """Update the flag indicating whether or not the message rates have been set.
+
+        Args:
+            rates_set: Flag indicating whether or not the message rates have been set.
+        """
+        if rates_set:
+            self.get_logger().info("Successfully set the message rates!")
+        else:
+            self.get_logger().warn("Failed to set the desired message rates")
+
+        self._message_rates_set = rates_set
+
+    @property
+    def home_position_set(self) -> bool:
+        """Indicate whether or not the home position has been properly set.
+
+        Returns:
+            Home position has been set to the desired value.
+        """
+        return self._home_pos_set
+
+    @home_position_set.setter
+    def home_position_set(self, pos_set: bool) -> None:
+        """Update the flag indicating whether or not the home position has been set.
+
+        Args:
+            pos_set: Flag indicating whether or not the desired home position was set.
+        """
+        if pos_set:
+            self.get_logger().info("Successfully set the home position!")
+        else:
+            self.get_logger().warn("Failed to set the home position!")
+
+        self._home_pos_set = pos_set
 
     @property
     def params_successfully_backed_up(self) -> bool:

@@ -63,6 +63,7 @@ class Localizer(Node, ABC):
     MAP_NED_FRAME = "map_ned"
     BASE_LINK_FRAME = "base_link"
     BASE_LINK_FRD_FRAME = "base_link_frd"
+    BASE_LINK_DVL_FRAME = "base_link_dvl"
     CAMERA_FRAME = "camera_link"
 
     def __init__(self, node_name: str) -> None:
@@ -647,6 +648,78 @@ class GazeboLocalizer(PoseLocalizer):
         self.state = pose_cov
 
 
+class WaterLinkedDvlLocalizer(TwistLocalizer):
+    """Localization interface for the WaterLinked DVL A50."""
+
+    def __init__(self) -> None:
+        """Create a new localizer for the WaterLinked DVL data."""
+        super().__init__("waterlinked_dvl_localizer")
+
+        self.vel_sub = self.create_subscription(
+            TwistWithCovarianceStamped,
+            "/blue/dvl/twist_cov",
+            self.update_vel_cb,
+            qos_profile_sensor_data,
+        )
+
+    def update_vel_cb(self, twist_cov: TwistWithCovarianceStamped) -> None:
+        """Update the current velocity state.
+
+        Args:
+            twist_cov: The current velocity measurement from the DVL.
+        """
+        self.state = twist_cov
+
+
+class HinsdaleDvlLocalizer(Localizer):
+    """Localize the BlueROV2 using the DVL.
+
+    This is used only during Hinsdale 2023 testing for controller evaluation.
+    """
+
+    def __init__(self) -> None:
+        """Create a new DVL localizer."""
+        super().__init__("dvl")
+
+        self.odom_pub = self.create_publisher(
+            Odometry, "/blue/local_position/odom", qos_profile_sensor_data
+        )
+        # Override the original timer
+        self.update_state_timer.cancel()
+        self.update_state_timer = self.create_timer(
+            self._update_rate, self.publish, MutuallyExclusiveCallbackGroup()
+        )
+        self.dvl_sub = self.create_subscription(
+            TwistStamped,
+            "/mavros/local_position/velocity_body",
+            self.update_odom_cb,
+            qos_profile_sensor_data,
+        )
+
+    def publish(self) -> None:
+        """Publish the current odometry state."""
+        if self.state is not None:
+            self.odom_pub.publish(self.state)
+
+    def update_odom_cb(self, twist: TwistStamped) -> None:
+        """Update the current odometry reading.
+
+        Args:
+            pose: The current vehicle pose.
+            twist: The current vehicle twist.
+        """
+        odom = Odometry()
+
+        odom.header.frame_id = self.MAP_FRAME
+        odom.header.stamp = twist.header.stamp
+        odom.child_frame_id = twist.header.frame_id
+
+        # Set the twist
+        odom.twist.twist = twist.twist
+
+        self.state = odom
+
+
 class HinsdaleQualisysLocalizer(Localizer):
     """Localize the BlueROV2 using the Qualisys motion capture system.
 
@@ -858,6 +931,30 @@ def main_hinsdale_qualisys(args: list[str] | None = None):
     rclpy.init(args=args)
 
     node = HinsdaleQualisysLocalizer()
+    executor = MultiThreadedExecutor()
+    rclpy.spin(node, executor)
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+def main_dvl(args: list[str] | None = None):
+    """Run the DVL localizer."""
+    rclpy.init(args=args)
+
+    node = HinsdaleDvlLocalizer()
+    executor = MultiThreadedExecutor()
+    rclpy.spin(node, executor)
+
+    node.destroy_node()
+    rclpy.shutdown()
+
+
+def main_waterlinked_dvl(args: list[str] | None = None):
+    """Run the WaterLinked DVL localizer."""
+    rclpy.init(args=args)
+
+    node = WaterLinkedDvlLocalizer()
     executor = MultiThreadedExecutor()
     rclpy.spin(node, executor)
 
