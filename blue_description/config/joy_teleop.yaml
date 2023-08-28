@@ -29,6 +29,14 @@ joy_teleop:
         data: True
       buttons: [5]
 
+    disarm_custom_controller:
+      type: service
+      interface_type: std_srvs/srv/SetBool
+      service_name: /blue/cmd/arm
+      service_request:
+        data: False
+      buttons: [4]
+
     vel_control:
       type: topic
       interface_type: std_msgs/msg/Bool
@@ -42,18 +50,10 @@ joy_teleop:
       type: topic
       interface_type: std_msgs/msg/Bool
       topic_name: /blue/joy_interface/start_pwm_control
-      deadman_buttons: [6]
+      deadman_buttons: [4]
       message_value:
         data:
           value: True
-
-    disarm_custom_controller:
-      type: service
-      interface_type: std_srvs/srv/SetBool
-      service_name: /blue/cmd/arm
-      service_request:
-        data: False
-      buttons: [4]
 
     enable_passthrough:
       type: service
