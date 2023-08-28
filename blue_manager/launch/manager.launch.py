@@ -20,6 +20,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -32,9 +33,22 @@ def generate_launch_description() -> LaunchDescription:
     """
     args = [
         DeclareLaunchArgument(
-            "config_filepath",
+            "manager_filepath",
             default_value=None,
-            description="The path to the configuration YAML file.",
+            description="The path to the manager configuration YAML file.",
+        ),
+        DeclareLaunchArgument(
+            "joy_filepath",
+            default_value=None,
+            description="The path to the joystick controller configuration YAML file.",
+        ),
+        DeclareLaunchArgument(
+            "use_joy", default_value="false", description="Use a joystick controller."
+        ),
+        DeclareLaunchArgument(
+            "joy_device",
+            default_value="/dev/input/js0",
+            description="The full path to the joystick device to use.",
         ),
         DeclareLaunchArgument(
             "use_sim_time",
@@ -50,9 +64,33 @@ def generate_launch_description() -> LaunchDescription:
             name="blue_manager",
             output="both",
             parameters=[
-                LaunchConfiguration("config_filepath"),
+                LaunchConfiguration("manager_filepath"),
                 {"use_sim_time": LaunchConfiguration("use_sim_time")},
             ],
+        ),
+        Node(
+            package="blue_manager",
+            executable="joy_controller",
+            name="joy_controller",
+            output="both",
+            parameters=[
+                LaunchConfiguration("joy_filepath"),
+                {"use_sim_time": LaunchConfiguration("use_sim_time")},
+            ],
+            condition=IfCondition(LaunchConfiguration("use_joy")),
+        ),
+        Node(
+            package="joy_linux",
+            executable="joy_linux_node",
+            name="joy_node",
+            output="both",
+            parameters=[
+                {
+                    "use_sim_time": LaunchConfiguration("use_sim_time"),
+                    "dev": LaunchConfiguration("joy_device"),
+                },
+            ],
+            condition=IfCondition(LaunchConfiguration("use_joy")),
         ),
     ]
 

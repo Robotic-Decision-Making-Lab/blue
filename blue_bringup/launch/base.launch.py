@@ -77,6 +77,11 @@ def generate_launch_description() -> LaunchDescription:
             ),
         ),
         DeclareLaunchArgument(
+            "joy_file",
+            default_value="joy_controller.yaml",
+            description="The joystick controller configuration file.",
+        ),
+        DeclareLaunchArgument(
             "gazebo_world_file",
             default_value="",
             description="The world configuration to load if using Gazebo.",
@@ -123,6 +128,9 @@ def generate_launch_description() -> LaunchDescription:
             description="Launch RViz2.",
         ),
         DeclareLaunchArgument(
+            "use_joy", default_value="false", description="Use a joystick controller."
+        ),
+        DeclareLaunchArgument(
             "rviz_config",
             default_value="",
             description="The RViz2 configuration file to load.",
@@ -139,6 +147,11 @@ def generate_launch_description() -> LaunchDescription:
             "robot_description",
             default_value="",
             description="The model URDF file.",
+        ),
+        DeclareLaunchArgument(
+            "joy_device",
+            default_value="/dev/input/js0",
+            description="The full path to the joystick device to use.",
         ),
     ]
 
@@ -221,7 +234,7 @@ def generate_launch_description() -> LaunchDescription:
                 )
             ),
             launch_arguments={
-                "config_filepath": PathJoinSubstitution(
+                "manager_filepath": PathJoinSubstitution(
                     [
                         FindPackageShare(description_package),
                         "config",
@@ -229,6 +242,15 @@ def generate_launch_description() -> LaunchDescription:
                         LaunchConfiguration("manager_file"),
                     ]
                 ),
+                "joy_filepath": PathJoinSubstitution(
+                    [
+                        FindPackageShare(description_package),
+                        "config",
+                        LaunchConfiguration("joy_file"),
+                    ]
+                ),
+                "use_joy": LaunchConfiguration("use_joy"),
+                "joy_device": LaunchConfiguration("joy_device"),
                 "use_sim_time": use_sim,
             }.items(),
         ),

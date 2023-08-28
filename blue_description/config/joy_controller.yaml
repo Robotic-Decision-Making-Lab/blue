@@ -1,0 +1,25 @@
+joy_controller:
+  ros__parameters:
+    manual_control:
+      group: "axes"
+      surge: 1
+      sway: 0
+      heave: 3
+      yaw: 4
+    adjust_max_velocity:
+      default_velocity: 0.2
+      group: "axes"
+      id: 7
+    arming:
+      group: "buttons"
+      arm: 7
+      disarm: 6
+    custom_controller_arming:
+      controller_name: "ismc"
+      group: "buttons"
+      arm: 5
+      disarm: 4
+    modes:
+      group: "buttons"
+      manual_mode: 0
+      passthrough_mode: 1

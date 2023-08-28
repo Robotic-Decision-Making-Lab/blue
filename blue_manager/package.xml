@@ -16,6 +16,7 @@
 
   <depend>mavros_msgs</depend>
   <depend>std_srvs</depend>
+  <depend>joy-linux</depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>ament_flake8</test_depend>

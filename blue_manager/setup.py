@@ -46,6 +46,7 @@ setup(
     entry_points={
         "console_scripts": [
             "blue_manager = blue_manager.manager:main",
+            "joy_controller = blue_manager.joy_controller:main",
         ],
     },
 )
