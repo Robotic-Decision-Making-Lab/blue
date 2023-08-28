@@ -1,0 +1,127 @@
+joy_node:
+  ros__parameters:
+    dev: /dev/input/js0
+
+joy_teleop:
+  ros__parameters:
+
+    arm_ardusub:
+      type: service
+      interface_type: mavros_msgs/srv/CommandBool
+      service_name: /mavros/cmd/arming
+      service_request:
+        value: True
+      buttons: [7]
+
+    disarm_ardusub:
+      type: service
+      interface_type: mavros_msgs/srv/CommandBool
+      service_name: /mavros/cmd/arming
+      service_request:
+        value: False
+      buttons: [6]
+
+    arm_custom_controller:
+      type: service
+      interface_type: std_srvs/srv/SetBool
+      service_name: /blue/cmd/arm
+      service_request:
+        data: True
+      buttons: [5]
+
+    vel_control:
+      type: topic
+      interface_type: std_msgs/msg/Bool
+      topic_name: /blue/joy_interface/start_vel_control
+      deadman_buttons: [5]
+      message_value:
+        data:
+          value: True
+
+    pwm_control:
+      type: topic
+      interface_type: std_msgs/msg/Bool
+      topic_name: /blue/joy_interface/start_pwm_control
+      deadman_buttons: [6]
+      message_value:
+        data:
+          value: True
+
+    disarm_custom_controller:
+      type: service
+      interface_type: std_srvs/srv/SetBool
+      service_name: /blue/cmd/arm
+      service_request:
+        data: False
+      buttons: [4]
+
+    enable_passthrough:
+      type: service
+      interface_type: std_srvs/srv/SetBool
+      service_name: /blue/cmd/enable_passthrough
+      service_request:
+        data: True
+      buttons: [9]
+
+    disable_passthrough:
+      type: service
+      interface_type: std_srvs/srv/SetBool
+      service_name: /blue/cmd/enable_passthrough
+      service_request:
+        data: False
+      buttons: [10]
+
+    manual_mode:
+      type: service
+      interface_type: mavros_msgs/srv/SetMode
+      service_name: /mavros/set_mode
+      service_request:
+        custom_mode: MANUAL
+      buttons: [0]
+
+    depth_hold_mode:
+      type: service
+      interface_type: mavros_msgs/srv/SetMode
+      service_name: /mavros/set_mode
+      service_request:
+        custom_mode: ALT_HOLD
+      buttons: [1]
+
+    guided_mode:
+      type: service
+      interface_type: mavros_msgs/srv/SetMode
+      service_name: /mavros/set_mode
+      service_request:
+        custom_mode: GUIDED
+      buttons: [2]
+
+    auto_mode:
+      type: service
+      interface_type: mavros_msgs/srv/SetMode
+      service_name: /mavros/set_mode
+      service_request:
+        custom_mode: AUTO
+      buttons: [3]
+
+    manual_control:
+      type: topic
+      interface_type: geometry_msgs/msg/Twist
+      topic_name: /blue/joy_interface/cmd_vel
+      deadman_axes: [2]
+      axis_mappings:
+        linear-x:
+          axis: 1
+          scale: 0.5
+          offset: 0
+        linear-y:
+          axis: 0
+          scale: 0.5
+          offset: 0
+        linear-z:
+          axis: 4
+          scale: 0.5
+          offset: 0
+        angular-z:
+          axis: 3
+          scale: 1.0
+          offset: 0

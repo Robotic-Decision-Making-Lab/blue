@@ -23,7 +23,7 @@ from glob import glob
 
 from setuptools import setup
 
-package_name = "blue_manager"
+package_name = "blue_joy"
 
 setup(
     name=package_name,
@@ -43,7 +43,5 @@ setup(
     ),
     license="MIT",
     tests_require=["pytest"],
-    entry_points={
-        "console_scripts": ["blue_manager = blue_manager.manager:main"],
-    },
+    entry_points={"console_scripts": ["joy_interface = blue_joy.joy:main"]},
 )

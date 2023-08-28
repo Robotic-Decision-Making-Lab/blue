@@ -78,7 +78,7 @@ def generate_launch_description() -> LaunchDescription:
         ),
         DeclareLaunchArgument(
             "joy_file",
-            default_value="joy_controller.yaml",
+            default_value="joy_teleop.yaml",
             description="The joystick controller configuration file.",
         ),
         DeclareLaunchArgument(
@@ -234,7 +234,7 @@ def generate_launch_description() -> LaunchDescription:
                 )
             ),
             launch_arguments={
-                "manager_filepath": PathJoinSubstitution(
+                "config_filepath": PathJoinSubstitution(
                     [
                         FindPackageShare(description_package),
                         "config",
@@ -242,15 +242,6 @@ def generate_launch_description() -> LaunchDescription:
                         LaunchConfiguration("manager_file"),
                     ]
                 ),
-                "joy_filepath": PathJoinSubstitution(
-                    [
-                        FindPackageShare(description_package),
-                        "config",
-                        LaunchConfiguration("joy_file"),
-                    ]
-                ),
-                "use_joy": LaunchConfiguration("use_joy"),
-                "joy_device": LaunchConfiguration("joy_device"),
                 "use_sim_time": use_sim,
             }.items(),
         ),
@@ -291,6 +282,22 @@ def generate_launch_description() -> LaunchDescription:
                 "localization_source": LaunchConfiguration("localization_source"),
                 "use_mocap": LaunchConfiguration("use_mocap"),
                 "use_camera": LaunchConfiguration("use_camera"),
+                "use_sim_time": use_sim,
+            }.items(),
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution([FindPackageShare("blue_joy"), "joy.launch.py"])
+            ),
+            launch_arguments={
+                "config_filepath": PathJoinSubstitution(
+                    [
+                        FindPackageShare(description_package),
+                        "config",
+                        LaunchConfiguration("joy_file"),
+                    ]
+                ),
+                "controller": LaunchConfiguration("controller"),
                 "use_sim_time": use_sim,
             }.items(),
         ),
