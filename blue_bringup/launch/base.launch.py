@@ -276,7 +276,6 @@ def generate_launch_description() -> LaunchDescription:
                 ),
                 "localization_source": LaunchConfiguration("localization_source"),
                 "use_mocap": LaunchConfiguration("use_mocap"),
-                "use_dvl": LaunchConfiguration("use_dvl"),
                 "use_camera": LaunchConfiguration("use_camera"),
                 "use_sim_time": use_sim,
             }.items(),

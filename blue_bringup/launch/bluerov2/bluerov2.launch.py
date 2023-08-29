@@ -130,7 +130,6 @@ def generate_launch_description() -> LaunchDescription:
                     "localization_source": LaunchConfiguration("localization_source"),
                     "use_camera": LaunchConfiguration("use_camera"),
                     "use_mocap": LaunchConfiguration("use_mocap"),
-                    "use_dvl": LaunchConfiguration("use_dvl"),
                     "use_sim": LaunchConfiguration("use_sim"),
                     "use_rviz": LaunchConfiguration("use_rviz"),
                     "rviz_config": LaunchConfiguration("rviz_config"),
