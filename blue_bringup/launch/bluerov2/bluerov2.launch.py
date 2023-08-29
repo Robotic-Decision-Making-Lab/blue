@@ -92,11 +92,6 @@ def generate_launch_description() -> LaunchDescription:
                 " Expected format '<prefix>/'."
             ),
         ),
-        DeclareLaunchArgument(
-            "joy_device",
-            default_value="/dev/input/js0",
-            description="The full path to the joystick device to use.",
-        ),
     ]
 
     robot_description = Command(
@@ -142,7 +137,6 @@ def generate_launch_description() -> LaunchDescription:
                     "prefix": LaunchConfiguration("prefix"),
                     "robot_description": robot_description,
                     "use_joy": LaunchConfiguration("use_joy"),
-                    "joy_device": LaunchConfiguration("joy_device"),
                 }.items(),
             ),
             IncludeLaunchDescription(

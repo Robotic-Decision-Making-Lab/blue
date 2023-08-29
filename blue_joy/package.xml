@@ -4,7 +4,7 @@
 
   <name>blue_joy</name>
   <version>0.0.1</version>
-  <description>An interface for joystick manual control.</description>
+  <description>An interface for manual control using a joystick.</description>
 
   <maintainer email="evanp922@gmail.com">Evan Palmer</maintainer>
   <license>MIT</license>
@@ -16,6 +16,9 @@
 
   <depend>mavros_msgs</depend>
   <depend>std_msgs</depend>
+
+  <exec_depend>joy-teleop</exec_depend>
+  <exec_depend>joy_linux</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
   <test_depend>python3-pytest</test_depend>

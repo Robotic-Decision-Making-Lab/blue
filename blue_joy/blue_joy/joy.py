@@ -29,14 +29,21 @@ from std_msgs.msg import Bool
 class JoyInterface(Node):
     """Interface for sending manual control inputs to a controller."""
 
-    MIN_PWM = 1100
-    MAX_PWM = 1900
-
     def __init__(self):
         """Create a new joystick manual control interface."""
         super().__init__("joy_interface")
 
         self.declare_parameter("custom_controller_name", "ismc")
+        self.declare_parameters(
+            "trims", parameters=[("max_pwm", 1900), ("min_pwm", 1100)]  # type: ignore
+        )
+
+        self.min_pwm = (
+            self.get_parameter("trims.min_pwm").get_parameter_value().integer_value
+        )
+        self.max_pwm = (
+            self.get_parameter("trims.max_pwm").get_parameter_value().integer_value
+        )
 
         # Keep track of whether or not we are controlling using PWMs or twists
         self.vel_control = False
@@ -122,22 +129,23 @@ class JoyInterface(Node):
             channels = [OverrideRCIn.CHAN_NOCHANGE] * 18
 
             channels[4] = int(
-                self.map_range(cmd.linear.x, -1.0, 1.0, self.MIN_PWM, self.MAX_PWM)
+                self.map_range(cmd.linear.x, -1.0, 1.0, self.min_pwm, self.max_pwm)
             )
             channels[5] = int(
-                self.map_range(-1 * cmd.linear.y, -1.0, 1.0, self.MIN_PWM, self.MAX_PWM)
+                self.map_range(-1 * cmd.linear.y, -1.0, 1.0, self.min_pwm, self.max_pwm)
             )
             channels[2] = int(
-                self.map_range(cmd.linear.z, -1.0, 1.0, self.MIN_PWM, self.MAX_PWM)
+                self.map_range(cmd.linear.z, -1.0, 1.0, self.min_pwm, self.max_pwm)
             )
             channels[3] = int(
                 self.map_range(
-                    -1 * cmd.angular.z, -1.0, 1.0, self.MIN_PWM, self.MAX_PWM
+                    -1 * cmd.angular.z, -1.0, 1.0, self.min_pwm, self.max_pwm
                 )
             )
 
             rc = OverrideRCIn()
             rc.channels = channels
+
             self.override_rc_in_pub.publish(rc)
 
 

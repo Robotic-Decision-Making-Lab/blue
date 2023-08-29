@@ -82,6 +82,7 @@ def generate_launch_description() -> LaunchDescription:
             name="joy_interface",
             output="both",
             parameters=[
+                LaunchConfiguration("config_filepath"),
                 {
                     "custom_controller_name": LaunchConfiguration("controller"),
                     "use_sim_time": LaunchConfiguration("use_sim_time"),

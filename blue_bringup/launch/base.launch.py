@@ -148,11 +148,6 @@ def generate_launch_description() -> LaunchDescription:
             default_value="",
             description="The model URDF file.",
         ),
-        DeclareLaunchArgument(
-            "joy_device",
-            default_value="/dev/input/js0",
-            description="The full path to the joystick device to use.",
-        ),
     ]
 
     description_package = LaunchConfiguration("description_package")

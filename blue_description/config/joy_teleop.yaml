@@ -2,6 +2,12 @@ joy_node:
   ros__parameters:
     dev: /dev/input/js0
 
+joy_interface:
+  ros__parameters:
+    trims:
+      min_pwm: 1300
+      max_pwm: 1700
+
 joy_teleop:
   ros__parameters:
 

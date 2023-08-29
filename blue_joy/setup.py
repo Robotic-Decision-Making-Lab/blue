@@ -38,9 +38,7 @@ setup(
     zip_safe=True,
     maintainer="Evan Palmer",
     maintainer_email="evanp922@gmail.com",
-    description=(
-        "An interface for enabling individual thruster control on the BlueROV2."
-    ),
+    description=("An interface for manual control using a joystick."),
     license="MIT",
     tests_require=["pytest"],
     entry_points={"console_scripts": ["joy_interface = blue_joy.joy:main"]},
