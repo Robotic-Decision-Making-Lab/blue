@@ -17,7 +17,7 @@
   <depend>mavros_msgs</depend>
   <depend>std_msgs</depend>
 
-  <exec_depend>joy-teleop</exec_depend>
+  <exec_depend>joy_teleop</exec_depend>
   <exec_depend>joy_linux</exec_depend>
 
   <test_depend>ament_copyright</test_depend>
