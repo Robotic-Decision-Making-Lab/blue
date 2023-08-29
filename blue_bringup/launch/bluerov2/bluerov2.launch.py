@@ -77,6 +77,9 @@ def generate_launch_description() -> LaunchDescription:
             "use_rviz", default_value="false", description="Launch RViz2."
         ),
         DeclareLaunchArgument(
+            "use_joy", default_value="false", description="Use a joystick controller."
+        ),
+        DeclareLaunchArgument(
             "rviz_config",
             default_value="bluerov2.rviz",
             description="The RViz2 configuration file to load.",
@@ -134,6 +137,7 @@ def generate_launch_description() -> LaunchDescription:
                     "gazebo_world_file": "bluerov2_underwater.world",
                     "prefix": LaunchConfiguration("prefix"),
                     "robot_description": robot_description,
+                    "use_joy": LaunchConfiguration("use_joy"),
                 }.items(),
             ),
             IncludeLaunchDescription(

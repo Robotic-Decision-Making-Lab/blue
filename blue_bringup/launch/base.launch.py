@@ -77,6 +77,11 @@ def generate_launch_description() -> LaunchDescription:
             ),
         ),
         DeclareLaunchArgument(
+            "joy_file",
+            default_value="joy_teleop.yaml",
+            description="The joystick controller configuration file.",
+        ),
+        DeclareLaunchArgument(
             "gazebo_world_file",
             default_value="",
             description="The world configuration to load if using Gazebo.",
@@ -121,6 +126,9 @@ def generate_launch_description() -> LaunchDescription:
             "use_rviz",
             default_value="false",
             description="Launch RViz2.",
+        ),
+        DeclareLaunchArgument(
+            "use_joy", default_value="false", description="Use a joystick controller."
         ),
         DeclareLaunchArgument(
             "rviz_config",
@@ -270,6 +278,22 @@ def generate_launch_description() -> LaunchDescription:
                 "use_mocap": LaunchConfiguration("use_mocap"),
                 "use_dvl": LaunchConfiguration("use_dvl"),
                 "use_camera": LaunchConfiguration("use_camera"),
+                "use_sim_time": use_sim,
+            }.items(),
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution([FindPackageShare("blue_joy"), "joy.launch.py"])
+            ),
+            launch_arguments={
+                "config_filepath": PathJoinSubstitution(
+                    [
+                        FindPackageShare(description_package),
+                        "config",
+                        LaunchConfiguration("joy_file"),
+                    ]
+                ),
+                "controller": LaunchConfiguration("controller"),
                 "use_sim_time": use_sim,
             }.items(),
         ),

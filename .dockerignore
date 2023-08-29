@@ -8,6 +8,7 @@
 !blue_bringup
 !blue_localization
 !blue_utils
+!blue_joy
 !blue.repos
 !.docker/entrypoints
 !requirements-build.txt
