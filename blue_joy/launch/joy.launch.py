@@ -20,6 +20,7 @@
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.conditions import IfCondition
 from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
@@ -34,7 +35,12 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "config_filepath",
             default_value=None,
-            description="The path to the manager configuration YAML file.",
+            description="The path to the joystick configuration YAML file.",
+        ),
+        DeclareLaunchArgument(
+            "controller",
+            default_value=None,
+            description="The name of the custom controller loaded.",
         ),
         DeclareLaunchArgument(
             "use_sim_time",
@@ -45,14 +51,44 @@ def generate_launch_description() -> LaunchDescription:
 
     nodes = [
         Node(
-            package="blue_manager",
-            executable="blue_manager",
-            name="blue_manager",
+            package="joy_linux",
+            executable="joy_linux_node",
+            name="joy_node",
             output="both",
             parameters=[
                 LaunchConfiguration("config_filepath"),
-                {"use_sim_time": LaunchConfiguration("use_sim_time")},
+                {
+                    "use_sim_time": LaunchConfiguration("use_sim_time"),
+                },
             ],
+            condition=IfCondition(LaunchConfiguration("use_joy")),
+        ),
+        Node(
+            package="joy_teleop",
+            executable="joy_teleop",
+            name="joy_teleop",
+            output="both",
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {
+                    "use_sim_time": LaunchConfiguration("use_sim_time"),
+                },
+            ],
+            condition=IfCondition(LaunchConfiguration("use_joy")),
+        ),
+        Node(
+            package="blue_joy",
+            executable="joy_interface",
+            name="joy_interface",
+            output="both",
+            parameters=[
+                LaunchConfiguration("config_filepath"),
+                {
+                    "custom_controller_name": LaunchConfiguration("controller"),
+                    "use_sim_time": LaunchConfiguration("use_sim_time"),
+                },
+            ],
+            condition=IfCondition(LaunchConfiguration("use_joy")),
         ),
     ]
 

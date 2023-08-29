@@ -206,24 +206,6 @@ def generate_launch_description():
         Node(
             package="tf2_ros",
             executable="static_transform_publisher",
-            name="base_footprint_to_base_link",
-            arguments=[
-                "--x",
-                "-0.0",
-                "--y",
-                "0.0",
-                "--z",
-                "0.0",
-                "--frame-id",
-                [prefix, "base_footprint"],
-                "--child-frame-id",
-                [prefix, "base_link"],
-            ],
-            output="both",
-        ),
-        Node(
-            package="tf2_ros",
-            executable="static_transform_publisher",
             name="base_link_to_base_footprint",
             arguments=[
                 "--x",

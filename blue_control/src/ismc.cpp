@@ -76,7 +76,7 @@ ISMC::ISMC()
   std::stringstream topic_ss;
   topic_ss << "/blue/" << this->get_name() << "/cmd_vel";
   cmd_sub_ = this->create_subscription<geometry_msgs::msg::Twist>(
-    topic_ss.str(), rclcpp::SensorDataQoS(),
+    topic_ss.str(), rclcpp::QoS(1),
     [this](geometry_msgs::msg::Twist::ConstSharedPtr msg) -> void  // NOLINT
     { cmd_ = *msg; });
 }
