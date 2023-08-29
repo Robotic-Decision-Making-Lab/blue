@@ -237,6 +237,14 @@ def generate_launch_description() -> LaunchDescription:
                         LaunchConfiguration("manager_file"),
                     ]
                 ),
+                "backup_params_file": PathJoinSubstitution(
+                    [
+                        FindPackageShare(description_package),
+                        "config",
+                        configuration_type,
+                        LaunchConfiguration("ardusub_params_file"),
+                    ]
+                ),
                 "use_sim_time": use_sim,
             }.items(),
         ),

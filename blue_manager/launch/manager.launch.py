@@ -39,7 +39,12 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument(
             "use_sim_time",
             default_value="false",
-            description=("Use the simulated Gazebo clock."),
+            description="Use the simulated Gazebo clock.",
+        ),
+        DeclareLaunchArgument(
+            "backup_params_file",
+            default_value="",
+            description="A configuration file with the ArduSub thruster parameters.",
         ),
     ]
 
@@ -51,7 +56,10 @@ def generate_launch_description() -> LaunchDescription:
             output="both",
             parameters=[
                 LaunchConfiguration("config_filepath"),
-                {"use_sim_time": LaunchConfiguration("use_sim_time")},
+                {
+                    "backup_params_file": LaunchConfiguration("backup_params_file"),
+                    "use_sim_time": LaunchConfiguration("use_sim_time"),
+                },
             ],
         ),
     ]

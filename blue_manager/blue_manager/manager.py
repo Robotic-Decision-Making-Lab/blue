@@ -24,7 +24,7 @@ import rclpy
 from geographic_msgs.msg import GeoPoint, GeoPointStamped
 from mavros_msgs.msg import OverrideRCIn, ParamEvent
 from mavros_msgs.srv import CommandHome, MessageInterval
-from rcl_interfaces.msg import Parameter
+from rcl_interfaces.msg import Parameter, ParameterValue
 from rcl_interfaces.srv import SetParameters
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
@@ -43,6 +43,7 @@ class Manager(Node):
         super().__init__("blue_manager")
 
         self.declare_parameter("num_thrusters", 8)
+        self.declare_parameter("backup_params_file", "")
         self.declare_parameters(
             namespace="message_intervals",
             parameters=[  # type: ignore
@@ -95,6 +96,27 @@ class Manager(Node):
             f"SERVO{i}_FUNCTION": None for i in range(1, self.num_thrusters + 1)
         }
 
+        # Try to load the backup parameters from a file
+        backup_filepath = (
+            self.get_parameter("backup_params_file").get_parameter_value().string_value
+        )
+        if not self.backup_thruster_params_from_file(backup_filepath):
+            self.get_logger().info(
+                "Failed to load all thruster parameters from the provided backup file."
+                " Attempting to load parameters from MAVROS."
+            )
+            self.param_event_sub = self.create_subscription(
+                ParamEvent,
+                "/mavros/param/event",
+                self.backup_thruster_params_cb,
+                qos_profile_parameter_events,
+            )
+        else:
+            self.get_logger().info(
+                "Successfully backed up the thruster parameters from the parameters"
+                " file."
+            )
+
         # Publishers
         self.override_rc_in_pub = self.create_publisher(
             OverrideRCIn, "/mavros/rc/override", qos_profile_default
@@ -103,14 +125,6 @@ class Manager(Node):
             GeoPointStamped,
             "/mavros/global_position/set_gp_origin",
             qos_profile_default,
-        )
-
-        # Subscribers
-        self.param_event_sub = self.create_subscription(
-            ParamEvent,
-            "/mavros/param/event",
-            self.backup_thruster_params_cb,
-            qos_profile_parameter_events,
         )
 
         # Services
@@ -302,13 +316,50 @@ class Manager(Node):
         self._home_pos_set = pos_set
 
     @property
-    def params_successfully_backed_up(self) -> bool:
+    def backup_params_saved(self) -> bool:
         """Whether or not the thruster parameters are backed up.
 
         Returns:
             Whether or not the parameters are backed up.
         """
         return None not in self.thruster_params_backup.values()
+
+    def backup_thruster_params_from_file(self, backup_filepath: str) -> bool:
+        """Backup thruster parameters from a parameters file.
+
+        Args:
+            backup_filepath: The full path to the backup file to load.
+
+        Returns:
+            Whether or not the parameters were successfully backed up from the file.
+        """
+        if not backup_filepath:
+            return False
+
+        with open(backup_filepath, "r") as ardusub_params:
+            params = ardusub_params.readlines()
+
+            for line in params:
+                line = line.rstrip()
+                split = line.split(" ")
+
+                try:
+                    param_id = split[0]
+                except IndexError:
+                    continue
+
+                try:
+                    param_value = int(split[1])
+                except (ValueError, IndexError):
+                    continue
+
+                if param_id in self.thruster_params_backup.keys():
+                    self.thruster_params_backup[param_id] = Parameter(
+                        name=param_id,
+                        value=ParameterValue(type=2, integer_value=param_value),
+                    )
+
+        return self.backup_params_saved
 
     def backup_thruster_params_cb(self, event: ParamEvent) -> None:
         """Backup the default thruster parameter values.
@@ -329,7 +380,7 @@ class Manager(Node):
                 name=event.param_id, value=event.value
             )
 
-            if self.params_successfully_backed_up:
+            if self.backup_params_saved:
                 self.get_logger().info(
                     "Successfully backed up the thruster parameters."
                 )
