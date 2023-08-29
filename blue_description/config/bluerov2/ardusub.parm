@@ -104,3 +104,11 @@ EK3_SRC1_YAW 6        # External nav
 
 # See https://github.com/clydemcqueen/bluerov2_ignition/issues/7
 SIM_BARO_RND 0.01
+
+# Store thruster parameters as backups
+SERVO1_FUNCTION 33
+SERVO2_FUNCTION 34
+SERVO3_FUNCTION 35
+SERVO4_FUNCTION 36
+SERVO5_FUNCTION 37
+SERVO6_FUNCTION 38
