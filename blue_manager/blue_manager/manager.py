@@ -229,7 +229,7 @@ class Manager(Node):
 
         # Similar to the message rates, we set the home position periodically to handle
         # the case in which the home position is set by QGC to a different location
-        self.message_rate_timer = self.create_timer(
+        self.home_position_timer = self.create_timer(
             hp_request_rate,
             lambda: set_home_pos(home_lat, home_lon, home_alt, home_yaw),
         )
