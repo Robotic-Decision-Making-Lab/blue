@@ -21,12 +21,15 @@
 from copy import deepcopy
 
 import rclpy
+from geographic_msgs.msg import GeoPoint, GeoPointStamped
 from mavros_msgs.msg import OverrideRCIn, ParamEvent
-from rcl_interfaces.msg import Parameter
+from mavros_msgs.srv import CommandHome, MessageInterval
+from rcl_interfaces.msg import Parameter, ParameterValue
 from rcl_interfaces.srv import SetParameters
 from rclpy.callback_groups import ReentrantCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
+from rclpy.qos import qos_profile_default, qos_profile_parameter_events
 from std_srvs.srv import SetBool
 
 
@@ -39,13 +42,51 @@ class Manager(Node):
         """Create a new control manager."""
         super().__init__("blue_manager")
 
-        self.passthrough_enabled = False
-        self.num_thrusters = 8
-        self.timeout = 1.0
-        self.retries = 3
+        self.declare_parameter("num_thrusters", 8)
+        self.declare_parameter("backup_params_file", "")
+        self.declare_parameters(
+            namespace="message_intervals",
+            parameters=[  # type: ignore
+                ("ids", [31, 32]),
+                ("rates", [100.0, 100.0]),
+                ("request_interval", 30.0),
+            ],
+        )
+        self.declare_parameters(
+            namespace="mode_change",
+            parameters=[("timeout", 1.0), ("retries", 3)],  # type: ignore
+        )
+        self.declare_parameters(
+            namespace="ekf_origin",
+            parameters=[  # type: ignore
+                ("latitude", 44.65870),
+                ("longitude", -124.06556),
+                ("altitude", 0.0),
+            ],
+        )
+        self.declare_parameters(
+            namespace="home_position",
+            parameters=[  # type: ignore
+                ("latitude", 44.65870),
+                ("longitude", -124.06556),
+                ("altitude", 0.0),
+                ("yaw", 270.0),
+                ("request_interval", 30.0),
+            ],
+        )
 
-        # Get the ROS parameters from the parameter server
-        self._get_ros_params()
+        self.passthrough_enabled = False
+        self.num_thrusters = (
+            self.get_parameter("num_thrusters").get_parameter_value().integer_value
+        )
+        self.timeout = (
+            self.get_parameter("mode_change.timeout").get_parameter_value().double_value
+        )
+        self.retries = (
+            self.get_parameter("mode_change.retries")
+            .get_parameter_value()
+            .integer_value
+        )
 
         # We need a reentrant callback group to get synchronous calls to services from
         # within service callbacks.
@@ -55,14 +96,35 @@ class Manager(Node):
             f"SERVO{i}_FUNCTION": None for i in range(1, self.num_thrusters + 1)
         }
 
+        # Try to load the backup parameters from a file
+        backup_filepath = (
+            self.get_parameter("backup_params_file").get_parameter_value().string_value
+        )
+        if not self.backup_thruster_params_from_file(backup_filepath):
+            self.get_logger().info(
+                "Failed to load all thruster parameters from the provided backup file."
+                " Attempting to load parameters from MAVROS."
+            )
+            self.param_event_sub = self.create_subscription(
+                ParamEvent,
+                "/mavros/param/event",
+                self.backup_thruster_params_cb,
+                qos_profile_parameter_events,
+            )
+        else:
+            self.get_logger().info(
+                "Successfully backed up the thruster parameters from the parameters"
+                " file."
+            )
+
         # Publishers
         self.override_rc_in_pub = self.create_publisher(
-            OverrideRCIn, "/mavros/rc/override", 1
+            OverrideRCIn, "/mavros/rc/override", qos_profile_default
         )
-
-        # Subscribers
-        self.param_event_sub = self.create_subscription(
-            ParamEvent, "/mavros/param/event", self.backup_thruster_params_cb, 50
+        self.gp_origin_pub = self.create_publisher(
+            GeoPointStamped,
+            "/mavros/global_position/set_gp_origin",
+            qos_profile_default,
         )
 
         # Services
@@ -83,39 +145,165 @@ class Manager(Node):
             "/mavros/param/set_parameters",
             callback_group=reentrant_callback_group,
         )
+        self.set_message_rates_client = self.create_client(
+            MessageInterval, "/mavros/set_message_interval"
+        )
+        self.set_home_pos_client = self.create_client(
+            CommandHome, "/mavros/cmd/set_home"
+        )
+
         wait_for_client(self.set_param_srv_client)
+        wait_for_client(self.set_message_rates_client)
+        wait_for_client(self.set_home_pos_client)
 
-    def _get_ros_params(self) -> None:
-        """Get the ROS parameters from the parameter server."""
-        self.declare_parameters(
-            "",
-            [
-                ("num_thrusters", self.num_thrusters),
-                ("mode_change_timeout", self.timeout),
-                ("mode_change_retries", self.retries),
-            ],
-        )
+        # Set the intervals at which the desired MAVLink messages are sent
+        def set_message_rates(
+            message_ids: list[int], message_rates: list[float]
+        ) -> None:
+            for msg, rate in zip(message_ids, message_rates):
+                self.set_message_rates_client.call_async(
+                    MessageInterval.Request(message_id=msg, message_rate=rate)
+                )
 
-        self.num_thrusters = (
-            self.get_parameter("num_thrusters").get_parameter_value().integer_value
-        )
-        self.timeout = (
-            self.get_parameter("mode_change_timeout").get_parameter_value().double_value
-        )
-        self.retries = (
-            self.get_parameter("mode_change_retries")
+        message_request_rate = (
+            self.get_parameter("message_intervals.request_interval")
             .get_parameter_value()
-            .integer_value
+            .double_value
+        )
+        message_ids = list(
+            self.get_parameter("message_intervals.ids")
+            .get_parameter_value()
+            .integer_array_value
+        )
+        message_rates = list(
+            self.get_parameter("message_intervals.rates")
+            .get_parameter_value()
+            .double_array_value
+        )
+
+        # We set the intervals periodically to handle the situation in which
+        # users launch QGC which requests different rates on boot.
+        # Inspiration for this is taken from the Orca4 project here:
+        # https://github.com/clydemcqueen/orca4/blob/77152829e1d65781717ca55379c229145d6006e9/orca_base/src/manager.cpp#L407
+        self.message_rate_timer = self.create_timer(
+            message_request_rate, lambda: set_message_rates(message_ids, message_rates)
+        )
+
+        # Set the home position
+        def set_home_pos(lat: float, lon: float, alt: float, yaw: float) -> None:
+            self.set_home_pos_client.call_async(
+                CommandHome.Request(
+                    current_gps=False,
+                    yaw=yaw,
+                    latitude=lat,
+                    longitude=lon,
+                    altitude=alt,
+                )
+            )
+
+        # Set the home position. Some folks have discussed that this is necessary for
+        # GUIDED mode
+        home_lat = (
+            self.get_parameter("home_position.latitude")
+            .get_parameter_value()
+            .double_value
+        )
+        home_lon = (
+            self.get_parameter("home_position.longitude")
+            .get_parameter_value()
+            .double_value
+        )
+        home_alt = (
+            self.get_parameter("home_position.altitude")
+            .get_parameter_value()
+            .double_value
+        )
+        home_yaw = (
+            self.get_parameter("home_position.yaw").get_parameter_value().double_value
+        )
+        hp_request_rate = (
+            self.get_parameter("home_position.request_interval")
+            .get_parameter_value()
+            .double_value
+        )
+
+        # Similar to the message rates, we set the home position periodically to handle
+        # the case in which the home position is set by QGC to a different location
+        self.message_rate_timer = self.create_timer(
+            hp_request_rate,
+            lambda: set_home_pos(home_lat, home_lon, home_alt, home_yaw),
+        )
+
+        # Now, set the EKF origin. This is necessary to enable GUIDED mode and other
+        # autonomy features with ArduSub
+        origin_lat = (
+            self.get_parameter("ekf_origin.latitude").get_parameter_value().double_value
+        )
+        origin_lon = (
+            self.get_parameter("ekf_origin.longitude")
+            .get_parameter_value()
+            .double_value
+        )
+        origin_alt = (
+            self.get_parameter("ekf_origin.altitude").get_parameter_value().double_value
+        )
+
+        # Normally, we would like to set the QoS policy to use transient local
+        # durability, but MAVROS uses the volitile durability setting for its
+        # subscriber. Consequently, we need to publish this every once-in-a-while
+        # to make sure that it gets set
+        self.set_ekf_origin_timer = self.create_timer(
+            15.0,
+            lambda: self.set_ekf_origin_cb(
+                GeoPoint(latitude=origin_lat, longitude=origin_lon, altitude=origin_alt)
+            ),
         )
 
     @property
-    def params_successfully_backed_up(self) -> bool:
+    def backup_params_saved(self) -> bool:
         """Whether or not the thruster parameters are backed up.
 
         Returns:
             Whether or not the parameters are backed up.
         """
         return None not in self.thruster_params_backup.values()
+
+    def backup_thruster_params_from_file(self, backup_filepath: str) -> bool:
+        """Backup thruster parameters from a parameters file.
+
+        Args:
+            backup_filepath: The full path to the backup file to load.
+
+        Returns:
+            Whether or not the parameters were successfully backed up from the file.
+        """
+        if not backup_filepath:
+            return False
+
+        with open(backup_filepath, "r") as ardusub_params:
+            params = ardusub_params.readlines()
+
+            for line in params:
+                line = line.rstrip()
+                split = line.split(" ")
+
+                try:
+                    param_id = split[0]
+                except IndexError:
+                    continue
+
+                try:
+                    param_value = int(split[1])
+                except (ValueError, IndexError):
+                    continue
+
+                if param_id in self.thruster_params_backup.keys():
+                    self.thruster_params_backup[param_id] = Parameter(
+                        name=param_id,
+                        value=ParameterValue(type=2, integer_value=param_value),
+                    )
+
+        return self.backup_params_saved
 
     def backup_thruster_params_cb(self, event: ParamEvent) -> None:
         """Backup the default thruster parameter values.
@@ -136,7 +324,7 @@ class Manager(Node):
                 name=event.param_id, value=event.value
             )
 
-            if self.params_successfully_backed_up:
+            if self.backup_params_saved:
                 self.get_logger().info(
                     "Successfully backed up the thruster parameters."
                 )
@@ -158,7 +346,6 @@ class Manager(Node):
 
         # Change the values of only the thruster channels
         channels = pwm + [OverrideRCIn.CHAN_NOCHANGE] * (18 - self.num_thrusters)
-
         self.override_rc_in_pub.publish(OverrideRCIn(channels=channels))
 
     def stop_thrusters(self) -> None:
@@ -237,7 +424,7 @@ class Manager(Node):
 
             for _ in range(self.retries):
                 self.passthrough_enabled = self.set_thruster_params(
-                    list(passthrough_params.values())
+                    list(passthrough_params.values())  # type: ignore
                 )
                 response.success = self.passthrough_enabled
 
@@ -270,7 +457,7 @@ class Manager(Node):
 
             for _ in range(self.retries):
                 self.passthrough_enabled = not self.set_thruster_params(
-                    list(self.thruster_params_backup.values())
+                    list(self.thruster_params_backup.values())  # type: ignore
                 )
 
                 response.success = not self.passthrough_enabled
@@ -293,6 +480,20 @@ class Manager(Node):
         self.get_logger().info(response.message)
 
         return response
+
+    def set_ekf_origin_cb(self, origin: GeoPoint) -> None:
+        """Set the EKF origin.
+
+        This is required for navigation on a vehicle with one of the provided
+        localizers.
+
+        Args:
+            origin: The EKF origin to set.
+        """
+        origin_stamped = GeoPointStamped()
+        origin_stamped.header.stamp = self.get_clock().now().to_msg()
+        origin_stamped.position = origin
+        self.gp_origin_pub.publish(origin_stamped)
 
 
 def main(args: list[str] | None = None):

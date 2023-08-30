@@ -77,6 +77,11 @@ def generate_launch_description() -> LaunchDescription:
             ),
         ),
         DeclareLaunchArgument(
+            "joy_file",
+            default_value="joy_teleop.yaml",
+            description="The joystick controller configuration file.",
+        ),
+        DeclareLaunchArgument(
             "gazebo_world_file",
             default_value="",
             description="The world configuration to load if using Gazebo.",
@@ -123,6 +128,9 @@ def generate_launch_description() -> LaunchDescription:
             description="Launch RViz2.",
         ),
         DeclareLaunchArgument(
+            "use_joy", default_value="false", description="Use a joystick controller."
+        ),
+        DeclareLaunchArgument(
             "rviz_config",
             default_value="",
             description="The RViz2 configuration file to load.",
@@ -151,7 +159,7 @@ def generate_launch_description() -> LaunchDescription:
         Node(
             package="mavros",
             executable="mavros_node",
-            output="screen",
+            output="both",
             parameters=[
                 PathJoinSubstitution(
                     [
@@ -229,6 +237,14 @@ def generate_launch_description() -> LaunchDescription:
                         LaunchConfiguration("manager_file"),
                     ]
                 ),
+                "backup_params_file": PathJoinSubstitution(
+                    [
+                        FindPackageShare(description_package),
+                        "config",
+                        configuration_type,
+                        LaunchConfiguration("ardusub_params_file"),
+                    ]
+                ),
                 "use_sim_time": use_sim,
             }.items(),
         ),
@@ -269,6 +285,22 @@ def generate_launch_description() -> LaunchDescription:
                 "localization_source": LaunchConfiguration("localization_source"),
                 "use_mocap": LaunchConfiguration("use_mocap"),
                 "use_camera": LaunchConfiguration("use_camera"),
+                "use_sim_time": use_sim,
+            }.items(),
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(
+                PathJoinSubstitution([FindPackageShare("blue_joy"), "joy.launch.py"])
+            ),
+            launch_arguments={
+                "config_filepath": PathJoinSubstitution(
+                    [
+                        FindPackageShare(description_package),
+                        "config",
+                        LaunchConfiguration("joy_file"),
+                    ]
+                ),
+                "controller": LaunchConfiguration("controller"),
                 "use_sim_time": use_sim,
             }.items(),
         ),

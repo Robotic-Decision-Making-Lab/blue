@@ -51,7 +51,7 @@ def generate_launch_description() -> LaunchDescription:
                 "--child-frame-id",
                 "marker_00",
             ],
-            output="screen",
+            output="both",
         )
     ]
 

@@ -84,7 +84,16 @@ def generate_launch_description() -> LaunchDescription:
             executable="parameter_bridge",
             arguments=[
                 # Clock (IGN -> ROS 2)
-                "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock",
+                "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"
+            ],
+            output="both",
+        ),
+        Node(
+            package="ros_gz_bridge",
+            executable="parameter_bridge",
+            arguments=[
+                # Camera (IGN -> ROS 2)
+                "/camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image",
                 # Odom (IGN -> ROS 2)
                 [
                     "/model/",
@@ -92,16 +101,20 @@ def generate_launch_description() -> LaunchDescription:
                     "/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
                 ],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="ros_gz_bridge",
             executable="parameter_bridge",
             arguments=[
-                # Camera (IGN -> ROS 2)
-                "/camera@sensor_msgs/msg/Image[gz.msgs.Image"
+                # Odom (IGN -> ROS 2)
+                [
+                    "/model/",
+                    configuration_type,
+                    "/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
+                ],
             ],
-            output="screen",
+            output="both",
         ),
         Node(
             package="ros_gz_sim",
@@ -125,7 +138,7 @@ def generate_launch_description() -> LaunchDescription:
                 "--home",
                 "44.65870,-124.06556,0.0,270.0",  # my not-so-secret surf spot
             ],
-            output="screen",
+            output="both",
         ),
     ]
 

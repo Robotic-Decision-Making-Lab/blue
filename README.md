@@ -5,9 +5,9 @@ testing, and deployment of underwater robots.
 
 ## Main Features
 
-When you use Blue, you get access to the following set of features:
+The main features of Blue include:
 
-- A suite of interfaces designed to enable development of custom localization,
+- A set of interfaces designed to enable development of custom localization,
   planning, and control algorithms alongside the existing implemented algorithms
   (e.g., integral sliding mode control)
 - A collection of commonly-used underwater vehicle models (both visual and

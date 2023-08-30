@@ -30,11 +30,18 @@ import rclpy
 from cv_bridge import CvBridge
 from geometry_msgs.msg import PoseStamped
 from rclpy.node import Node
+from rclpy.qos import (
+    DurabilityPolicy,
+    HistoryPolicy,
+    QoSProfile,
+    ReliabilityPolicy,
+    qos_profile_sensor_data,
+)
 from scipy.spatial.transform import Rotation as R
-from sensor_msgs.msg import Image
+from sensor_msgs.msg import CameraInfo, Image
 
 gi.require_version("Gst", "1.0")
-from gi.repository import Gst  # noqa
+from gi.repository import Gst  # noqa # type: ignore
 
 
 class Source(Node, ABC):
@@ -65,8 +72,67 @@ class Camera(Source):
         self.bridge = CvBridge()
 
         self.declare_parameter("port", 5600)
+        self.declare_parameter("camera_matrix", list(np.zeros(9)))
+        self.declare_parameter("projection_matrix", list(np.zeros(12)))
+        self.declare_parameter("distortion_coefficients", list(np.zeros(5)))
+        self.declare_parameter("frame.height", 1080)
+        self.declare_parameter("frame.width", 1920)
+        self.declare_parameter("distortion_model", "plumb_bob")
 
-        self.camera_frame_pub = self.create_publisher(Image, "/blue/camera", 1)
+        # Get the camera intrinsics
+        camera_matrix = (
+            self.get_parameter("camera_matrix").get_parameter_value().double_array_value
+        )
+        projection_matrix = (
+            self.get_parameter("projection_matrix")
+            .get_parameter_value()
+            .double_array_value
+        )
+        distortion_coefficients = (
+            self.get_parameter("distortion_coefficients")
+            .get_parameter_value()
+            .double_array_value
+        )
+        frame_height = (
+            self.get_parameter("frame.height").get_parameter_value().integer_value
+        )
+        frame_width = (
+            self.get_parameter("frame.width").get_parameter_value().integer_value
+        )
+        distortion_model = (
+            self.get_parameter("distortion_model").get_parameter_value().string_value
+        )
+
+        # Create a message with the camera info
+        camera_info = CameraInfo()
+        camera_info.header.stamp = self.get_clock().now().to_msg()
+        camera_info.header.frame_id = "camera_link"
+        camera_info.height = frame_height
+        camera_info.width = frame_width
+        camera_info.distortion_model = distortion_model
+        camera_info.d = distortion_coefficients
+        camera_info.k = camera_matrix
+        camera_info.p = projection_matrix
+
+        self.camera_info_pub = self.create_publisher(
+            CameraInfo,
+            "/camera/camera_info",
+            QoSProfile(
+                reliability=ReliabilityPolicy.RELIABLE,
+                durability=DurabilityPolicy.TRANSIENT_LOCAL,
+                history=HistoryPolicy.KEEP_LAST,
+                depth=1,
+            ),
+        )
+
+        # Go ahead and publish the camera info now
+        # This uses transient local durability, so this message will persist for
+        # subscribers
+        self.camera_info_pub.publish(camera_info)
+
+        self.camera_frame_pub = self.create_publisher(
+            Image, "/camera/image_raw", qos_profile_sensor_data
+        )
 
         # Start the GStreamer stream
         self.video_pipe, self.video_sink = self.init_stream(
@@ -150,15 +216,10 @@ class QualisysMotionCapture(Source):
         """Create a new Qualisys motion capture source."""
         super().__init__("qualisys_mocap")
 
-        self.declare_parameters(
-            "",
-            [
-                ("ip", "192.168.0.0"),
-                ("port", 22223),
-                ("version", "1.22"),
-                ("body", "bluerov"),
-            ],
-        )
+        self.declare_parameter("ip", "192.168.254.1")
+        self.declare_parameter("port", 22223)
+        self.declare_parameter("version", "1.22")
+        self.declare_parameter("body", "ROV")
 
         # Load the parameters
         self.ip = self.get_parameter("ip").get_parameter_value().string_value
@@ -168,7 +229,7 @@ class QualisysMotionCapture(Source):
 
         # Publish the pose using the name of the body as the topic
         self.mocap_pub = self.create_publisher(
-            PoseStamped, f"/blue/mocap/qualisys/{self.body}", 1
+            PoseStamped, f"/blue/mocap/qualisys/{self.body}", qos_profile_sensor_data
         )
 
     @staticmethod
@@ -225,7 +286,7 @@ class QualisysMotionCapture(Source):
 
         # Create a callback to bind to the frame stream
         def proxy_pose_cb(packet: qtm.QRTPacket) -> None:
-            _, bodies = packet.get_6d_euler()
+            _, bodies = packet.get_6d()  # type: ignore
 
             position, rotation = bodies[body_index[self.body]]
 
@@ -234,18 +295,20 @@ class QualisysMotionCapture(Source):
             pose_msg.header.frame_id = "map"
             pose_msg.header.stamp = self.get_clock().now().to_msg()
 
+            # Convert from mm to m and save the position to the message
             (
                 pose_msg.pose.position.x,
                 pose_msg.pose.position.y,
                 pose_msg.pose.position.z,
-            ) = position
+            ) = (position.x / 1000, position.y / 1000, position.z / 1000)
 
+            # Convert from a column-major rotation matrix to a quaternion
             (
                 pose_msg.pose.orientation.x,
                 pose_msg.pose.orientation.y,
                 pose_msg.pose.orientation.z,
                 pose_msg.pose.orientation.w,
-            ) = R.from_euler("xyz", rotation).as_quat()
+            ) = R.from_matrix(np.array(rotation.matrix).reshape((3, 3)).T).as_quat()
 
             self.mocap_pub.publish(pose_msg)
 
