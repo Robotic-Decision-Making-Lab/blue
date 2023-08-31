@@ -51,19 +51,13 @@ protected:
 
 private:
   // ISMC gains
-  Eigen::Matrix6d integral_gain_;
   Eigen::Matrix6d proportional_gain_;
-  Eigen::Matrix6d derivative_gain_;
   double sliding_gain_;
   double boundary_thickness_;
 
   // Error terms
   Eigen::Vector6d initial_velocity_error_;
-  Eigen::Vector6d initial_acceleration_error_;
   Eigen::Vector6d total_velocity_error_;
-
-  // Control whether or not the battery state is used when converting thrust to PWM
-  bool use_battery_state_;
 
   // Reference signal
   geometry_msgs::msg::Twist cmd_;

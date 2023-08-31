@@ -85,14 +85,6 @@ protected:
   Eigen::MatrixXd tcm_;
 
   /**
-   * @brief The current state of the battery.
-   *
-   * @note This can be used to approximate the thrust curve according to the current battery
-   * voltage.
-   */
-  sensor_msgs::msg::BatteryState battery_state_;
-
-  /**
    * @brief The current pose and twist of the BlueROV2.
    */
   nav_msgs::msg::Odometry odom_;
@@ -148,16 +140,13 @@ private:
   rclcpp::Publisher<geometry_msgs::msg::AccelStamped>::SharedPtr accel_pub_;
 
   // Subscribers
-  rclcpp::Subscription<sensor_msgs::msg::BatteryState>::SharedPtr battery_state_sub_;
   rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odom_sub_;
-  rclcpp::Subscription<geometry_msgs::msg::PoseStamped>::SharedPtr ardu_pose_sub_;
 
   // Callback groups
   rclcpp::CallbackGroup::SharedPtr control_loop_cb_group_;
 
   // Timers
   rclcpp::TimerBase::SharedPtr control_loop_timer_;
-  rclcpp::TimerBase::SharedPtr set_message_rate_timer_;
 
   // Services
   rclcpp::Service<std_srvs::srv::SetBool>::SharedPtr arm_srv_;

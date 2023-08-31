@@ -21,9 +21,7 @@
 from copy import deepcopy
 
 import rclpy
-from geographic_msgs.msg import GeoPoint, GeoPointStamped
 from mavros_msgs.msg import OverrideRCIn, ParamEvent
-from mavros_msgs.srv import CommandHome
 from rcl_interfaces.msg import Parameter, ParameterValue
 from rcl_interfaces.srv import SetParameters
 from rclpy.callback_groups import ReentrantCallbackGroup
@@ -45,34 +43,8 @@ class Manager(Node):
         self.declare_parameter("num_thrusters", 8)
         self.declare_parameter("backup_params_file", "")
         self.declare_parameters(
-            namespace="message_intervals",
-            parameters=[  # type: ignore
-                ("ids", [31, 32]),
-                ("rates", [100.0, 100.0]),
-                ("request_interval", 30.0),
-            ],
-        )
-        self.declare_parameters(
             namespace="mode_change",
             parameters=[("timeout", 1.0), ("retries", 3)],  # type: ignore
-        )
-        self.declare_parameters(
-            namespace="ekf_origin",
-            parameters=[  # type: ignore
-                ("latitude", 44.65870),
-                ("longitude", -124.06556),
-                ("altitude", 0.0),
-            ],
-        )
-        self.declare_parameters(
-            namespace="home_position",
-            parameters=[  # type: ignore
-                ("latitude", 44.65870),
-                ("longitude", -124.06556),
-                ("altitude", 0.0),
-                ("yaw", 270.0),
-                ("request_interval", 30.0),
-            ],
         )
 
         self.passthrough_enabled = False
@@ -142,52 +114,6 @@ class Manager(Node):
         )
 
         wait_for_client(self.set_param_srv_client)
-
-    @property
-    def message_rates_set(self) -> bool:
-        """Indicate whether or not the message intervals have been properly set.
-
-        Returns:
-            Message intervals have been successfully set.
-        """
-        return self._message_rates_set
-
-    @message_rates_set.setter
-    def message_rates_set(self, rates_set: bool) -> None:
-        """Update the flag indicating whether or not the message rates have been set.
-
-        Args:
-            rates_set: Flag indicating whether or not the message rates have been set.
-        """
-        if rates_set:
-            self.get_logger().info("Successfully set the message rates!")
-        else:
-            self.get_logger().warn("Failed to set the desired message rates")
-
-        self._message_rates_set = rates_set
-
-    @property
-    def home_position_set(self) -> bool:
-        """Indicate whether or not the home position has been properly set.
-
-        Returns:
-            Home position has been set to the desired value.
-        """
-        return self._home_pos_set
-
-    @home_position_set.setter
-    def home_position_set(self, pos_set: bool) -> None:
-        """Update the flag indicating whether or not the home position has been set.
-
-        Args:
-            pos_set: Flag indicating whether or not the desired home position was set.
-        """
-        if pos_set:
-            self.get_logger().info("Successfully set the home position!")
-        else:
-            self.get_logger().warn("Failed to set the home position!")
-
-        self._home_pos_set = pos_set
 
     @property
     def backup_params_saved(self) -> bool:

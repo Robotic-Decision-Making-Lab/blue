@@ -19,9 +19,8 @@
 # THE SOFTWARE.
 
 import time
-from abc import ABC, abstractmethod
+from abc import ABC
 from collections import deque
-from copy import deepcopy
 from typing import Any, Deque
 
 import cv2
@@ -683,7 +682,6 @@ class HinsdaleQualisysLocalizer(Localizer):
             qos_profile_sensor_data,
         )
 
-        # Store the pose information in a buffer and apply an LWMA filter to it
         self.pose_buffer: Deque[np.ndarray] = deque(maxlen=filter_len)
         self.vel_buffer: Deque[np.ndarray] = deque(maxlen=filter_len)
 
@@ -727,25 +725,36 @@ class HinsdaleQualisysLocalizer(Localizer):
         return True
 
     @staticmethod
-    def lwma(measurements: np.ndarray) -> np.ndarray:
-        """Apply an LWMA filter to a set of measurements.
+    def transform_twist(tf_base_to_map: np.ndarray, twist: np.ndarray) -> np.ndarray:
+        """Transform the frame of a twist.
 
         Args:
-            measurements: The measurements to filter.
+            tf_base_to_map: The homogenous transformation matrix from the base frame
+                to the inertial frame.
+            twist: The twist to transform.
 
         Returns:
-            The resulting filtered state.
+            The twist in the inertial frame.
         """
-        # Get the linear weights
-        weights = np.arange(len(measurements)) + 1
+        # Start by extracting the rotation matrix and translation vector
+        rot = tf_base_to_map[:3, :3]
+        trans = tf_base_to_map[3, :3]
 
-        # Apply the LWMA filter and return
-        return np.array(
+        skew_trans = np.array(
             [
-                np.sum(np.prod(np.vstack((axis, weights)), axis=0)) / np.sum(weights)
-                for axis in measurements.T
-            ]
+                [0, -trans[2], trans[1]],
+                [trans[2], 0, -trans[0]],
+                [-trans[1], trans[0], 0],
+            ],
         )
+
+        # Construct the adjoint transformation matrix
+        ad_tf = np.zeros((6, 6))
+        ad_tf[:3, :3] = rot
+        ad_tf[3:, :3] = skew_trans @ rot
+        ad_tf[3:, 3:] = rot
+
+        return ad_tf @ twist
 
     def update_odom_cb(self, pose: PoseStamped) -> None:
         """Update the current odometry reading.
@@ -789,19 +798,26 @@ class HinsdaleQualisysLocalizer(Localizer):
             return
 
         # Get the position and velocity estimates
-        # filtered_pose_ar = self.lwma(np.array(self.pose_buffer))
         filtered_pose_ar = signal.savgol_filter(
             np.array(self.pose_buffer), 10, 3, axis=0
         )[-1]
 
         vel = (filtered_pose_ar - self.last_pose) / dt
-        self.last_pose = pose_ar
+        self.last_pose = filtered_pose_ar
         self.vel_buffer.append(vel)
 
         if len(self.vel_buffer) < self.vel_buffer.maxlen:  # type: ignore
             return
 
+        # The "Scott Chow filter"
         filtered_vel = np.median(np.array(self.vel_buffer), axis=0)
+
+        # Calculate the twist in the body frame
+        tf_map_to_base = np.eye(4)
+        tf_map_to_base[:3, :3] = R.from_euler("xyz", filtered_pose_ar[3:]).as_matrix()
+        tf_map_to_base[3, :3] = filtered_pose_ar[:3]
+
+        filtered_vel_body = self.transform_twist(tf_map_to_base.T, filtered_vel)
 
         def array_to_pose(ar: np.ndarray) -> Pose:
             pose = Pose()
@@ -830,7 +846,7 @@ class HinsdaleQualisysLocalizer(Localizer):
         odom.pose.pose = array_to_pose(filtered_pose_ar)
 
         # Now set the twist
-        odom.twist.twist = array_to_twist(filtered_vel)
+        odom.twist.twist = array_to_twist(filtered_vel_body)
 
         self.odom_pub.publish(odom)
 

@@ -36,31 +36,20 @@ namespace blue::control
 ISMC::ISMC()
 : Controller("ismc"),
   initial_velocity_error_(Eigen::Vector6d::Zero()),
-  initial_acceleration_error_(Eigen::Vector6d::Zero()),
   total_velocity_error_(Eigen::Vector6d::Zero())
 {
   // Declare the ROS parameters specific to this controller
-  this->declare_parameter("integral_gain", std::vector<double>({1.0, 1.0, 1.0, 1.0, 1.0, 1.0}));
   this->declare_parameter("proportional_gain", std::vector<double>({1.0, 1.0, 1.0, 1.0, 1.0, 1.0}));
-  this->declare_parameter("derivative_gain", std::vector<double>({1.0, 1.0, 1.0, 1.0, 1.0, 1.0}));
   this->declare_parameter("sliding_gain", 20.0);
   this->declare_parameter("boundary_thickness", 100.0);
-  this->declare_parameter("use_battery_state", false);
 
-  // Get the gain matrices
-  Eigen::VectorXd integral_gain_coeff = blue::utility::vectorToEigen<double>(
-    this->get_parameter("integral_gain").as_double_array(), 6, 1);
+  // Get the gains
   Eigen::VectorXd proportional_gain_coeff = blue::utility::vectorToEigen<double>(
     this->get_parameter("proportional_gain").as_double_array(), 6, 1);
-  Eigen::VectorXd derivative_gain_coeff = blue::utility::vectorToEigen<double>(
-    this->get_parameter("derivative_gain").as_double_array(), 6, 1);
 
-  integral_gain_ = integral_gain_coeff.asDiagonal().toDenseMatrix();
   proportional_gain_ = proportional_gain_coeff.asDiagonal().toDenseMatrix();
-  derivative_gain_ = derivative_gain_coeff.asDiagonal().toDenseMatrix();
   sliding_gain_ = this->get_parameter("sliding_gain").as_double();
   boundary_thickness_ = this->get_parameter("boundary_thickness").as_double();
-  use_battery_state_ = this->get_parameter("use_battery_state").as_bool();
 
   // Publish the desired wrench and errors to help with tuning and visualization
   std::stringstream wrench_ss;
@@ -88,10 +77,8 @@ void ISMC::onArm()
 
   // Reset the initial conditions
   initial_velocity_error_ = Eigen::Vector6d::Zero();
-  initial_acceleration_error_ = Eigen::Vector6d::Zero();
 
-  // We need to calculate the initial conditions for the controller now. This includes the
-  // initial velocity and acceleration errors
+  // We need to calculate the initial conditions for the controller now
 
   // Start by calculating the velocity error i.c.
   Eigen::Vector6d velocity;
@@ -104,7 +91,6 @@ void ISMC::onArm()
   // Assume that the desired acceleration is 0
   Eigen::Vector6d accel;
   tf2::fromMsg(accel_, accel);
-  initial_acceleration_error_ -= accel;
 };
 
 void ISMC::onDisarm()
@@ -114,7 +100,6 @@ void ISMC::onDisarm()
 
   // Reset the initial conditions too
   initial_velocity_error_ = Eigen::Vector6d::Zero();
-  initial_acceleration_error_ = Eigen::Vector6d::Zero();
 };
 
 mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
@@ -149,10 +134,6 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   total_velocity_error_ += velocity_error * dt_;
 
   // Calculate the sliding surface
-  // Eigen::Vector6d surface =
-  //   proportional_gain_ * velocity_error + integral_gain_ * total_velocity_error_ +
-  //   derivative_gain_ * accel_error - proportional_gain_ * initial_velocity_error_ -
-  //   initial_acceleration_error_;
   Eigen::Vector6d surface = velocity_error + proportional_gain_ * total_velocity_error_ -
                             proportional_gain_ * initial_velocity_error_;
 
@@ -162,8 +143,7 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
 
   // Calculate the computed torque control
   Eigen::Vector6d tau0 =
-    hydrodynamics_.inertia.getInertia() *
-      (proportional_gain_ * velocity_error + integral_gain_ * total_velocity_error_) +
+    hydrodynamics_.inertia.getInertia() * (proportional_gain_ * velocity_error) +
     (hydrodynamics_.coriolis.calculateCoriolis(velocity) +
      hydrodynamics_.damping.calculateDamping(velocity)) *
       velocity +
@@ -219,23 +199,11 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   // Convert the thruster forces to PWM values
   Eigen::VectorXi pwms;
 
-  if (use_battery_state_) {
-    pwms = thruster_forces.unaryExpr([this](double x) {
-      return blue::dynamics::calculatePwmFromThrustSurface(x, battery_state_.voltage);
-    });
-  } else {
-    pwms = thruster_forces.unaryExpr(
-      [this](double x) { return blue::dynamics::calculatePwmFromThrustCurve(x); });
-  }
+  pwms = thruster_forces.unaryExpr(
+    [this](double x) { return blue::dynamics::calculatePwmFromThrustCurve(x); });
 
   // Calculate the deadzone band
-  std::tuple<int, int> deadband;
-
-  if (use_battery_state_) {
-    deadband = blue::dynamics::calculateDeadZone(battery_state_.voltage);
-  } else {
-    deadband = blue::dynamics::calculateDeadZone();
-  }
+  std::tuple<int, int> deadband = blue::dynamics::calculateDeadZone();
 
   // Set the PWM values
   for (int i = 0; i < pwms.size(); i++) {

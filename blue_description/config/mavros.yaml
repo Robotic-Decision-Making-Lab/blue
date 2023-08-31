@@ -4,14 +4,8 @@ mavros:
     plugin_allowlist:
       - sys_status
       - command
-      # - imu
       - rc_io
       - param
-      # - vision*
-      # - local*
-      # - global_position
-      # - home_position
-      # - mocap_pose_estimate
 
 mavros_node:
   ros__parameters:

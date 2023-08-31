@@ -57,7 +57,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster1"],
             ],
-            output="both",
+            output="log",
         ),
         Node(
             package="tf2_ros",
@@ -81,7 +81,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster2"],
             ],
-            output="both",
+            output="log",
         ),
         Node(
             package="tf2_ros",
@@ -105,7 +105,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster3"],
             ],
-            output="both",
+            output="log",
         ),
         Node(
             package="tf2_ros",
@@ -129,7 +129,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster4"],
             ],
-            output="both",
+            output="log",
         ),
         Node(
             package="tf2_ros",
@@ -147,7 +147,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster5"],
             ],
-            output="both",
+            output="log",
         ),
         Node(
             package="tf2_ros",
@@ -165,7 +165,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster6"],
             ],
-            output="both",
+            output="log",
         ),
         Node(
             package="tf2_ros",
@@ -183,7 +183,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster7"],
             ],
-            output="both",
+            output="log",
         ),
         Node(
             package="tf2_ros",
@@ -201,7 +201,7 @@ def generate_launch_description():
                 "--child-frame-id",
                 [prefix, "thruster8"],
             ],
-            output="both",
+            output="log",
         ),
     ]
 

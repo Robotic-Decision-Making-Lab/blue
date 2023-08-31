@@ -21,4 +21,3 @@ ismc:
     proportional_gain: [5.0, 5.0, 6.0, 3.0, 3.0, 10.0]
     sliding_gain: 15.0
     boundary_thickness: 200.0
-    use_battery_state: false

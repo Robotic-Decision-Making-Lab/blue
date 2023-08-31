@@ -105,10 +105,6 @@ Controller::Controller(const std::string & node_name)
 
   // clang-tidy and ROS conflict when creating subscriptions with ConstSharedPtr
   // NOLINTBEGIN(performance-unnecessary-value-param)
-  battery_state_sub_ = this->create_subscription<sensor_msgs::msg::BatteryState>(
-    "/mavros/battery", rclcpp::SensorDataQoS(),
-    [this](sensor_msgs::msg::BatteryState::ConstSharedPtr msg) -> void { battery_state_ = *msg; });
-
   odom_sub_ = this->create_subscription<nav_msgs::msg::Odometry>(
     "/blue/local_position/odom", rclcpp::SensorDataQoS(),
     [this](nav_msgs::msg::Odometry::ConstSharedPtr msg) -> void { updateOdomCb(msg); });
@@ -131,7 +127,6 @@ Controller::Controller(const std::string & node_name)
     std::chrono::duration<double>(dt_),
     [this]() -> void {
       if (armed_) {
-        // calculateControlInput();
         rc_override_pub_->publish(calculateControlInput());
       }
     },

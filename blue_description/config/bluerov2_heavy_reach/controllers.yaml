@@ -23,4 +23,3 @@ ismc:
     derivative_gain: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
     sliding_gain: 20.0
     boundary_thickness: 200.0
-    use_battery_state: false
