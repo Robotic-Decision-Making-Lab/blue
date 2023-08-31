@@ -11,9 +11,3 @@ mavros_node:
   ros__parameters:
     fcu_url: "udp://:14550@127.0.0.1:14549"
     gcs_url: "udp://:14549@127.0.0.1:14548"
-
-mavros/local_position:
-  ros__parameters:
-    frame_id: "map"
-    tf:
-      send: false
