@@ -25,7 +25,7 @@ qualisys_mocap:
 
 qualisys_localizer:
   ros__parameters:
-    update_rate: 30.0
+    update_rate: 100.0
     body: "bluerov" # This should be the same as the body parameter setting for the qualisys_mocap node
 
 gazebo_localizer:
@@ -35,9 +35,5 @@ gazebo_localizer:
 
 hinsdale_localizer:
   ros__parameters:
-    update_rate: 100.0
+    update_rate: 200.0
     body: "bluerov" # This should be the same as the body parameter setting for the qualisys_mocap node
-
-dvl_localizer:
-  ros__parameters:
-    update_rate: 100.0

@@ -29,12 +29,12 @@ namespace blue::dynamics
 /**
  * @brief The minimum PWM value that can be sent to the T200 thrusters.
  */
-const uint16_t kMinPwm = 1100;
+const uint16_t kMinPwm = 1400;
 
 /**
  * @brief The maximum PWM value that can be sent to the T200 thrusters.
  */
-const uint16_t kMaxPwm = 1900;
+const uint16_t kMaxPwm = 1600;
 
 /**
  * @brief A standard PWM value for no thrust.

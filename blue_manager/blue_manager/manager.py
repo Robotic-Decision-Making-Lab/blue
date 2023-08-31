@@ -23,7 +23,7 @@ from copy import deepcopy
 import rclpy
 from geographic_msgs.msg import GeoPoint, GeoPointStamped
 from mavros_msgs.msg import OverrideRCIn, ParamEvent
-from mavros_msgs.srv import CommandHome, MessageInterval
+from mavros_msgs.srv import CommandHome
 from rcl_interfaces.msg import Parameter, ParameterValue
 from rcl_interfaces.srv import SetParameters
 from rclpy.callback_groups import ReentrantCallbackGroup
@@ -121,11 +121,6 @@ class Manager(Node):
         self.override_rc_in_pub = self.create_publisher(
             OverrideRCIn, "/mavros/rc/override", qos_profile_default
         )
-        self.gp_origin_pub = self.create_publisher(
-            GeoPointStamped,
-            "/mavros/global_position/set_gp_origin",
-            qos_profile_default,
-        )
 
         # Services
         self.set_pwm_passthrough_srv = self.create_service(
@@ -145,129 +140,8 @@ class Manager(Node):
             "/mavros/param/set_parameters",
             callback_group=reentrant_callback_group,
         )
-        self.set_message_rates_client = self.create_client(
-            MessageInterval, "/mavros/set_message_interval"
-        )
-        self.set_home_pos_client = self.create_client(
-            CommandHome, "/mavros/cmd/set_home"
-        )
 
         wait_for_client(self.set_param_srv_client)
-        wait_for_client(self.set_message_rates_client)
-        wait_for_client(self.set_home_pos_client)
-
-        # Set the intervals at which the desired MAVLink messages are sent
-        self._message_rates_set = False
-
-        def update_rate_set(future):
-            self.message_rates_set = future.result().success
-
-        def set_message_rates(
-            message_ids: list[int], message_rates: list[float]
-        ) -> None:
-            if not self.message_rates_set:
-                for msg, rate in zip(message_ids, message_rates):
-                    future = self.set_message_rates_client.call_async(
-                        MessageInterval.Request(message_id=msg, message_rate=rate)
-                    )
-                    future.add_done_callback(update_rate_set)
-
-        message_request_rate = (
-            self.get_parameter("message_intervals.request_interval")
-            .get_parameter_value()
-            .double_value
-        )
-        message_ids = list(
-            self.get_parameter("message_intervals.ids")
-            .get_parameter_value()
-            .integer_array_value
-        )
-        message_rates = list(
-            self.get_parameter("message_intervals.rates")
-            .get_parameter_value()
-            .double_array_value
-        )
-
-        # Try setting the message rates until MAVROS indicates that they have been set
-        self.message_rate_timer = self.create_timer(
-            message_request_rate, lambda: set_message_rates(message_ids, message_rates)
-        )
-
-        # Set the home position
-        self._home_pos_set = False
-
-        def update_home_position_set(future):
-            self.home_position_set = future.result().success
-
-        def set_home_pos(lat: float, lon: float, alt: float, yaw: float) -> None:
-            if not self.home_position_set:
-                future = self.set_home_pos_client.call_async(
-                    CommandHome.Request(
-                        current_gps=False,
-                        yaw=yaw,
-                        latitude=lat,
-                        longitude=lon,
-                        altitude=alt,
-                    )
-                )
-                future.add_done_callback(update_home_position_set)
-
-        # Set the home position. Some folks have discussed that this is necessary for
-        # GUIDED mode
-        home_lat = (
-            self.get_parameter("home_position.latitude")
-            .get_parameter_value()
-            .double_value
-        )
-        home_lon = (
-            self.get_parameter("home_position.longitude")
-            .get_parameter_value()
-            .double_value
-        )
-        home_alt = (
-            self.get_parameter("home_position.altitude")
-            .get_parameter_value()
-            .double_value
-        )
-        home_yaw = (
-            self.get_parameter("home_position.yaw").get_parameter_value().double_value
-        )
-        hp_request_rate = (
-            self.get_parameter("home_position.request_interval")
-            .get_parameter_value()
-            .double_value
-        )
-
-        # Try setting the home position until MAVROS indicates success
-        self.message_rate_timer = self.create_timer(
-            hp_request_rate,
-            lambda: set_home_pos(home_lat, home_lon, home_alt, home_yaw),
-        )
-
-        # Now, set the EKF origin. This is necessary to enable GUIDED mode and other
-        # autonomy features with ArduSub
-        origin_lat = (
-            self.get_parameter("ekf_origin.latitude").get_parameter_value().double_value
-        )
-        origin_lon = (
-            self.get_parameter("ekf_origin.longitude")
-            .get_parameter_value()
-            .double_value
-        )
-        origin_alt = (
-            self.get_parameter("ekf_origin.altitude").get_parameter_value().double_value
-        )
-
-        # Normally, we would like to set the QoS policy to use transient local
-        # durability, but MAVROS uses the volitile durability setting for its
-        # subscriber. Consequently, we need to publish this every once-in-a-while
-        # to make sure that it gets set
-        self.set_ekf_origin_timer = self.create_timer(
-            15.0,
-            lambda: self.set_ekf_origin_cb(
-                GeoPoint(latitude=origin_lat, longitude=origin_lon, altitude=origin_alt)
-            ),
-        )
 
     @property
     def message_rates_set(self) -> bool:
@@ -536,20 +410,6 @@ class Manager(Node):
         self.get_logger().info(response.message)
 
         return response
-
-    def set_ekf_origin_cb(self, origin: GeoPoint) -> None:
-        """Set the EKF origin.
-
-        This is required for navigation on a vehicle with one of the provided
-        localizers.
-
-        Args:
-            origin: The EKF origin to set.
-        """
-        origin_stamped = GeoPointStamped()
-        origin_stamped.header.stamp = self.get_clock().now().to_msg()
-        origin_stamped.position = origin
-        self.gp_origin_pub.publish(origin_stamped)
 
 
 def main(args: list[str] | None = None):

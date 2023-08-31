@@ -5,8 +5,8 @@ joy_node:
 joy_interface:
   ros__parameters:
     trims:
-      min_pwm: 1300
-      max_pwm: 1700
+      min_pwm: 1100
+      max_pwm: 1900
 
 joy_teleop:
   ros__parameters:
@@ -117,17 +117,17 @@ joy_teleop:
       axis_mappings:
         linear-x:
           axis: 1
-          scale: 0.5
+          scale: 0.3
           offset: 0
         linear-y:
           axis: 0
-          scale: 0.5
+          scale: 0.3
           offset: 0
         linear-z:
           axis: 4
-          scale: 0.5
+          scale: 0.3
           offset: 0
         angular-z:
           axis: 3
-          scale: 1.0
+          scale: 1.571
           offset: 0

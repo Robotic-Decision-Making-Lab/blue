@@ -38,7 +38,6 @@ from geometry_msgs.msg import (
     TwistWithCovarianceStamped,
 )
 from nav_msgs.msg import Odometry
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
 from rclpy.qos import (
@@ -49,6 +48,7 @@ from rclpy.qos import (
     qos_profile_default,
     qos_profile_sensor_data,
 )
+from scipy import signal
 from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import CameraInfo, Image
 from tf2_ros import TransformException  # type: ignore
@@ -88,13 +88,13 @@ class Localizer(Node, ABC):
         # for applying a filter is to ensure that high-frequency state updates don't
         # overload the FCU.
         self._state = None
-        self._update_rate = 1 / (
-            self.get_parameter("update_rate").get_parameter_value().double_value
-        )
-        self._last_update = time.time()
-        self.update_state_timer = self.create_timer(
-            self._update_rate, self._publish_wrapper, MutuallyExclusiveCallbackGroup()
-        )
+        # self._update_rate = 1 / (
+        #     self.get_parameter("update_rate").get_parameter_value().double_value
+        # )
+        # self._last_update = time.time()
+        # self.update_state_timer = self.create_timer(
+        #     self._update_rate, self._publish_wrapper, MutuallyExclusiveCallbackGroup()
+        # )
 
     @property
     def state(self) -> Any:
@@ -115,25 +115,25 @@ class Localizer(Node, ABC):
         self._last_update = time.time()
         self._state = state
 
-    def _publish_wrapper(self) -> None:
-        """Publish the state at the max allowable frequency.
+    # def _publish_wrapper(self) -> None:
+    #     """Publish the state at the max allowable frequency.
 
-        If the state hasn't been updated since the last loop iteration, don't publish
-        the state again: only publish a state once.
-        """
-        if self.state is None or time.time() - self._last_update > self._update_rate:
-            return
+    #     If the state hasn't been updated since the last loop iteration, don't publish
+    #     the state again: only publish a state once.
+    #     """
+    #     if self.state is None or time.time() - self._last_update > self._update_rate:
+    #         return
 
-        self.publish()
+    #     self.publish()
 
-    @abstractmethod
-    def publish(self) -> None:
-        """Publish the state to the ArduSub EKF.
+    # @abstractmethod
+    # def publish(self) -> None:
+    #     """Publish the state to the ArduSub EKF.
 
-        This is automatically called by the localizer timer and should not be called
-        manually.
-        """
-        ...
+    #     This is automatically called by the localizer timer and should not be called
+    #     manually.
+    #     """
+    #     ...
 
 
 class PoseLocalizer(Localizer):
@@ -659,10 +659,10 @@ class HinsdaleQualisysLocalizer(Localizer):
 
     def __init__(self) -> None:
         """Create a new Hinsdale Qualisys motion capture localizer."""
-        super().__init__("hinsdale_odom_localizer")
+        super().__init__("hinsdale_localizer")
 
         self.declare_parameter("body", "bluerov")
-        self.declare_parameter("filter_len", 20)
+        self.declare_parameter("filter_len", 50)
 
         body = self.get_parameter("body").get_parameter_value().string_value
         filter_len = (
@@ -685,6 +685,7 @@ class HinsdaleQualisysLocalizer(Localizer):
 
         # Store the pose information in a buffer and apply an LWMA filter to it
         self.pose_buffer: Deque[np.ndarray] = deque(maxlen=filter_len)
+        self.vel_buffer: Deque[np.ndarray] = deque(maxlen=filter_len)
 
     @staticmethod
     def check_isnan(pose: PoseStamped) -> bool:
@@ -746,12 +747,7 @@ class HinsdaleQualisysLocalizer(Localizer):
             ]
         )
 
-    def publish(self) -> None:
-        """Publish the current odometry state."""
-        if self.state is not None:
-            self.odom_pub.publish(self.state)
-
-    def update_odom_cb(self, pose: PoseStamped, twist: TwistStamped) -> None:
+    def update_odom_cb(self, pose: PoseStamped) -> None:
         """Update the current odometry reading.
 
         Args:
@@ -761,6 +757,7 @@ class HinsdaleQualisysLocalizer(Localizer):
         # Check if any of the MoCap values in the array are NaN; if they are, then
         # discard the reading
         if not self.check_isnan(pose):
+            self.pose_buffer.clear()
             return
 
         def pose_to_array(pose: Pose) -> np.ndarray:
@@ -777,17 +774,12 @@ class HinsdaleQualisysLocalizer(Localizer):
 
             return ar
 
-        # Convert the pose message into an array for filtering
+        # # Convert the pose message into an array for filtering
         pose_ar = pose_to_array(pose.pose)
 
         # Update the measurements for finite differencing
         dt = time.time() - self.last_update_t
         self.last_update_t = time.time()
-
-        # Make a deepcopy here: we don't want to modify the last pose and screw
-        # this pose up
-        last_update = deepcopy(self.last_pose)
-        self.last_pose = pose_ar
 
         # Add the pose to the circular buffer
         self.pose_buffer.append(pose_ar)
@@ -797,8 +789,19 @@ class HinsdaleQualisysLocalizer(Localizer):
             return
 
         # Get the position and velocity estimates
-        filtered_pose_ar = self.lwma(np.array(self.pose_buffer))
-        vel = filtered_pose_ar - last_update / dt
+        # filtered_pose_ar = self.lwma(np.array(self.pose_buffer))
+        filtered_pose_ar = signal.savgol_filter(
+            np.array(self.pose_buffer), 10, 3, axis=0
+        )[-1]
+
+        vel = (filtered_pose_ar - self.last_pose) / dt
+        self.last_pose = pose_ar
+        self.vel_buffer.append(vel)
+
+        if len(self.vel_buffer) < self.vel_buffer.maxlen:  # type: ignore
+            return
+
+        filtered_vel = np.median(np.array(self.vel_buffer), axis=0)
 
         def array_to_pose(ar: np.ndarray) -> Pose:
             pose = Pose()
@@ -821,15 +824,15 @@ class HinsdaleQualisysLocalizer(Localizer):
 
         odom.header.frame_id = pose.header.frame_id
         odom.header.stamp = pose.header.stamp
-        odom.child_frame_id = twist.header.frame_id
+        odom.child_frame_id = self.BASE_LINK_FRAME
 
         # Set the pose to the new filtered pose
         odom.pose.pose = array_to_pose(filtered_pose_ar)
 
         # Now set the twist
-        odom.twist.twist = array_to_twist(vel)
+        odom.twist.twist = array_to_twist(filtered_vel)
 
-        self.state = odom
+        self.odom_pub.publish(odom)
 
 
 def main_aruco(args: list[str] | None = None):

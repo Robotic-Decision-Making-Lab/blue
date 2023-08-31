@@ -131,6 +131,7 @@ Controller::Controller(const std::string & node_name)
     std::chrono::duration<double>(dt_),
     [this]() -> void {
       if (armed_) {
+        // calculateControlInput();
         rc_override_pub_->publish(calculateControlInput());
       }
     },
