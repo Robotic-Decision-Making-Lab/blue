@@ -1,1 +1,1 @@
-sudo socat -d -d /dev/input/js0 tcp:192.168.2.2:17743
+sudo socat -d -d -d tcp-listen:17743,fork,reuseaddr FILE:/dev/input/js0
