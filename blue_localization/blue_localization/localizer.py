@@ -468,7 +468,7 @@ class QualisysLocalizer(PoseLocalizer):
         super().__init__("qualisys_localizer")
 
         self.declare_parameter("body", "bluerov")
-        self.declare_parameter("filter_len", 20)
+        self.declare_parameter("filter_len", 10)
 
         body = self.get_parameter("body").get_parameter_value().string_value
         filter_len = (
