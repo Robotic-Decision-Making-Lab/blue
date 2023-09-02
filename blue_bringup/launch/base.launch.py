@@ -77,11 +77,6 @@ def generate_launch_description() -> LaunchDescription:
             ),
         ),
         DeclareLaunchArgument(
-            "joy_file",
-            default_value="joy_teleop.yaml",
-            description="The joystick controller configuration file.",
-        ),
-        DeclareLaunchArgument(
             "gazebo_world_file",
             default_value="",
             description="The world configuration to load if using Gazebo.",
@@ -94,6 +89,12 @@ def generate_launch_description() -> LaunchDescription:
                 " controller's executable."
             ),
             choices=["ismc"],
+        ),
+        DeclareLaunchArgument(
+            "joystick",
+            default_value="logitech_f310",
+            choices=["logitech_f310", "xbox_one"],
+            description="The joystick controller to use if using joystick control.",
         ),
         DeclareLaunchArgument(
             "localization_source",
@@ -297,7 +298,7 @@ def generate_launch_description() -> LaunchDescription:
                     [
                         FindPackageShare(description_package),
                         "config",
-                        LaunchConfiguration("joy_file"),
+                        [LaunchConfiguration("joystick"), ".yaml"],
                     ]
                 ),
                 "controller": LaunchConfiguration("controller"),

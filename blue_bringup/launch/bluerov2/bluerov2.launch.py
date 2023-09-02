@@ -47,6 +47,12 @@ def generate_launch_description() -> LaunchDescription:
             choices=["ismc"],
         ),
         DeclareLaunchArgument(
+            "joystick",
+            default_value="logitech_f310",
+            choices=["logitech_f310", "xbox_one"],
+            description="The joystick controller to use if using joystick control.",
+        ),
+        DeclareLaunchArgument(
             "localization_source",
             default_value="gazebo",
             choices=["mocap", "camera", "gazebo", "hinsdale"],

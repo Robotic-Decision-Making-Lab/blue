@@ -129,5 +129,5 @@ joy_teleop:
           offset: 0
         angular-z:
           axis: 2
-          scale: 1.571
+          scale: 1.0
           offset: 0
