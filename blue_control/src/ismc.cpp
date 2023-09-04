@@ -144,13 +144,12 @@ mavros_msgs::msg::OverrideRCIn ISMC::calculateControlInput()
   // Calculate the computed torque control
   Eigen::Vector6d tau0 =
     hydrodynamics_.inertia.getInertia() * (proportional_gain_ * velocity_error) +
-    (hydrodynamics_.coriolis.calculateCoriolis(velocity) +
-     hydrodynamics_.damping.calculateDamping(velocity)) *
-      velocity +
+    hydrodynamics_.coriolis.calculateCoriolis(velocity) * velocity +
+     hydrodynamics_.damping.calculateDamping(velocity) * velocity +
     hydrodynamics_.restoring_forces.calculateRestoringForces(orientation.toRotationMatrix());
 
   // Calculate the disturbance rejection torque
-  Eigen::Vector6d tau1 = -sliding_gain_ * surface;
+  Eigen::Vector6d tau1 = sliding_gain_ * surface;
 
   Eigen::Vector6d forces = tau0 + tau1;
 

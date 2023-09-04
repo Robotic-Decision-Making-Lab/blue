@@ -47,9 +47,8 @@ def generate_launch_description() -> LaunchDescription:
             choices=["ismc"],
         ),
         DeclareLaunchArgument(
-            "joystick",
-            default_value="logitech_f310",
-            choices=["logitech_f310", "xbox_one"],
+            "joy_file",
+            default_value="logitech_f310.yaml",
             description="The joystick controller to use if using joystick control.",
         ),
         DeclareLaunchArgument(

@@ -1,1 +1,1 @@
-ros2 bag record -o ismc-3 /blue/local_position/odom /blue/ismc/desired_wrench /blue/ismc/velocity_error /blue/ismc/cmd_vel /blue/state/accel /mavros/rc/override
+ros2 bag record -o testing-7 /blue/local_position/odom /blue/ismc/desired_wrench /blue/ismc/velocity_error /blue/ismc/cmd_vel /forward_velocity_controller/commands /joint_states

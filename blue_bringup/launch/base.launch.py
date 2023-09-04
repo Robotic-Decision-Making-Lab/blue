@@ -22,7 +22,7 @@ from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, TextSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -91,9 +91,8 @@ def generate_launch_description() -> LaunchDescription:
             choices=["ismc"],
         ),
         DeclareLaunchArgument(
-            "joystick",
-            default_value="logitech_f310",
-            choices=["logitech_f310", "xbox_one"],
+            "joy_file",
+            default_value="logitech_f310.yaml",
             description="The joystick controller to use if using joystick control.",
         ),
         DeclareLaunchArgument(
@@ -298,7 +297,8 @@ def generate_launch_description() -> LaunchDescription:
                     [
                         FindPackageShare(description_package),
                         "config",
-                        [LaunchConfiguration("joystick"), ".yaml"],
+                        "joysticks",
+                        LaunchConfiguration("joy_file"),
                     ]
                 ),
                 "controller": LaunchConfiguration("controller"),
