@@ -25,7 +25,7 @@ project to the `src` directory of your ROS workspace, replacing `$ROS_DISTRO`
 with the desired ROS distribution or `main` for Rolling:
 
 ```bash
-git clone -b $ROS_DISTRO git@github.com:evan-palmer/blue.git
+git clone -b $ROS_DISTRO git@github.com:Robotic-Decision-Making-Lab/blue.git
 ```
 
 After cloning the project, install all external dependencies using `vcs`:
@@ -61,7 +61,7 @@ ros2 launch blue_bringup bluerov2_heavy.launch.py --show-args
 ## Getting help
 
 If you have questions regarding usage of Blue or regarding contributing to this
-project, please ask a question on our [Discussions](https://github.com/evan-palmer/blue/discussions)
+project, please ask a question on our [Discussions](https://github.com/Robotic-Decision-Making-Lab/blue/discussions)
 board!
 
 ## License
