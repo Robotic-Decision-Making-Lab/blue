@@ -1,7 +1,7 @@
 version: "3"
 services:
   blue:
-    image: blue
+    image: ghcr.io/robotic-decision-making-lab/blue:rolling-desktop
     environment:
       - DISPLAY=${DISPLAY}
       - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
@@ -17,6 +17,4 @@ services:
     volumes:
       - /dev:/dev
       - /run/user/1000:/run/user/1000
-    command: /bin/bash
-    stdin_open: true
-    tty: true
+    command: tail -f /dev/null
