@@ -71,7 +71,7 @@ RUN wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/in
     && chmod +x install_geographiclib_datasets.sh \
     && sudo ./install_geographiclib_datasets.sh
 
-# Copy the project over to image
+# Copy the project over to the image
 ENV USER_WORKSPACE=/home/$USERNAME/ws_blue
 WORKDIR $USER_WORKSPACE
 COPY --chown=$USER_UID:$USER_GID . src/blue
