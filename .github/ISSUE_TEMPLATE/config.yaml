@@ -1,5 +1,10 @@
 blank_issues_enabled: false
 contact_links:
+<<<<<<< HEAD:.github/ISSUE_TEMPLATE/config.yaml
   - name: BlueROV2 Driver Community Support
     url: https://github.com/evan-palmer/blue/discussions
+=======
+  - name: Blue Community Support
+    url: https://github.com/Robotic-Decision-Making-Lab/blue/discussions
+>>>>>>> 11807c8 (Cleaned up Docker pipelines (#121)):.github/ISSUE_TEMPLATE/config.yml
     about: Please check out our discussions channel for any questions related to the project!
