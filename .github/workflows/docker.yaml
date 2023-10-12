@@ -6,7 +6,6 @@ on:
   push:
     branches:
       - main
-      - 120-feature-cleanup-dockerfile
   pull_request:
     paths:
       - .docker/**

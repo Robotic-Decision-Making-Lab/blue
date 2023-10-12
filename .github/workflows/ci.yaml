@@ -1,10 +1,9 @@
-name: Continuous Integration
+name: CI
 
 on:
   push:
     branches:
       - main
-      - 120-feature-cleanup-dockerfile
   pull_request:
   workflow_dispatch:
 
