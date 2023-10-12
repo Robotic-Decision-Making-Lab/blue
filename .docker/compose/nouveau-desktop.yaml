@@ -1,0 +1,20 @@
+version: "3"
+services:
+  blue:
+    image: ghcr.io/robotic-decision-making-lab/blue:iron-desktop
+    environment:
+      - DISPLAY=${DISPLAY}
+      - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY} # Can be commented out if not used
+      - PULSE_SERVER=${PULSE_SERVER} # Can be commented out if not used
+    network_mode: host
+    privileged: true
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    volumes:
+      - /dev:/dev
+      - /run/user/1000:/run/user/1000
+    command: tail -f /dev/null
