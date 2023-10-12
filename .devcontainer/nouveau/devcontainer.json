@@ -2,18 +2,8 @@
   "name": "Blue Nouveau Dev Container",
   "dockerFile": "Dockerfile",
   "context": "../..",
-<<<<<<< HEAD
-  "build": {
-    "args": {
-      "WORKSPACE": "${containerWorkspaceFolder}",
-      "ROS_DISTRO": "humble"
-    },
-    "target": "develop"
-  },
-=======
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/blue/ws_blue/src/blue,type=bind",
   "workspaceFolder": "/home/blue/ws_blue/src/blue",
->>>>>>> 11807c8 (Cleaned up Docker pipelines (#121))
   "remoteUser": "blue",
   "runArgs": [
     "--network=host",

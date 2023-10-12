@@ -5,7 +5,7 @@ on:
     - cron: "0 17 * * 6"
   push:
     branches:
-      - main
+      - humble
   pull_request:
     paths:
       - .docker/**
@@ -22,7 +22,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ROS_DISTRO: [rolling]
+        ROS_DISTRO: [humble]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -62,7 +62,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ROS_DISTRO: [rolling]
+        ROS_DISTRO: [humble]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -109,7 +109,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ROS_DISTRO: [rolling]
+        ROS_DISTRO: [humble]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -149,7 +149,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ROS_DISTRO: [rolling]
+        ROS_DISTRO: [humble]
     runs-on: ubuntu-latest
     permissions:
       packages: write
