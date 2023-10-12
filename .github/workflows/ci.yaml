@@ -1,9 +1,9 @@
-name: Continuous Integration
+name: CI
 
 on:
   push:
     branches:
-      - main
+      - humble
   pull_request:
   workflow_dispatch:
 
@@ -19,10 +19,6 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          - IMAGE: rolling-ci
-            ROS_DISTRO: rolling
-          - IMAGE: iron-ci
-            ROS_DISTRO: iron
           - IMAGE: humble-ci
             ROS_DISTRO: humble
     steps:
@@ -41,7 +37,7 @@ jobs:
       - name: Run ROS Industrial CI
         uses: ros-industrial/industrial_ci@master
         env:
-          DOCKER_IMAGE: ghcr.io/evan-palmer/blue:${{ matrix.env.IMAGE }}
+          DOCKER_IMAGE: ghcr.io/robotic-decision-making-lab/blue:${{ matrix.env.IMAGE }}
           CXXFLAGS: >-
             -Wall -Wextra -Wpedantic -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
           CC: ${{ env.CLANG_TIDY && 'clang' }}
