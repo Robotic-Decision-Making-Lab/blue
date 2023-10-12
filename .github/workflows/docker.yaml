@@ -6,10 +6,13 @@ on:
   push:
     branches:
       - main
+      - 120-feature-cleanup-dockerfile
   pull_request:
     paths:
       - .docker/**
       - .github/workflows/docker.yaml
+      - blue.repos
+      - requirements-build.txt
   workflow_dispatch:
 
 env:
@@ -20,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ROS_DISTRO: [humble, iron, rolling]
+        ROS_DISTRO: [rolling]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -60,7 +63,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ROS_DISTRO: [humble, rolling, iron]
+        ROS_DISTRO: [rolling]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -107,7 +110,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ROS_DISTRO: [humble, iron, rolling]
+        ROS_DISTRO: [rolling]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -147,7 +150,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        ROS_DISTRO: [humble, iron, rolling]
+        ROS_DISTRO: [rolling]
     runs-on: ubuntu-latest
     permissions:
       packages: write
