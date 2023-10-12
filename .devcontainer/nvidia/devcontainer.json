@@ -6,7 +6,7 @@
       "WORKSPACE": "${containerWorkspaceFolder}",
       "ROS_DISTRO": "rolling"
     },
-    "target": "develop-nvidia"
+    "target": "desktop-nvidia"
   },
   "remoteUser": "blue",
   "runArgs": [
