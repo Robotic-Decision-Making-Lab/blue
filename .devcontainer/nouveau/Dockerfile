@@ -24,4 +24,3 @@ RUN python3 -m pip install -r requirements-dev.txt \
 # Disable the setuputils installation warning
 # This prevents us from needing to pin the setuputils version (which doesn't always work)
 ENV PYTHONWARNINGS="ignore"
-
