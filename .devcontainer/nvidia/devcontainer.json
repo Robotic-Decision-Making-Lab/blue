@@ -1,6 +1,8 @@
 {
-  "dockerFile": "../../.docker/Dockerfile",
+  "name": "Blue NVIDIA Dev Container",
+  "dockerFile": "Dockerfile",
   "context": "../..",
+<<<<<<< HEAD
   "build": {
     "args": {
       "WORKSPACE": "${containerWorkspaceFolder}",
@@ -8,6 +10,10 @@
     },
     "target": "develop-nvidia"
   },
+=======
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/blue/ws_blue/src/blue,type=bind",
+  "workspaceFolder": "/home/blue/ws_blue/src/blue",
+>>>>>>> 11807c8 (Cleaned up Docker pipelines (#121))
   "remoteUser": "blue",
   "runArgs": [
     "--network=host",
@@ -47,12 +53,6 @@
         "editor.tabSize": 2,
         "xml.format.maxLineWidth": 100,
         "json.format.enable": true,
-        "python.linting.enabled": true,
-        "python.linting.flake8Enabled": true,
-        "python.linting.pylintEnabled": false,
-        "python.linting.pydocstyleEnabled": true,
-        "python.linting.mypyEnabled": true,
-        "python.formatting.provider": "black",
         "autoDocstring.startOnNewLine": false,
         "autoDocstring.docstringFormat": "google-notypes",
         "isort.args": ["--profile", "black"],
@@ -82,7 +82,8 @@
           "editor.rulers": [90],
           "editor.codeActionsOnSave": {
             "source.organizeImports": true
-          }
+          },
+          "editor.defaultFormatter": "ms-python.black-formatter"
         },
         "[dockerfile]": {
           "editor.quickSuggestions": {
