@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - main
+      - iron
   pull_request:
   workflow_dispatch:
 
@@ -19,8 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          - IMAGE: rolling-ci
-            ROS_DISTRO: rolling
+          - IMAGE: iron-ci
+            ROS_DISTRO: iron
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -37,11 +37,7 @@ jobs:
       - name: Run ROS Industrial CI
         uses: ros-industrial/industrial_ci@master
         env:
-<<<<<<< HEAD
-          DOCKER_IMAGE: ghcr.io/evan-palmer/blue:${{ matrix.env.IMAGE }}
-=======
           DOCKER_IMAGE: ghcr.io/robotic-decision-making-lab/blue:${{ matrix.env.IMAGE }}
->>>>>>> 11807c8 (Cleaned up Docker pipelines (#121))
           CXXFLAGS: >-
             -Wall -Wextra -Wpedantic -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
           CC: ${{ env.CLANG_TIDY && 'clang' }}

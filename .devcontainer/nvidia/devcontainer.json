@@ -2,18 +2,8 @@
   "name": "Blue NVIDIA Dev Container",
   "dockerFile": "Dockerfile",
   "context": "../..",
-<<<<<<< HEAD
-  "build": {
-    "args": {
-      "WORKSPACE": "${containerWorkspaceFolder}",
-      "ROS_DISTRO": "iron"
-    },
-    "target": "develop-nvidia"
-  },
-=======
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/blue/ws_blue/src/blue,type=bind",
   "workspaceFolder": "/home/blue/ws_blue/src/blue",
->>>>>>> 11807c8 (Cleaned up Docker pipelines (#121))
   "remoteUser": "blue",
   "runArgs": [
     "--network=host",
@@ -58,13 +48,13 @@
         "isort.args": ["--profile", "black"],
         "isort.check": true,
         "python.autoComplete.extraPaths": [
-          "/opt/ros/rolling/lib/python3.10/site-packages/",
-          "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
+          "/opt/ros/iron/lib/python3.10/site-packages/",
+          "/opt/ros/iron/local/lib/python3.10/dist-packages/",
           "${workspaceFolder}/install/"
         ],
         "python.analysis.extraPaths": [
-          "/opt/ros/rolling/lib/python3.10/site-packages/",
-          "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
+          "/opt/ros/iron/lib/python3.10/site-packages/",
+          "/opt/ros/iron/local/lib/python3.10/dist-packages/",
           "${workspaceFolder}/install/"
         ],
         "C_Cpp.default.intelliSenseMode": "linux-gcc-x86",

@@ -1,4 +1,4 @@
-FROM ghcr.io/robotic-decision-making-lab/blue:rolling-desktop-nvidia
+FROM ghcr.io/robotic-decision-making-lab/blue:iron-desktop-nvidia
 
 # Install ROS dependencies
 # This is done in a previous stage, but we include it again here in case anyone wants to

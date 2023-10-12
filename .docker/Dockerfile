@@ -1,4 +1,4 @@
-ARG ROS_DISTRO=rolling
+ARG ROS_DISTRO=iron
 FROM ros:$ROS_DISTRO-ros-base as ci
 
 ENV DEBIAN_FRONTEND=noninteractive
