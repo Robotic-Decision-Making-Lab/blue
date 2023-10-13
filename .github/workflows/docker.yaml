@@ -15,7 +15,7 @@ on:
   workflow_dispatch:
 
 env:
-  PUSH: ${{ (github.event_name != 'pull_request') && (github.repository == 'evan-palmer/blue') }}
+  PUSH: ${{ (github.event_name != 'pull_request') && (github.repository == 'Robotic-Decision-Making-Lab/blue') }}
 
 jobs:
   ci:
@@ -156,11 +156,11 @@ jobs:
       contents: read
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Log into registry
         if: env.PUSH == 'true'
-        uses: docker/login-action@v2.2.0
+        uses: docker/login-action@v3.0.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -169,14 +169,14 @@ jobs:
       - name: Extract Docker metadata
         if: env.PUSH == 'true'
         id: meta
-        uses: docker/metadata-action@v4.6.0
+        uses: docker/metadata-action@v5.0.0
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v4.1.1
+        uses: docker/build-push-action@v5.0.0
         with:
           context: .
           file: .docker/Dockerfile
