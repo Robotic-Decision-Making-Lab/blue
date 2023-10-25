@@ -1,0 +1,16 @@
+{
+  "name": "Blue Documentation",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "remoteUser": "node",
+  "customizations": {
+    "vscode": {
+      "files.insertFinalNewline": true,
+      "files.trimTrailingWhitespace": true,
+      "editor.formatOnSave": true,
+      "editor.tabSize": 2,
+      "extensions": ["esbenp.prettier-vscode"]
+    }
+  }
+}
