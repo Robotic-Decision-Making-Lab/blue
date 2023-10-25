@@ -6,10 +6,13 @@
   "remoteUser": "node",
   "customizations": {
     "vscode": {
-      "files.insertFinalNewline": true,
-      "files.trimTrailingWhitespace": true,
-      "editor.formatOnSave": true,
-      "editor.tabSize": 2,
+      "settings": {
+        "files.insertFinalNewline": true,
+        "files.trimTrailingWhitespace": true,
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+        "editor.rulers": [80]
+      },
       "extensions": ["esbenp.prettier-vscode"]
     }
   }
