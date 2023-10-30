@@ -1,0 +1,78 @@
+---
+sidebar_position: 2
+---
+
+# Installation
+
+Blue is supported on Linux, and provides three installation methods:
+
+<div
+  style={{
+    display: "grid",
+    gridTemplateColumns: "repeat(3, 1fr)",
+    gridGap: 20,
+  }}
+>
+  <div class="card">
+    <div class="card__header">
+      <h3>Docker</h3>
+    </div>
+    <div class="card__body">
+      <p>
+        Blue hosts a collection of Docker images (with support for arm64 and
+        amd64 CPU architectures) to simplify installation and deployment of
+        Blue. We recommend using the provided Docker images if you want to get
+        started quickly or want to deploy Blue to a real robot.
+      </p>
+    </div>
+    <div class="card__footer">
+      <button class="button button--primary button--block">
+        Go to Docker install
+      </button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card__header">
+      <h3>Devcontainer</h3>
+    </div>
+    <div class="card__body">
+      <p>
+        Blue provides a VSCode devcontainer configuration to simplify
+        contributing and writing your own code. You should use this installation
+        method if you want to make any modifications to Blue or its
+        configurations. This is Evan's preferred installation method for topside
+        operation and development.
+      </p>
+    </div>
+    <div class="card__footer">
+      <button class="button button--primary button--block">
+        Go to devcontainer install
+      </button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card__header">
+      <h3>Source</h3>
+    </div>
+    <div class="card__body">
+      <p>
+        Installing from source can help avoid performance limitations created by
+        Docker, especially when using the Blue simulation environment. We
+        recommend installing from source if you plan to run the simulation
+        environment on a laptop without an NVIDIA GPU (or if you have a grudge
+        against Docker).
+      </p>
+    </div>
+    <div class="card__footer">
+      <button class="button button--primary button--block">
+        Go to source install
+      </button>
+    </div>
+  </div>
+</div>
+
+## Docker Installation
+
+## Devcontainer Installation
+
+## Source Installation
