@@ -133,7 +133,7 @@ def generate_launch_description() -> LaunchDescription:
                     "use_sim": LaunchConfiguration("use_sim"),
                     "use_rviz": LaunchConfiguration("use_rviz"),
                     "rviz_config": LaunchConfiguration("rviz_config"),
-                    "gazebo_world_file": "bluerov2_heavy_reach_underwater.world",  # noqa
+                    "gazebo_world_file": LaunchConfiguration("gazebo_world_file", default="bluerov2_heavy_reach_underwater.world"), # noqa
                     "prefix": LaunchConfiguration("prefix"),
                     "robot_description": robot_description,
                     "use_joy": LaunchConfiguration("use_joy"),
