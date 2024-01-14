@@ -42,7 +42,11 @@ jobs:
       - name: Extract Docker metadata
         if: env.PUSH == 'true'
         id: meta
+<<<<<<< HEAD
         uses: docker/metadata-action@v4.6.0
+=======
+        uses: docker/metadata-action@v5.5.0
+>>>>>>> aada463 (Bump docker/metadata-action from 5.3.0 to 5.5.0 (#147))
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -88,7 +92,11 @@ jobs:
       - name: Extract Docker metadata
         if: env.PUSH == 'true'
         id: meta
+<<<<<<< HEAD
         uses: docker/metadata-action@v4.6.0
+=======
+        uses: docker/metadata-action@v5.5.0
+>>>>>>> aada463 (Bump docker/metadata-action from 5.3.0 to 5.5.0 (#147))
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -129,7 +137,11 @@ jobs:
       - name: Extract Docker metadata
         if: env.PUSH == 'true'
         id: meta
+<<<<<<< HEAD
         uses: docker/metadata-action@v4.6.0
+=======
+        uses: docker/metadata-action@v5.5.0
+>>>>>>> aada463 (Bump docker/metadata-action from 5.3.0 to 5.5.0 (#147))
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
@@ -169,7 +181,11 @@ jobs:
       - name: Extract Docker metadata
         if: env.PUSH == 'true'
         id: meta
+<<<<<<< HEAD
         uses: docker/metadata-action@v5.0.0
+=======
+        uses: docker/metadata-action@v5.5.0
+>>>>>>> aada463 (Bump docker/metadata-action from 5.3.0 to 5.5.0 (#147))
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
