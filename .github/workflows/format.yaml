@@ -24,7 +24,7 @@ jobs:
         run: sudo apt-get install clang-format-14
 
       - name: Run pre-commit
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
         id: precommit
 
       - name: Upload pre-commit changes
