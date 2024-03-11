@@ -49,7 +49,7 @@ jobs:
             type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5.1.0
+        uses: docker/build-push-action@v5.2.0
         with:
           context: .
           file: .docker/Dockerfile
@@ -95,7 +95,7 @@ jobs:
             type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5.1.0
+        uses: docker/build-push-action@v5.2.0
         with:
           context: .
           file: .docker/Dockerfile
@@ -136,7 +136,7 @@ jobs:
             type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5.1.0
+        uses: docker/build-push-action@v5.2.0
         with:
           context: .
           file: .docker/Dockerfile
@@ -176,7 +176,7 @@ jobs:
             type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5.1.0
+        uses: docker/build-push-action@v5.2.0
         with:
           context: .
           file: .docker/Dockerfile
