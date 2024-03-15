@@ -21,6 +21,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
 from launch.substitutions import (
     Command,
     FindExecutable,
@@ -37,15 +38,6 @@ def generate_launch_description() -> LaunchDescription:
         The launch description for the BlueROV2 base configuration.
     """
     args = [
-        DeclareLaunchArgument(
-            "controller",
-            default_value="ismc",
-            description=(
-                "The controller to use; this should be the same name as the"
-                " controller's executable."
-            ),
-            choices=["ismc"],
-        ),
         DeclareLaunchArgument(
             "localization_source",
             default_value="gazebo",
@@ -94,7 +86,7 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
-    robot_description = Command(
+    robot_description_content = Command(
         [
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
@@ -114,6 +106,7 @@ def generate_launch_description() -> LaunchDescription:
             LaunchConfiguration("use_sim"),
         ]
     )
+    robot_description = {"robot_description": robot_description_content}
 
     return LaunchDescription(
         [
@@ -126,7 +119,6 @@ def generate_launch_description() -> LaunchDescription:
                 ),
                 launch_arguments={
                     "configuration_type": "bluerov2_heavy",
-                    "controller": LaunchConfiguration("controller"),
                     "localization_source": LaunchConfiguration("localization_source"),
                     "use_camera": LaunchConfiguration("use_camera"),
                     "use_mocap": LaunchConfiguration("use_mocap"),
@@ -137,7 +129,7 @@ def generate_launch_description() -> LaunchDescription:
                         "gazebo_world_file", default="bluerov2_heavy_underwater.world"
                     ),
                     "prefix": LaunchConfiguration("prefix"),
-                    "robot_description": robot_description,
+                    "robot_description": robot_description_content,
                     "use_joy": LaunchConfiguration("use_joy"),
                 }.items(),
             ),

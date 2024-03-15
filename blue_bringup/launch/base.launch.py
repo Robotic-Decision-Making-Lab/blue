@@ -60,8 +60,8 @@ def generate_launch_description() -> LaunchDescription:
         ),
         DeclareLaunchArgument(
             "manager_file",
-            default_value="manager.yaml",
-            description="The BlueROV2 Heavy manager configuration file.",
+            default_value="new_manager.yaml",
+            description="The ArduSub manager configuration file.",
         ),
         DeclareLaunchArgument(
             "mavros_file",
@@ -85,15 +85,6 @@ def generate_launch_description() -> LaunchDescription:
             "gazebo_world_file",
             default_value="",
             description="The world configuration to load if using Gazebo.",
-        ),
-        DeclareLaunchArgument(
-            "controller",
-            default_value="ismc",
-            description=(
-                "The controller to use; this should be the same name as the"
-                " controller's executable."
-            ),
-            choices=["ismc"],
         ),
         DeclareLaunchArgument(
             "localization_source",
@@ -251,25 +242,6 @@ def generate_launch_description() -> LaunchDescription:
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 PathJoinSubstitution(
-                    [FindPackageShare("blue_control"), "launch", "control.launch.py"]
-                )
-            ),
-            launch_arguments={
-                "config_filepath": PathJoinSubstitution(
-                    [
-                        FindPackageShare(description_package),
-                        "config",
-                        configuration_type,
-                        LaunchConfiguration("controllers_file"),
-                    ]
-                ),
-                "controller": LaunchConfiguration("controller"),
-                "use_sim_time": use_sim,
-            }.items(),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution(
                     [FindPackageShare("blue_localization"), "localization.launch.py"]
                 )
             ),
@@ -285,22 +257,6 @@ def generate_launch_description() -> LaunchDescription:
                 "localization_source": LaunchConfiguration("localization_source"),
                 "use_mocap": LaunchConfiguration("use_mocap"),
                 "use_camera": LaunchConfiguration("use_camera"),
-                "use_sim_time": use_sim,
-            }.items(),
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(
-                PathJoinSubstitution([FindPackageShare("blue_joy"), "joy.launch.py"])
-            ),
-            launch_arguments={
-                "config_filepath": PathJoinSubstitution(
-                    [
-                        FindPackageShare(description_package),
-                        "config",
-                        LaunchConfiguration("joy_file"),
-                    ]
-                ),
-                "controller": LaunchConfiguration("controller"),
                 "use_sim_time": use_sim,
             }.items(),
         ),

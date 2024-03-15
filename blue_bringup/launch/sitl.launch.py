@@ -86,7 +86,7 @@ def generate_launch_description() -> LaunchDescription:
                 # Clock (IGN -> ROS 2)
                 "/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock"
             ],
-            output="both",
+            # output="both",
         ),
         Node(
             package="ros_gz_bridge",
@@ -101,7 +101,7 @@ def generate_launch_description() -> LaunchDescription:
                     "/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
                 ],
             ],
-            output="both",
+            # output="both",
         ),
         Node(
             package="ros_gz_bridge",
@@ -114,13 +114,13 @@ def generate_launch_description() -> LaunchDescription:
                     "/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry",
                 ],
             ],
-            output="both",
+            # output="both",
         ),
         Node(
             package="ros_gz_sim",
             executable="create",
             arguments=["-name", configuration_type, "-topic", "robot_description"],
-            output="both",
+            # output="both",
         ),
     ]
 

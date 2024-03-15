@@ -1,0 +1,8 @@
+ardusub_manager:
+  ros__parameters:
+    message_intervals:
+      ids: [31, 32]
+      rates: [200.0, 200.0]
+    set_ekf_origin: false
+    set_home_position: false
+    publish_tf: true
