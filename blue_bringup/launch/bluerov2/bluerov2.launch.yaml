@@ -1,0 +1,58 @@
+launch:
+
+  # Arguments
+  - arg:
+      name: localization_source
+      default: gazebo
+
+  - arg:
+      name: use_camera
+      default: "false"
+
+  - arg:
+      name: use_mocap
+      default: "false"
+
+  - arg:
+      name: use_sim
+      default: "false"
+
+  - arg:
+      name: use_rviz
+      default: "false"
+
+  - arg:
+      name: use_joy
+      default: "false"
+
+  - arg:
+      name: rviz_config
+      default: $(find-pkg-share blue_description)/rviz/bluerov2.rviz
+
+  - arg:
+      name: gazebo_world_file
+      default: $(find-pkg-share blue_description)/gazebo/worlds/bluerov2_underwater.world
+
+  # Includes
+  - include:
+      file: $(find-pkg-share blue_bringup)/launch/base.launch.yaml
+      arg:
+        - name: configuration_type
+          value: bluerov2
+        - name: gazebo_world_file
+          value: $(var gazebo_world_file)
+        - name: localization_source
+          value: $(var localization_source)
+        - name: use_camera
+          value: $(var use_camera)
+        - name: use_mocap
+          value: $(var use_mocap)
+        - name: use_sim
+          value: $(var use_sim)
+        - name: use_rviz
+          value: $(var use_rviz)
+        - name: use_joy
+          value: $(var use_joy)
+
+  - include:
+      file: $(find-pkg-share blue_bringup)/launch/bluerov2/thrusters.launch.yaml

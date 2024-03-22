@@ -1,0 +1,126 @@
+launch:
+
+  # Arguments
+  - arg:
+      name: description_package
+      default: blue_description
+
+  - arg:
+      name: configuration_type
+      default: bluerov2_heavy
+
+  - arg:
+      name: localization_file
+      default: $(find-pkg-share $(var description_package))/config/$(var configuration_type)/localization.yaml
+
+  - arg:
+      name: mavros_file
+      default: $(find-pkg-share $(var description_package))/config/mavros.yaml
+
+  - arg:
+      name: joy_file
+      default: $(find-pkg-share $(var description_package))/config/joy_teleop.yaml
+
+  - arg:
+      name: gazebo_world_file
+      default: $(find-pkg-share $(var description_package))/gazebo/worlds/$(var configuration_type)_underwater.world
+
+  - arg:
+      name: rviz_config
+      default: $(find-pkg-share $(var description_package))/rviz/$(var configuration_type).rviz
+
+  - arg:
+      name: description_file
+      default: $(find-pkg-share $(var description_package))/xacro/$(var configuration_type)/config.xacro
+
+  - arg:
+      name: ardusub_params_file
+      default: $(find-pkg-share $(var description_package))/config/$(var configuration_type)/ardusub.parm
+
+  - arg:
+      name: use_camera
+      default: "false"
+
+  - arg:
+      name: use_mocap
+      default: "false"
+
+  - arg:
+      name: localization_source
+      default: gazebo
+      choice:
+        - value: gazebo
+        - value: mocap
+        - value: camera
+
+  - arg:
+      name: use_sim
+      default: "false"
+
+  - arg:
+      name: use_rviz
+      default: "false"
+
+  - arg:
+      name: use_joy
+      default: "false"
+
+  # Load the description file
+  - let:
+      name: robot_description
+      value: $(command 'xacro $(var description_file) use_sim:=$(var use_sim)')
+
+  # Nodes
+  - node:
+      pkg: mavros
+      exec: mavros_node
+      param:
+        - from: $(var mavros_file)
+        - name: use_sim_time
+          value: $(var use_sim)
+
+  - node:
+      pkg: robot_state_publisher
+      exec: robot_state_publisher
+      param:
+        - name: robot_description
+          value: $(var robot_description)
+        - name: use_sim_time
+          value: $(var use_sim)
+
+  - node:
+      pkg: rviz2
+      exec: rviz2
+      if: $(var use_rviz)
+      args: -d $(var rviz_config)
+      param:
+        - name: robot_description
+          value: $(var robot_description)
+
+  # Includes
+  - include:
+      file: $(find-pkg-share blue_bringup)/launch/sitl.launch.yaml
+      if: $(var use_sim)
+      arg:
+        - name: description_package
+          value: $(var description_package)
+        - name: configuration_type
+          value: $(var configuration_type)
+        - name: gazebo_world_file
+          value: $(var gazebo_world_file)
+        - name: ardusub_params_file
+          value: $(var ardusub_params_file)
+
+  - include:
+      file: $(find-pkg-share blue_localization)/localization.launch.py
+      arg:
+        - name: localization_source
+          value: $(var localization_source)
+        - name: use_camera
+          value: $(var use_camera)
+        - name: use_mocap
+          value: $(var use_mocap)
+        - name: use_sim_time
+          value: $(var use_sim)
+        - name: config_filepath
+          value: $(var localization_file)

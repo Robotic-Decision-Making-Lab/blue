@@ -1,0 +1,49 @@
+launch:
+  # Arguments
+  - arg:
+      name: description_package
+      default: blue_description
+
+  - arg:
+      name: configuration_type
+      default: bluerov2_heavy
+
+  - arg:
+      name: gazebo_world_file
+      default: $(find-pkg-share $(var description_package))/gazebo/worlds/$(var configuration_type)_underwater.world
+
+  - arg:
+      name: ardusub_params_file
+      default: $(find-pkg-share $(var description_package))/config/$(var configuration_type)/ardusub.parm
+
+  # Nodes
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /model/$(var configuration_type)/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry
+
+  - node:
+      pkg: ros_gz_sim
+      exec: create
+      args: -name $(var configuration_type) -topic robot_description
+
+  # Processes
+  - executable:
+      cmd: ardusub -S -w -M JSON --defaults $(var ardusub_params_file) -IO --home 44.65870,-124.06556,0.0,270.0
+
+  # Includes
+  - include:
+      file: $(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py
+      arg:
+        - name: gz_args
+          value: -v 4 -r $(var gazebo_world_file)
