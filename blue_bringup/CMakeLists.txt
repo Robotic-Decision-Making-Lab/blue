@@ -13,7 +13,7 @@ endforeach()
 
 install(
   DIRECTORY launch
-  DESTINATION share/${PROJECT_NAME}
+  DESTINATION share/blue_bringup
 )
 
 ament_package()

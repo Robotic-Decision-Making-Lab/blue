@@ -35,7 +35,7 @@ launch:
 
   # Includes
   - include:
-      file: $(find-pkg-share blue_bringup)/launch/base.launch.yaml
+      file: $(find-pkg-share blue_bringup)/launch/ardusub/base.launch.yaml
       arg:
         - name: configuration_type
           value: bluerov2

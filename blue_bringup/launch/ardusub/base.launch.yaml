@@ -15,7 +15,7 @@ launch:
 
   - arg:
       name: mavros_file
-      default: $(find-pkg-share $(var description_package))/config/mavros.yaml
+      default: $(find-pkg-share $(var description_package))/config/ardusub/mavros.yaml
 
   - arg:
       name: joy_file
@@ -72,14 +72,6 @@ launch:
 
   # Nodes
   - node:
-      pkg: mavros
-      exec: mavros_node
-      param:
-        - from: $(var mavros_file)
-        - name: use_sim_time
-          value: $(var use_sim)
-
-  - node:
       pkg: robot_state_publisher
       exec: robot_state_publisher
       param:
@@ -99,19 +91,6 @@ launch:
 
   # Includes
   - include:
-      file: $(find-pkg-share blue_bringup)/launch/sitl.launch.yaml
-      if: $(var use_sim)
-      arg:
-        - name: description_package
-          value: $(var description_package)
-        - name: configuration_type
-          value: $(var configuration_type)
-        - name: gazebo_world_file
-          value: $(var gazebo_world_file)
-        - name: ardusub_params_file
-          value: $(var ardusub_params_file)
-
-  - include:
       file: $(find-pkg-share blue_localization)/localization.launch.py
       arg:
         - name: localization_source
@@ -124,3 +103,6 @@ launch:
           value: $(var use_sim)
         - name: config_filepath
           value: $(var localization_file)
+
+  - include:
+      file: $(find-pkg-share blue_bringup)/launch/tf.launch.yaml

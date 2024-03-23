@@ -5,30 +5,10 @@ launch:
       pkg: tf2_ros
       exec: static_transform_publisher
       name: base_link_to_base_link_fsd
-      arg:
-        - name: roll
-          value: 3.142
-        - name: pitch
-          value: 0.0
-        - name: yaw
-          value: 0.0
-        - name: frame-id
-          value: base_link
-        - name: child-frame-id
-          value: base_link_fsd
+      args: --roll 3.142 --frame-id base_link --child-frame-id base_link_fsd
 
   - node:
       pkg: tf2_ros
-      exec: map
-      name: map_frd
-      arg:
-        - name: roll
-          value: 3.142
-        - name: pitch
-          value: 0.0
-        - name: yaw
-          value: 0.0
-        - name: frame-id
-          value: base_link
-        - name: child-frame-id
-          value: base_link_fsd
+      exec: static_transform_publisher
+      name: map_to_map_ned
+      args: --roll 3.142 --frame-id map --child-frame-id map_ned

@@ -7,11 +7,8 @@ mavros:
       - imu
       - rc_io
       - param
-      - vision*
       - local*
       - global_position
-      - home_position
-      - mocap_pose_estimate
 
 mavros_node:
   ros__parameters:
@@ -20,6 +17,4 @@ mavros_node:
 
 mavros/local_position:
   ros__parameters:
-    frame_id: "map"
-    tf:
-      send: false
+    frame_id: map

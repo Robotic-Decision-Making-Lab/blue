@@ -1,26 +1,133 @@
-ismc:
+controller_manager:
   ros__parameters:
-    mass: 10.0
-    buoyancy: 100.06
-    weight: 98.1
-    inertia_tensor_coeff: [0.16, 0.16, 0.16]
-    added_mass_coeff: [-5.50, -12.70, -14.57, -0.12, -0.12, -0.12]
-    linear_damping_coeff: [-4.03, -6.22, -5.18, -0.07, -0.07, -0.07]
-    quadratic_damping_coeff: [-18.18, -21.66, -36.99, -1.55, -1.55, -1.55]
-    center_of_gravity: [0.0, 0.0, 0.0]
-    center_of_buoyancy: [0.0, 0.0, 0.2]
-    ocean_current: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
-    num_thrusters: 6
-    tcm: [ -0.707, -0.707,  0.707,   0.707,      0.0,     0.0,
-            0.707, -0.707,  0.707,  -0.707,      0.0,     0.0,
-              0.0,    0.0,    0.0,     0.0,      1.0,     1.0,
-              0.0,    0.0,    0.0,     0.0, -0.21805, 0.21805,
-              0.0,    0.0,    0.0,     0.0,    -0.12,   -0.12,
-          0.1888, -0.1888, -0.1888, 0.1888,      0.0,     0.0]
-    control_rate: 100.0
-    proportional_gain: [10.0, 10.0, 6.0, 3.0, 6.0, 10.0]
-    integral_gain: [0.01, 0.01, 0.01, 0.01, 0.01, 0.01]
-    derivative_gain: [0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
-    sliding_gain: 20.0
-    boundary_thickness: 200.0
-    use_battery_state: false
+    update_rate: 100 # Hz
+
+    integral_sliding_mode_controller:
+      type: velocity_controllers/IntegralSlidingModeController
+
+    thruster_allocation_matrix_controller:
+      type: thruster_allocation_matrix_controller/ThrusterAllocationMatrixController
+
+    thruster1_controller:
+      type: thruster_controllers/PolynomialThrustCurveController
+
+    thruster2_controller:
+      type: thruster_controllers/PolynomialThrustCurveController
+
+    thruster3_controller:
+      type: thruster_controllers/PolynomialThrustCurveController
+
+    thruster4_controller:
+      type: thruster_controllers/PolynomialThrustCurveController
+
+    thruster5_controller:
+      type: thruster_controllers/PolynomialThrustCurveController
+
+    thruster6_controller:
+      type: thruster_controllers/PolynomialThrustCurveController
+
+integral_sliding_mode_controller:
+  ros__parameters:
+    use_external_measured_states: true
+    reference_controller: thruster_allocation_matrix_controller
+    gains:
+      rho: 20.0
+      lambda: 200.0
+      Kp: [4.0, 4.0, 9.0, 3.0, 3.0, 7.0]
+    tf:
+      base_frame: "base_link_fsd"
+      odom_frame: "map_ned"
+    hydrodynamics:
+      mass: 13.5
+      weight: 114.80
+      buoyancy: 112.80
+      moments_of_inertia: [0.16, 0.16, 0.16]
+      added_mass: [-5.50, -12.70, -14.60, -0.12, -0.12, -0.12]
+      center_of_buoyancy: [0.0, 0.0, 0.0]
+      center_of_gravity: [0.0, 0.0, 0.0]
+      linear_damping: [-4.03, -6.22, -5.18, -0.07, -0.07, -0.07]
+      quadratic_damping: [-18.18, -21.66, -36.99, -1.55, -1.55, -1.55]
+
+thruster_allocation_matrix_controller:
+  ros__parameters:
+    thrusters:
+      - thruster1_joint
+      - thruster2_joint
+      - thruster3_joint
+      - thruster4_joint
+      - thruster5_joint
+      - thruster6_joint
+    reference_controllers:
+      - thruster1_controller
+      - thruster2_controller
+      - thruster3_controller
+      - thruster4_controller
+      - thruster5_controller
+      - thruster6_controller
+    tam:
+      x:  [ -0.707,  -0.707,   0.707,  0.707,      0.0,     0.0]
+      y:  [ 0.707,   -0.707,   0.707, -0.707,      0.0,     0.0]
+      z:  [    0.0,     0.0,     0.0,    0.0,      1.0,     1.0]
+      rx: [    0.0,     0.0,     0.0,    0.0, -0.21805, 0.21805]
+      ry: [    0.0,     0.0,     0.0,    0.0,    -0.12,   -0.12]
+      rz: [0.1888,  -0.1888, -0.1888, 0.1888,      0.0,     0.0]
+
+thruster1_controller:
+  ros__parameters:
+    thruster: thruster1_joint
+    min_thrust: -40.0
+    max_thrust: 60.0
+    min_deadband: 1470
+    max_deadband: 1530
+    neutral_pwm: 1500
+    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+
+thruster2_controller:
+  ros__parameters:
+    thruster: thruster2_joint
+    min_thrust: -40.0
+    max_thrust: 60.0
+    min_deadband: 1470
+    max_deadband: 1530
+    neutral_pwm: 1500
+    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+
+thruster3_controller:
+  ros__parameters:
+    thruster: thruster3_joint
+    min_thrust: -40.0
+    max_thrust: 60.0
+    min_deadband: 1470
+    max_deadband: 1530
+    neutral_pwm: 1500
+    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+
+thruster4_controller:
+  ros__parameters:
+    thruster: thruster4_joint
+    min_thrust: -40.0
+    max_thrust: 60.0
+    min_deadband: 1470
+    max_deadband: 1530
+    neutral_pwm: 1500
+    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+
+thruster5_controller:
+  ros__parameters:
+    thruster: thruster5_joint
+    min_thrust: -40.0
+    max_thrust: 60.0
+    min_deadband: 1470
+    max_deadband: 1530
+    neutral_pwm: 1500
+    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+
+thruster6_controller:
+  ros__parameters:
+    thruster: thruster6_joint
+    min_thrust: -40.0
+    max_thrust: 60.0
+    min_deadband: 1470
+    max_deadband: 1530
+    neutral_pwm: 1500
+    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
