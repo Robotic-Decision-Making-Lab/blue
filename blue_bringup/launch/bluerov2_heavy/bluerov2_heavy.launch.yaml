@@ -30,10 +30,6 @@ launch:
       default: "false"
 
   - arg:
-      name: use_joy
-      default: "false"
-
-  - arg:
       name: use_manager
       default: "false"
 
@@ -47,7 +43,11 @@ launch:
 
   - arg:
       name: mavros_file
-      default: $(find-pkg-share blue_description)/config/ardusub/mavros.yaml
+      default: $(find-pkg-share blue_description)/config/mavros.yaml
+
+  - arg:
+      name: manager_file
+      default: $(find-pkg-share blue_description)/config/ardusub/ardusub_manager.yaml
 
   - arg:
       name: ardusub_params_file
@@ -95,6 +95,8 @@ launch:
           value: $(var gazebo_world_file)
         - name: ardusub_params_file
           value: $(var ardusub_params_file)
+        - name: manager_file
+          value: $(var manager_file)
         - name: configuration_type
           value: $(var configuration_type)
         - name: use_sim
@@ -115,3 +117,6 @@ launch:
           value: $(var use_sim)
         - name: config_filepath
           value: $(var localization_file)
+
+  - include:
+      file: $(find-pkg-share blue_bringup)/launch/$(var configuration_type)/thrusters.launch.yaml

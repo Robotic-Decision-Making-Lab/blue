@@ -18,7 +18,7 @@ launch:
 
   - arg:
       name: manager_file
-      default: $(find-pkg-share blue_description)/config/ardusub/ardusub_manager.yaml
+      default: ""
 
   - arg:
       name: use_sim
