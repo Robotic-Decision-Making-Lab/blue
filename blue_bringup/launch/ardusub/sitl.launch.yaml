@@ -1,20 +1,14 @@
 launch:
+
   # Arguments
   - arg:
-      name: description_package
-      default: blue_description
-
-  - arg:
       name: configuration_type
-      default: bluerov2_heavy
 
   - arg:
       name: gazebo_world_file
-      default: $(find-pkg-share $(var description_package))/gazebo/worlds/$(var configuration_type)_underwater.world
 
   - arg:
       name: ardusub_params_file
-      default: $(find-pkg-share $(var description_package))/config/$(var configuration_type)/ardusub.parm
 
   # Nodes
   - node:

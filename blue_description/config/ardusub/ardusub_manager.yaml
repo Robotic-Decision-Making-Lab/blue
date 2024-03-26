@@ -2,6 +2,6 @@ ardusub_manager:
   ros__parameters:
     message_intervals:
       ids: [31, 32]
-      rates: [100.0, 100.0]
-    set_ekf_origin: false
-    publish_tf: true
+      rates: [50.0, 50.0]
+    set_ekf_origin: true
+    publish_tf: false

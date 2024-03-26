@@ -19,18 +19,16 @@
 # THE SOFTWARE.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
-from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch_ros.actions import Node
+from launch.actions import DeclareLaunchArgument, RegisterEventHandler
+from launch.event_handlers import OnProcessExit
 from launch.substitutions import (
     Command,
     FindExecutable,
     LaunchConfiguration,
     PathJoinSubstitution,
 )
+from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
-from launch.actions import RegisterEventHandler
-from launch.event_handlers import OnProcessExit
 
 
 def generate_launch_description() -> LaunchDescription:
@@ -76,30 +74,6 @@ def generate_launch_description() -> LaunchDescription:
         ]
     )
     robot_description = {"robot_description": robot_description_content}
-
-    ardusub_manager_launch = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
-            [
-                PathJoinSubstitution(
-                    [
-                        FindPackageShare("ardusub_manager"),
-                        "launch",
-                        "ardusub_manager.launch.py",
-                    ]
-                )
-            ]
-        ),
-        launch_arguments={
-            "ardusub_manager_file": PathJoinSubstitution(
-                [
-                    FindPackageShare("blue_description"),
-                    "config",
-                    "ardusub",
-                    "ardusub_manager.yaml",
-                ]
-            ),
-        }.items(),
-    )
 
     controller_manager = Node(
         package="controller_manager",
@@ -185,7 +159,6 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
             *args,
-            ardusub_manager_launch,
             controller_manager,
             *delay_thruster_spawners,
             delay_tam_controller_spawner_after_thruster_controller_spawners,

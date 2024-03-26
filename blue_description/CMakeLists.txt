@@ -11,7 +11,7 @@ endforeach()
 
 install(
   DIRECTORY config gazebo meshes xacro rviz
-  DESTINATION share/${PROJECT_NAME}
+  DESTINATION share/blue_description
 )
 
 ament_package()

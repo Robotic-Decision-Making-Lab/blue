@@ -2,8 +2,6 @@ cmake_minimum_required(VERSION 3.8)
 project(blue_bringup)
 
 set(THIS_PACKAGE_INCLUDE_DEPENDS
-  rclcpp
-  rclpy
   ament_cmake
 )
 

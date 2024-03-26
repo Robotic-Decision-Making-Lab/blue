@@ -2,21 +2,30 @@ launch:
 
   # Arguments
   - arg:
-      name: description_package
-      default: blue_description
-
-  - arg:
       name: mavros_file
-      default: $(find-pkg-share $(var description_package))/config/ardusub/mavros.yaml
 
   - arg:
       name: gazebo_world_file
+      default: ""
 
   - arg:
       name: ardusub_params_file
+      default: ""
+
+  - arg:
+      name: configuration_type
+      default: ""
+
+  - arg:
+      name: manager_file
+      default: $(find-pkg-share blue_description)/config/ardusub/ardusub_manager.yaml
 
   - arg:
       name: use_sim
+      default: "false"
+
+  - arg:
+      name: use_manager
       default: "false"
 
   # Nodes
@@ -33,11 +42,16 @@ launch:
       file: $(find-pkg-share blue_bringup)/launch/ardusub/sitl.launch.yaml
       if: $(var use_sim)
       arg:
-        - name: description_package
-          value: $(var description_package)
         - name: configuration_type
           value: $(var configuration_type)
         - name: gazebo_world_file
           value: $(var gazebo_world_file)
         - name: ardusub_params_file
           value: $(var ardusub_params_file)
+
+  - include:
+      file: $(find-pkg-share ardusub_manager)/launch/ardusub_manager.launch.py
+      if: $(var use_manager)
+      arg:
+        - name: ardusub_manager_file
+          value: $(var manager_file)
