@@ -4,7 +4,7 @@
 
   <name>blue_bringup</name>
   <version>0.0.1</version>
-  <description>Entrypoints for the Blue project</description>
+  <description>Launch files for Blue</description>
 
   <maintainer email="evanp922@gmail.com">Evan Palmer</maintainer>
   <license>MIT</license>
@@ -17,11 +17,6 @@
   <exec_depend>mavros</exec_depend>
   <exec_depend>mavros_extras</exec_depend>
   <exec_depend>ros2launch</exec_depend>
-
-  <test_depend>ament_copyright</test_depend>
-  <test_depend>ament_flake8</test_depend>
-  <test_depend>ament_pep257</test_depend>
-  <test_depend>python3-pytest</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

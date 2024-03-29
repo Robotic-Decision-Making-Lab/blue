@@ -1,0 +1,77 @@
+{
+  "files.associations": {
+    "*.repos": "yaml",
+    "*.world": "xml",
+    "*.xacro": "xml",
+    "*.srdf": "xml",
+    "*.rviz": "yaml",
+    "*.config": "xml",
+    "*.sdf": "xml"
+  },
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.profiles.linux": {
+    "bash": {
+      "path": "bash",
+      "icon": "terminal-bash",
+      "args": ["-i"]
+    }
+  },
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "autoDocstring.startOnNewLine": false,
+  "autoDocstring.docstringFormat": "google-notypes",
+  "python.autoComplete.extraPaths": [
+    "/opt/ros/iron/lib/python3.10/site-packages/",
+    "/opt/ros/iron/local/lib/python3.10/dist-packages/",
+    "${workspaceFolder}/install/"
+  ],
+  "python.analysis.extraPaths": [
+    "/opt/ros/iron/lib/python3.10/site-packages/",
+    "/opt/ros/iron/local/lib/python3.10/dist-packages/",
+    "${workspaceFolder}/install/"
+  ],
+  "C_Cpp.default.intelliSenseMode": "linux-gcc-x86",
+  "C_Cpp.clang_format_fallbackStyle": "Google",
+  "C_Cpp.codeAnalysis.clangTidy.enabled": true,
+  "C_Cpp.codeAnalysis.clangTidy.codeAction.formatFixes": true,
+  "clang-format.executable": "/usr/bin/clang-format-14",
+  "[cpp]": {
+    "editor.rulers": [120],
+    "editor.tabSize": 2,
+    "editor.defaultFormatter": "xaver.clang-format"
+  },
+  "[python]": {
+    "editor.tabSize": 4,
+    "editor.rulers": [90],
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "[dockerfile]": {
+    "editor.quickSuggestions": {
+      "strings": true
+    },
+    "editor.defaultFormatter": "ms-azuretools.vscode-docker",
+    "editor.tabSize": 4
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml"
+  },
+  "[markdown]": {
+    "editor.rulers": [80],
+    "editor.defaultFormatter": "DavidAnson.vscode-markdownlint"
+  },
+  "search.exclude": {
+    "**/build": true,
+    "**/install": true,
+    "**/log": true
+  }
+}
