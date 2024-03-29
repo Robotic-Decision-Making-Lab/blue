@@ -1,7 +1,7 @@
 launch:
 
   - let:
-      name: configuration_type
+      name: model_name
       value: bluerov2_heavy
 
   # Arguments
@@ -35,11 +35,11 @@ launch:
 
   - arg:
       name: rviz_config
-      default: $(find-pkg-share blue_description)/rviz/$(var configuration_type).rviz
+      default: $(find-pkg-share blue_description)/rviz/$(var model_name).rviz
 
   - arg:
       name: gazebo_world_file
-      default: $(find-pkg-share blue_description)/gazebo/worlds/$(var configuration_type)_underwater.world
+      default: $(find-pkg-share blue_description)/gazebo/worlds/$(var model_name)_underwater.world
 
   - arg:
       name: mavros_file
@@ -51,16 +51,16 @@ launch:
 
   - arg:
       name: ardusub_params_file
-      default: $(find-pkg-share blue_description)/config/$(var configuration_type)/ardusub.parm
+      default: $(find-pkg-share blue_description)/config/$(var model_name)/ardusub.parm
 
   - arg:
       name: localization_file
-      default: $(find-pkg-share blue_description)/config/$(var configuration_type)/localization.yaml
+      default: $(find-pkg-share blue_description)/config/$(var model_name)/localization.yaml
 
   # Load the description file
   - let:
       name: description_file
-      value: $(find-pkg-share blue_description)/xacro/$(var configuration_type)/config.xacro
+      value: $(find-pkg-share blue_description)/xacro/$(var model_name)/config.xacro
 
   - let:
       name: robot_description
@@ -87,7 +87,7 @@ launch:
 
   # Includes
   - include:
-      file: $(find-pkg-share blue_bringup)/launch/ardusub/ardusub.launch.yaml
+      file: $(find-pkg-share ardusub_bringup)/launch/ardusub.launch.yaml
       arg:
         - name: mavros_file
           value: $(var mavros_file)
@@ -97,8 +97,8 @@ launch:
           value: $(var ardusub_params_file)
         - name: manager_file
           value: $(var manager_file)
-        - name: configuration_type
-          value: $(var configuration_type)
+        - name: model_name
+          value: $(var model_name)
         - name: use_sim
           value: $(var use_sim)
         - name: use_manager
@@ -119,4 +119,4 @@ launch:
           value: $(var localization_file)
 
   - include:
-      file: $(find-pkg-share blue_bringup)/launch/$(var configuration_type)/thrusters.launch.yaml
+      file: $(find-pkg-share blue_bringup)/launch/$(var model_name)/thrusters.launch.yaml
