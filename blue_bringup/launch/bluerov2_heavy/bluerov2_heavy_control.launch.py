@@ -75,6 +75,21 @@ def generate_launch_description() -> LaunchDescription:
     )
     robot_description = {"robot_description": robot_description_content}
 
+    # The ISMC expects state information to be provided in the FSD frame
+    mobile_to_maritime_velocity_state = Node(
+        package="mobile_to_maritime",
+        executable="mobile_twist_stamped_to_maritime_twist",
+        name="velocity_state_transform",
+        parameters=[
+            {
+                "in_topic": "/mavros/local_position/velocity_body",
+                "out_topic": "/integral_sliding_mode_controller/system_state",
+                "qos_reliability": "best_effort",
+                "qos_durability": "volatile",
+            }
+        ],
+    )
+
     controller_manager = Node(
         package="controller_manager",
         executable="ros2_control_node",
@@ -101,6 +116,7 @@ def generate_launch_description() -> LaunchDescription:
             ["", "controller_manager"],
         ],
     )
+
     thruster_spawners = [
         Node(
             package="controller_manager",
@@ -139,6 +155,7 @@ def generate_launch_description() -> LaunchDescription:
             ["", "controller_manager"],
         ],
     )
+
     delay_tam_controller_spawner_after_thruster_controller_spawners = (
         RegisterEventHandler(
             event_handler=OnProcessExit(
@@ -147,6 +164,7 @@ def generate_launch_description() -> LaunchDescription:
             )
         )
     )
+
     delay_velocity_controller_spawner_after_tam_controller_spawner = (
         RegisterEventHandler(
             event_handler=OnProcessExit(
@@ -159,6 +177,7 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
             *args,
+            mobile_to_maritime_velocity_state,
             controller_manager,
             *delay_thruster_spawners,
             delay_tam_controller_spawner_after_thruster_controller_spawners,
