@@ -31,7 +31,7 @@ launch:
 
   - arg:
       name: use_manager
-      default: "false"
+      default: "true"
 
   - arg:
       name: rviz_config

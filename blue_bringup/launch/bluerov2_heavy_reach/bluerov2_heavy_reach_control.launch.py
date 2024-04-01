@@ -60,7 +60,7 @@ def generate_launch_description() -> LaunchDescription:
                 [
                     FindPackageShare("blue_description"),
                     "xacro",
-                    "bluerov2_heavy",
+                    "bluerov2_heavy_reach",
                     "config.xacro",
                 ]
             ),
@@ -99,7 +99,7 @@ def generate_launch_description() -> LaunchDescription:
                 [
                     FindPackageShare("blue_description"),
                     "config",
-                    "bluerov2_heavy",
+                    "bluerov2_heavy_reach",
                     "controllers.yaml",
                 ]
             ),

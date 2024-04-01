@@ -60,7 +60,7 @@ def generate_launch_description() -> LaunchDescription:
                 [
                     FindPackageShare("blue_description"),
                     "xacro",
-                    "bluerov2_heavy",
+                    "bluerov2",
                     "config.xacro",
                 ]
             ),
@@ -99,7 +99,7 @@ def generate_launch_description() -> LaunchDescription:
                 [
                     FindPackageShare("blue_description"),
                     "config",
-                    "bluerov2_heavy",
+                    "bluerov2",
                     "controllers.yaml",
                 ]
             ),
@@ -126,7 +126,7 @@ def generate_launch_description() -> LaunchDescription:
                 ["", "controller_manager"],
             ],
         )
-        for i in range(8)
+        for i in range(6)
     ]
 
     delay_thruster_spawners = []
