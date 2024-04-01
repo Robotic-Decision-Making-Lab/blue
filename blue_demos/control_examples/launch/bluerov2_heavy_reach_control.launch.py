@@ -32,7 +32,7 @@ from launch_ros.substitutions import FindPackageShare
 
 
 def generate_launch_description() -> LaunchDescription:
-    """Generate a launch description for the BlueROV2 Heavy.
+    """Generate a launch description for the BlueROV2 Heavy Reach configuration.
 
     This should be launched after MAVROS has fully loaded.
     """
