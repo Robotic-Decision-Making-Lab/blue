@@ -1,5 +1,5 @@
 {
-  "name": "Blue NVIDIA Dev Container",
+  "name": "NVIDIA Dev Container",
   "dockerFile": "Dockerfile",
   "context": "../..",
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/blue/ws_blue/src/blue,type=bind",
@@ -30,16 +30,14 @@
         "ms-azuretools.vscode-docker",
         "ms-python.python",
         "njpwerner.autodocstring",
-        "ms-vscode.cpptools",
         "redhat.vscode-xml",
         "redhat.vscode-yaml",
         "smilerobotics.urdf",
-        "DavidAnson.vscode-markdownlint",
         "esbenp.prettier-vscode",
-        "xaver.clang-format",
         "charliermarsh.ruff",
         "ms-python.black-formatter",
-        "josetr.cmake-language-support-vscode"
+        "josetr.cmake-language-support-vscode",
+        "unifiedjs.vscode-mdx"
       ]
     }
   }
