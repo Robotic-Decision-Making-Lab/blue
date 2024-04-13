@@ -35,7 +35,6 @@
         "smilerobotics.urdf",
         "esbenp.prettier-vscode",
         "charliermarsh.ruff",
-        "ms-python.black-formatter",
         "josetr.cmake-language-support-vscode",
         "unifiedjs.vscode-mdx"
       ]
