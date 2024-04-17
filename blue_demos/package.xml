@@ -16,11 +16,13 @@
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
-  <test_depend>ament_lint_auto</test_depend>
-
-  <test_depend>ament_cmake_copyright</test_depend>
-  <test_depend>ament_cmake_lint_cmake</test_depend>
-  <test_depend>ament_cmake_xmllint</test_depend>
+  <exec_depend>teleop_twist_keyboard</exec_depend>
+  <exec_depend>joy_teleop</exec_depend>
+  <exec_depend>joy_linux</exec_depend>
+  <exec_depend>auv_controllers</exec_depend>
+  <exec_depend>ardusub_manager</exec_depend>
+  <exec_depend>blue_description</exec_depend>
+  <exec_depend>blue_bringup</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

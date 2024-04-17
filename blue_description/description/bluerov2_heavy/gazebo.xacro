@@ -150,11 +150,11 @@
     </gazebo>
 
     <!-- Include the camera Gazebo macro -->
-    <xacro:include filename="$(find blue_description)/xacro/camera/gazebo.xacro" />
+    <xacro:include filename="$(find blue_description)/description/camera/gazebo.xacro" />
     <xacro:camera_gazebo reference="${prefix}camera_mount_link" />
 
     <!-- Include the T200 Gazebo macro -->
-    <xacro:include filename="$(find blue_description)/xacro/t200/gazebo.xacro" />
+    <xacro:include filename="$(find blue_description)/description/t200/gazebo.xacro" />
 
     <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="1" ccw="true" />
     <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="2" ccw="true" />

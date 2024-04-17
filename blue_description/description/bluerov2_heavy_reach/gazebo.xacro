@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="bluerov2_gazebo" params="prefix">
+  <xacro:macro name="bluerov2_heavy_reach_gazebo" params="prefix">
 
-    <xacro:property name="model" value="bluerov2" />
+    <xacro:property name="model" value="bluerov2_heavy_reach" />
 
     <gazebo>
       <plugin name="ArduPilotPlugin" filename="libArduPilotPlugin.so">
@@ -77,6 +77,24 @@
           <offset>-0.5</offset>
           <multiplier>100</multiplier>
         </control>
+        <control channel="6">
+          <jointName>${prefix}thruster7_joint</jointName>
+          <servo_min>1100</servo_min>
+          <servo_max>1900</servo_max>
+          <type>COMMAND</type>
+          <cmd_topic>/model/${model}/joint/${prefix}thruster7_joint/cmd_thrust</cmd_topic>
+          <offset>-0.5</offset>
+          <multiplier>100</multiplier>
+        </control>
+        <control channel="7">
+          <jointName>${prefix}thruster8_joint</jointName>
+          <servo_min>1100</servo_min>
+          <servo_max>1900</servo_max>
+          <type>COMMAND</type>
+          <cmd_topic>/model/${model}/joint/${prefix}thruster8_joint/cmd_thrust</cmd_topic>
+          <offset>-0.5</offset>
+          <multiplier>100</multiplier>
+        </control>
 
       </plugin>
     </gazebo>
@@ -99,9 +117,9 @@
         <mQ>0</mQ>
         <nR>0</nR>
         <!-- Second order stability derivative -->
-        <xUabsU>-33.8</xUabsU>
-        <yVabsV>-54.269</yVabsV>
-        <zWabsW>-73.371</zWabsW>
+        <xUabsU>-58.42</xUabsU>
+        <yVabsV>-55.137</yVabsV>
+        <zWabsW>-124.818</zWabsW>
         <kPabsP>-4.0</kPabsP>
         <mQabsQ>-4.0</mQabsQ>
         <nRabsR>-4.0</nRabsR>
@@ -132,11 +150,11 @@
     </gazebo>
 
     <!-- Include the camera Gazebo macro -->
-    <xacro:include filename="$(find blue_description)/xacro/camera/gazebo.xacro" />
+    <xacro:include filename="$(find blue_description)/description/camera/gazebo.xacro" />
     <xacro:camera_gazebo reference="${prefix}camera_mount_link" />
 
     <!-- Include the T200 Gazebo macro -->
-    <xacro:include filename="$(find blue_description)/xacro/t200/gazebo.xacro" />
+    <xacro:include filename="$(find blue_description)/description/t200/gazebo.xacro" />
 
     <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="1" ccw="true" />
     <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="2" ccw="true" />
@@ -144,6 +162,8 @@
     <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="4" />
     <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="5" ccw="true" />
     <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="6" />
+    <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="7" />
+    <xacro:t200_gazebo namespace="${model}" prefix="${prefix}" id="8" ccw="true" />
 
   </xacro:macro>
 </robot>

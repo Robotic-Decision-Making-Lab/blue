@@ -33,7 +33,6 @@ from launch_ros.substitutions import FindPackageShare
 
 def generate_launch_description() -> LaunchDescription:
     """Generate a launch description for the BlueROV2.
-
     This should be launched after MAVROS has fully loaded.
     """
     args = [
@@ -58,10 +57,11 @@ def generate_launch_description() -> LaunchDescription:
             " ",
             PathJoinSubstitution(
                 [
-                    FindPackageShare("blue_description"),
-                    "xacro",
-                    "bluerov2",
-                    "config.xacro",
+                    FindPackageShare("blue_demos"),
+                    "control_integration",
+                    "description",
+                    "urdf",
+                    "bluerov2_heavy.config.xacro",
                 ]
             ),
             " ",
@@ -97,10 +97,10 @@ def generate_launch_description() -> LaunchDescription:
             robot_description,
             PathJoinSubstitution(
                 [
-                    FindPackageShare("blue_description"),
+                    FindPackageShare("blue_demos"),
+                    "control_integration",
                     "config",
-                    "bluerov2",
-                    "controllers.yaml",
+                    "bluerov2_heavy_controllers.yaml",
                 ]
             ),
         ],
@@ -126,7 +126,7 @@ def generate_launch_description() -> LaunchDescription:
                 ["", "controller_manager"],
             ],
         )
-        for i in range(6)  # BlueROV2 has 6 thrusters
+        for i in range(8)  # BlueROV2 Heavy has 8 thrusters
     ]
 
     delay_thruster_spawners = []

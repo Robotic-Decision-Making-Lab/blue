@@ -3,6 +3,10 @@ sidebar_position: 2
 ---
 
 import Vehicle from '@site/src/components/Vehicle';
+import BlueROV2 from '@site/static/img/vehicles/bluerov2.png';
+import BlueROV2Heavy from '@site/static/img/vehicles/bluerov2_heavy.png'
+import BlueROV2HeavyReach from '@site/static/img/vehicles/bluerov2_heavy_reach.png'
+
 
 # Overview
 
@@ -35,16 +39,16 @@ Several vehicle models have been implemented and tested with Blue in
 **simulation** and on **hardware**. These vehicles include:
 
 <div className="vehicles">
-   <Vehicle name="BlueROV2">
+   <Vehicle name="BlueROV2" img={BlueROV2}>
       The BlueROV2 is a popular lightweight underwater vehicle made by [Blue Robotics](https://bluerobotics.com/)
       that is used for hobby, research, and commercial applications.
    </Vehicle>
-   <Vehicle name="BlueROV2 Heavy">
+   <Vehicle name="BlueROV2 Heavy" img={BlueROV2Heavy}>
       The BlueROV2 Heavy is an extension to the BlueROV2 made by [Blue Robotics](https://bluerobotics.com/)
       that includes additional thrusters and a larger frame to improve the
       vehicle's manueverability.
    </Vehicle>
-   <Vehicle name="BlueROV2 Heavy Reach">
+   <Vehicle name="BlueROV2 Heavy Reach" img={BlueROV2HeavyReach}>
       The BlueROV2 Heavy Reach modifies the BlueROV2 Heavy by moving the
       thrusters located on the upper chassis to the lower chassis. This was
       proposed by [Reach Robotics](https://reachrobotics.com/) to enable

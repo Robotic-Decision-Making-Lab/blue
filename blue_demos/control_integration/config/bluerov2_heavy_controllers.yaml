@@ -39,7 +39,7 @@ integral_sliding_mode_controller:
     gains:
       rho: 20.0
       lambda: 200.0
-      Kp: [4.0, 4.0, 9.0, 3.0, 3.0, 7.0]
+      Kp: [10.0, 10.0, 6.0, 3.0, 6.0, 10.0]
     tf:
       base_frame: "base_link_fsd"
       odom_frame: "map_ned"
