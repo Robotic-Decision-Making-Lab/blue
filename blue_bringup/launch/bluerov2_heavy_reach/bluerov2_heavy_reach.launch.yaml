@@ -60,11 +60,11 @@ launch:
   # Load the description file
   - let:
       name: description_file
-      value: $(find-pkg-share blue_description)/xacro/$(var model_name)/config.xacro
+      value: $(find-pkg-share blue_description)/description/$(var model_name)/config.xacro
 
-  - let:
+  - arg:
       name: robot_description
-      value: $(command 'xacro $(var description_file) use_sim:=$(var use_sim)')
+      default: $(command 'xacro $(var description_file) use_sim:=$(var use_sim)')
 
   # Nodes
   - node:

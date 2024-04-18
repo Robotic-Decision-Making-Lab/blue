@@ -1,0 +1,19 @@
+launch:
+
+  - arg:
+      name: use_sim
+      default: "false"
+
+  - let:
+      name: description_file
+      value: $(find-pkg-share blue_demos)/control_integration/description/urdf/bluerov2.config.xacro
+
+  - let:
+      name: robot_description
+      value: $(command 'xacro $(var description_file) use_sim:=$(var use_sim)')
+
+  - include:
+      file: $(find-pkg-share blue_bringup)/launch/bluerov2/bluerov2.launch.yaml
+      arg:
+        - name: robot_description
+          value: $(var robot_description)

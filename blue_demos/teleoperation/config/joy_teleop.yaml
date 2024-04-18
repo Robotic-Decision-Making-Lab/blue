@@ -1,0 +1,29 @@
+joy_node:
+  ros__parameters:
+    dev: /dev/input/js0
+
+joy_teleop:
+  ros__parameters:
+
+    manual_control:
+      type: topic
+      interface_type: geometry_msgs/msg/Twist
+      topic_name: cmd_vel
+      deadman_axes: [2]
+      axis_mappings:
+        linear-x:
+          axis: 1
+          scale: 0.4
+          offset: 0
+        linear-y:
+          axis: 0
+          scale: 0.4
+          offset: 0
+        linear-z:
+          axis: 4
+          scale: 0.4
+          offset: 0
+        angular-z:
+          axis: 3
+          scale: 1.0
+          offset: 0

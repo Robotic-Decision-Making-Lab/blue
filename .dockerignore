@@ -4,9 +4,8 @@
 # Except the following
 !blue_bringup
 !blue_localization
-!blue_joy
 !blue_description
+!blue_demos
 !blue.repos
 !.docker/entrypoints
 !requirements-build.txt
-!requirements-dev.txt
