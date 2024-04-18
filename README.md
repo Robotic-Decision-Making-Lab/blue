@@ -4,18 +4,6 @@ Blue is an ROS 2 pipeline designed to support development, testing, and
 deployment of underwater vehicles. To get started with Blue, please refer to
 the project [documentation](https://robotic-decision-making-lab.github.io/blue/).
 
-If you find Blue to be helpful in your work, please consider citing our
-paper:
-
-```
-@inproceedings{palmer2024angler,
-  author={Palmer, Evan and Holm, Christopher and Hollinger, Geoffrey},
-  title={{Angler: An Autonomy Framework for Intervention Tasks with Lightweight Underwater Vehicle Manipulator Systems}},
-  booktitle={IEEE International Conference on Robotics and Automation},
-  year={2024}
-}
-```
-
 ## Main Features
 
 The main features of Blue include:
@@ -27,6 +15,20 @@ The main features of Blue include:
   that you performed development and testing in
 - A development environment that includes many of the tools that you need to
   develop software for underwater vehicles
+
+## Citation
+
+If you find Blue to be helpful in your work, please consider citing our
+paper:
+
+```
+@inproceedings{palmer2024angler,
+  author={Palmer, Evan and Holm, Christopher and Hollinger, Geoffrey},
+  title={{Angler: An Autonomy Framework for Intervention Tasks with Lightweight Underwater Vehicle Manipulator Systems}},
+  booktitle={IEEE International Conference on Robotics and Automation},
+  year={2024}
+}
+```
 
 ## Getting help
 
