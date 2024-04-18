@@ -32,13 +32,7 @@
   --color-gray-90: #141c22;
 
   /* Docusaurus Specific variables */
-  --ifm-color-primary: #165d7d!;
-  --ifm-color-primary-dark: #124d67;
-  --ifm-color-primary-darker: #0e3d52;
-  --ifm-color-primary-darkest: #0b2d3c;
-  --ifm-color-primary-light: #1a6d93;
-  --ifm-color-primary-lighter: #1e7da8;
-  --ifm-color-primary-lightest: #218dbe;
+  --ifm-color-primary: #218dbe;
   --ifm-color-primary-contrast-background: #e1f4ff;
   --ifm-color-primary-contrast-foreground: #00324e;
   --ifm-color-secondary: #e0e7ee;
@@ -62,6 +56,7 @@
   --ifm-menu-color: var(--ifm-color-content);
   --ifm-menu-color-active: var(--ifm-color-content);
   --ifm-toc-link-color: var(--ifm-color-content);
+  --ifm-breadcrumb-color-active: var(--ifm-link-color);
 
   --ifm-table-stripe-background: var(--color-gray-4-alpha-04);
   --ifm-pre-background: var(--color-gray-4);
@@ -96,7 +91,8 @@
 
 /* Dark Mode Styles */
 html[data-theme='dark'] {
-  --ifm-link-color: #48ADF6;
+  --ifm-color-primary: #48ADF6;
+  --ifm-link-color: var(--ifm-color-primary);
   --ifm-navbar-link-hover-color: var(--color-gray-28);
   --ifm-heading-color: var(--color-gray-12);
   --ifm-navbar-background-color: var(--color-gray-82);
@@ -110,6 +106,4 @@ html[data-theme='dark'] {
   --ifm-card-background-color: var(--color-gray-82);
   --ifm-footer-background-color: var(--color-gray-82);
   --collapse-button-bg-color-dark: var(--color-gray-86);
-  --docsearch-searchbox-background: var(--color-gray-90) !important;
-  --docsearch-searchbox-focus-background: var(--color-gray-86) !important;
 }

@@ -3,7 +3,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Blue',
-  tagline: 'Dinosaurs are cool',
+  tagline: 'A ROS 2 framework for development and deployment of underwater vehicles',
   favicon: 'img/favicon.ico',
 
   url: 'https://robotic-decision-making-lab.github.io',
@@ -14,6 +14,7 @@ const config = {
 
   onBrokenLinks: 'throw',
   onBrokenMarkdownLinks: 'warn',
+  trailingSlash: true,
 
   i18n: {
     defaultLocale: 'en',
@@ -61,7 +62,7 @@ const config = {
       },
       footer: {
         style: 'dark',
-        copyright: `© ${new Date().getFullYear()} Robotic Decision Making Lab.`,
+        copyright: `© ${new Date().getFullYear()} Robotic Decision Making Lab @ Oregon State University.`,
       },
       prism: {
         theme: prismThemes.github,
@@ -69,8 +70,10 @@ const config = {
         additionalLanguages: ['bash'],
       },
     }),
-
-  plugins: ['docusaurus-plugin-sass'],
+  markdown: {
+    mermaid: true,
+  },
+  plugins: ['docusaurus-plugin-sass', '@docusaurus/theme-mermaid'],
 };
 
 export default config;

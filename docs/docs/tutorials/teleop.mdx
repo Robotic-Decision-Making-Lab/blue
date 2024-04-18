@@ -8,12 +8,12 @@ a simulated or real vehicle. Prior to starting these tutorials, you should have
 completed the [Running Blue in Simulation](/tutorials/simulation) tutorial and
 the [Integrating Custom Controllers](/tutorials/control) tutorial.
 
-## Keyboard Teleoperation
+## Keyboard teleoperation
 
 This tutorial describes how to teleoperate a simulated BlueROV2 using your
 keyboard.
 
-### Prerequesites
+### Dependencies
 
 The following ROS 2 dependencies are required for this tutorial:
 
@@ -26,12 +26,12 @@ The following ROS 2 dependencies are required for this tutorial:
 These dependencies will be met by default if you have installed Blue with
 Docker as described in the [installation instructions](/installation).
 
-### Tutorial Steps
+### Tutorial steps
 
-1. Launch the demo BlueROV2 in simulation by running the following command:
+1. Launch the demo Dependencies in simulation by running the following command:
 
    ```bash
-   ros2 launch blue_demos bluerov2_demo.launch.yaml use_sim:=true
+   ros2 launch blue_demos Dependencies_demo.launch.yaml use_sim:=true
    ```
 
 2. Once Gazebo, ArduSub, and MAVROS have fully loaded, open a new terminal and
@@ -60,7 +60,7 @@ Docker as described in the [installation instructions](/installation).
 5. You should now be able to teleoperate the BlueROV2 using your keyboard.
 
 
-## Gamepad Teleoperation
+## Gamepad teleoperation
 
 This tutorial describes how to teleoperate a simulated BlueROV2 using a gamepad.
 
@@ -102,7 +102,7 @@ installed on your local machine **outside** of the container.
 
 :::
 
-### Tutorial Steps
+### Tutorial steps
 
 1. Launch the demo BlueROV2 in simulation by running the following command:
 
@@ -136,7 +136,7 @@ inputs, press and release the left trigger.
 
 :::
 
-## USB/IP Gamepad Teleoperation
+## USB/IP gamepad teleoperation
 
 This tutorial describes how to configure [USB/IP](https://www.kernel.org/doc/html/latest/usb/usbip_protocol.html)
 so that you can teleoperate a remote vehicle connected to a topside computer
@@ -164,7 +164,7 @@ installed on your local machine **outside** of the container.
 
 :::
 
-### Topside Configuration Steps
+### Topside configuration steps
 
 1. Enable the `usbip-core` and `usbip-host` kernel modules:
 
@@ -231,7 +231,7 @@ installed on your local machine **outside** of the container.
            : (Defined at Interface level) (00/00/00)
    ```
 
-### Vehicle Configuration Steps
+### Vehicle configuration steps
 
 1. Load the `vhci-hcd` kernel module on the vehicle's computer:
 
@@ -266,7 +266,7 @@ installed on your local machine **outside** of the container.
    where `<device>` should be replaced with the device name of your gamepad on
    the vehicle.
 
-### USB/IP Shutdown Steps
+### USB/IP shutdown steps
 
 1. Identify the port at which the vehicle has establishe a connection with the
    topside machine:

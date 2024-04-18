@@ -30,11 +30,26 @@ following features:
 controllers implemented using [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
 and localization algorithms implemented using [marine_localization](https://github.com/Robotic-Decision-Making-Lab/marine_localization).
 
-## Workflow
+## Recommended workflow
 
-Under construction!
+Blue is designed to be flexible and modular, enabling you to make changes
+according to the needs of your project. However, our commitment to flexibility
+does not compromise our effort to ensure that the provided system caters to
+a wide range of use cases. With this in mind, we recommend the following
+workflow for using Blue:
 
-## Supported Vehicles
+```mermaid
+graph TD
+   A(Making your </br> own changes?) -- Yes --> B(Create a fork of the </br> repository)
+   A -- No --> C(Install Blue)
+   B --> D(Update CI/CD pipelines </br> to point to your fork)
+   D --> E(Install Blue from your fork </br> and add your changes)
+   E --> F(Test your system </br> in simulation)
+   C --> F
+   F --> G(Deploy Blue to hardware!)
+```
+
+## Supported vehicles
 
 Several vehicle models have been implemented and tested with Blue in
 **simulation** and on **hardware**. These vehicles include:
