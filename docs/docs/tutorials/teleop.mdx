@@ -31,7 +31,7 @@ Docker as described in the [installation instructions](/installation).
 1. Launch the demo Dependencies in simulation by running the following command:
 
    ```bash
-   ros2 launch blue_demos Dependencies_demo.launch.yaml use_sim:=true
+   ros2 launch blue_demos bluerov2_demo.launch.yaml use_sim:=true
    ```
 
 2. Once Gazebo, ArduSub, and MAVROS have fully loaded, open a new terminal and
@@ -54,7 +54,7 @@ Docker as described in the [installation instructions](/installation).
    following `mobile_to_maritime` message filter in a new terminal:
 
    ```bash
-   ros2 run mobile_to_maritime mobile_twist_to_maritime_twist --ros-args in_topic:=/cmd_vel out_topic:=/integral_sliding_mode_controller/reference
+   ros2 run mobile_to_maritime mobile_twist_to_maritime_twist --ros-args -p in_topic:=/cmd_vel -p out_topic:=/integral_sliding_mode_controller/reference
    ```
 
 5. You should now be able to teleoperate the BlueROV2 using your keyboard.

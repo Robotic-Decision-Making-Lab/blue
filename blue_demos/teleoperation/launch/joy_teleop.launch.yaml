@@ -1,9 +1,6 @@
 launch:
 
   - arg:
-      name: out_topic
-
-  - arg:
       name: joy_file
       default: $(find-pkg-share blue_demos)/teleoperation/config/joy_teleop.yaml
 
@@ -32,5 +29,5 @@ launch:
         - name: in_topic
           value: cmd_vel
         - name: out_topic
-          value: $(var out_topic)
+          value: /integral_sliding_mode_controller/reference
       if: $(var use_maritime)
