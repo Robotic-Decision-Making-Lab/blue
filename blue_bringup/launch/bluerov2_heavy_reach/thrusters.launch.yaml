@@ -46,4 +46,3 @@ launch:
       exec: static_transform_publisher
       name: base_link_to_thruster8
       args: --x -0.118 --y 0.215 --z 0.064 --frame-id base_link --child-frame-id thruster8
-
