@@ -1,22 +1,19 @@
-name: Deploy to GitHub Pages
+name: Check Documentation
 
 on:
   push:
     branches:
       - main
+      - 33-feature-ros2-control
+  pull_request:
+    paths:
+      - docs/**
+  workflow_dispatch:
 
 jobs:
-  docs:
-    name: Build and deploy documentation
+  build-docs:
+    name: Build documentation
     runs-on: ubuntu-latest
-
-    permissions:
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout repository
@@ -36,11 +33,3 @@ jobs:
       - name: Build website
         run: npm run build
         working-directory: ./docs
-
-      - name: Upload build artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs/build
-
-      - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v4
