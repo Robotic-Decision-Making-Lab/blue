@@ -3,7 +3,7 @@
 <package format="3">
 
   <name>blue_description</name>
-  <version>0.0.1</version>
+  <version>0.1.0</version>
   <description>Blue description files</description>
 
   <maintainer email="evanp922@gmail.com">Evan Palmer</maintainer>

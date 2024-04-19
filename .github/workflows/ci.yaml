@@ -11,7 +11,7 @@ env:
   CLANG_TIDY: true
 
 jobs:
-  test:
+  test-implementation:
     name: Test Implementation
     runs-on: ubuntu-latest
 

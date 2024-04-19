@@ -3,7 +3,7 @@
 <package format="3">
 
   <name>blue_bringup</name>
-  <version>0.0.1</version>
+  <version>1.0.0</version>
   <description>Launch files for Blue</description>
 
   <maintainer email="evanp922@gmail.com">Evan Palmer</maintainer>
