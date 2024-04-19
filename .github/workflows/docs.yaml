@@ -14,9 +14,17 @@ env:
   PUSH: ${{ (github.event_name != 'pull_request') && (github.repository == 'Robotic-Decision-Making-Lab/blue') }}
 
 jobs:
-  build:
-    name: Build documentation
+  docs:
+    name: Build and deploy documentation
     runs-on: ubuntu-latest
+
+    permissions:
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout repository
@@ -43,21 +51,6 @@ jobs:
         with:
           path: docs/build
 
-  deploy:
-    name: Deploy to GitHub Pages
-    needs: build
-
-    permissions:
-      pages: write
-      id-token: write
-
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-
-    runs-on: ubuntu-latest
-    steps:
       - name: Deploy to GitHub Pages
         if: env.PUSH == 'true'
-        id: deployment
         uses: actions/deploy-pages@v4
