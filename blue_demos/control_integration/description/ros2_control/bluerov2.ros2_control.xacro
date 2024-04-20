@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="ardusub_thruster_system" params="prefix name max_set_param_attempts:=^3">
+    <ros2_control name="${name}" type="system">
+
+      <hardware>
+        <plugin>thruster_hardware/ThrusterHardware</plugin>
+        <param name="max_set_param_attempts">${max_set_param_attempts}</param>
+      </hardware>
+
+      <joint name="${prefix}thruster1_joint">
+        <param name="param_name">SERVO1_FUNCTION</param>
+        <param name="default_param_value">33</param>
+        <param name="channel">1</param>
+        <command_interface name="pwm" />
+      </joint>
+
+      <joint name="${prefix}thruster2_joint">
+        <param name="param_name">SERVO2_FUNCTION</param>
+        <param name="default_param_value">34</param>
+        <param name="channel">2</param>
+        <command_interface name="pwm" />
+      </joint>
+
+      <joint name="${prefix}thruster3_joint">
+        <param name="param_name">SERVO3_FUNCTION</param>
+        <param name="default_param_value">35</param>
+        <param name="channel">3</param>
+        <command_interface name="pwm" />
+      </joint>
+
+      <joint name="${prefix}thruster4_joint">
+        <param name="param_name">SERVO4_FUNCTION</param>
+        <param name="default_param_value">36</param>
+        <param name="channel">4</param>
+        <command_interface name="pwm" />
+      </joint>
+
+      <joint name="${prefix}thruster5_joint">
+        <param name="param_name">SERVO5_FUNCTION</param>
+        <param name="default_param_value">37</param>
+        <param name="channel">5</param>
+        <command_interface name="pwm" />
+      </joint>
+
+      <joint name="${prefix}thruster6_joint">
+        <param name="param_name">SERVO6_FUNCTION</param>
+        <param name="default_param_value">38</param>
+        <param name="channel">6</param>
+        <command_interface name="pwm" />
+      </joint>
+
+    </ros2_control>
+  </xacro:macro>
+
+</robot>
