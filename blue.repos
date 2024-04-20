@@ -3,4 +3,28 @@ repositories:
   ros_gz:
     type: git
     url: https://github.com/gazebosim/ros_gz
+<<<<<<< HEAD
     version: iron
+=======
+    version: ros2
+
+  hydrodynamics:
+    type: git
+    url: https://github.com/Robotic-Decision-Making-Lab/hydrodynamics.git
+    version: main
+
+  auv_controllers:
+    type: git
+    url: https://github.com/Robotic-Decision-Making-Lab/auv_controllers.git
+    version: main
+
+  ardusub_driver:
+    type: git
+    url: https://github.com/Robotic-Decision-Making-Lab/ardusub_driver.git
+    version: main
+
+  mobile_to_maritime:
+    type: git
+    url: https://github.com/Robotic-Decision-Making-Lab/mobile_to_maritime.git
+    version: main
+>>>>>>> 3709432 (Integrate ros2_control and add user documentation (#162))

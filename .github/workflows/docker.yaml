@@ -58,6 +58,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ env.PUSH }}
+
   robot:
     strategy:
       fail-fast: false
@@ -105,6 +106,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ env.PUSH }}
           platforms: linux/amd64,linux/arm64
+
   desktop:
     strategy:
       fail-fast: false
@@ -145,6 +147,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ env.PUSH }}
+
   desktop-nvidia:
     strategy:
       fail-fast: false

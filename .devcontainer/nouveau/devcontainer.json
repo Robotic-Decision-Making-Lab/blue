@@ -1,5 +1,5 @@
 {
-  "name": "Blue Nouveau Dev Container",
+  "name": "Nouveau Dev Container",
   "dockerFile": "Dockerfile",
   "context": "../..",
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/blue/ws_blue/src/blue,type=bind",
@@ -22,6 +22,7 @@
   },
   "customizations": {
     "vscode": {
+<<<<<<< HEAD
       "settings": {
         "files.associations": {
           "*.repos": "yaml",
@@ -92,22 +93,19 @@
           "**/log": true
         }
       },
+=======
+>>>>>>> 3709432 (Integrate ros2_control and add user documentation (#162))
       "extensions": [
         "ms-azuretools.vscode-docker",
         "ms-python.python",
         "njpwerner.autodocstring",
-        "cschlosser.doxdocgen",
-        "ms-vscode.cpptools",
         "redhat.vscode-xml",
         "redhat.vscode-yaml",
-        "josetr.cmake-language-support-vscode",
         "smilerobotics.urdf",
-        "DavidAnson.vscode-markdownlint",
         "esbenp.prettier-vscode",
-        "xaver.clang-format",
-        "ms-python.isort",
-        "ms-python.flake8",
-        "ms-python.black-formatter"
+        "charliermarsh.ruff",
+        "josetr.cmake-language-support-vscode",
+        "unifiedjs.vscode-mdx"
       ]
     }
   }
