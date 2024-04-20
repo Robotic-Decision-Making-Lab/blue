@@ -19,10 +19,6 @@
   <exec_depend>teleop_twist_keyboard</exec_depend>
   <exec_depend>joy_teleop</exec_depend>
   <exec_depend>joy_linux</exec_depend>
-  <exec_depend>auv_controllers</exec_depend>
-  <exec_depend>ardusub_bringup</exec_depend>
-  <exec_depend>blue_description</exec_depend>
-  <exec_depend>blue_bringup</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -18,7 +18,7 @@ repositories:
   ardusub_driver:
     type: git
     url: https://github.com/Robotic-Decision-Making-Lab/ardusub_driver.git
-    version: develop
+    version: main
 
   mobile_to_maritime:
     type: git
