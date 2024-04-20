@@ -1,6 +1,6 @@
 # Blue :ocean:
 
-Blue is an ROS 2 pipeline designed to support development, testing, and
+Blue is a ROS 2 pipeline designed to support development, testing, and
 deployment of underwater vehicles. To get started with Blue, please refer to
 the project [documentation](https://robotic-decision-making-lab.github.io/blue/).
 
