@@ -2,15 +2,10 @@
 *
 
 # Except the following
-!blue_dynamics
-!blue_manager
-!blue_control
 !blue_bringup
 !blue_localization
-!blue_utils
-!blue_joy
 !blue_description
+!blue_demos
 !blue.repos
 !.docker/entrypoints
 !requirements-build.txt
-!requirements-dev.txt

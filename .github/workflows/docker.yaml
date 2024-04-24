@@ -33,7 +33,7 @@ jobs:
 
       - name: Log into registry
         if: env.PUSH == 'true'
-        uses: docker/login-action@v3.0.0
+        uses: docker/login-action@v3.1.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -42,14 +42,14 @@ jobs:
       - name: Extract Docker metadata
         if: env.PUSH == 'true'
         id: meta
-        uses: docker/metadata-action@v4.6.0
+        uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5.0.0
+        uses: docker/build-push-action@v5.3.0
         with:
           context: .
           file: .docker/Dockerfile
@@ -58,6 +58,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ env.PUSH }}
+
   robot:
     strategy:
       fail-fast: false
@@ -79,7 +80,7 @@ jobs:
 
       - name: Log into registry
         if: env.PUSH == 'true'
-        uses: docker/login-action@v3.0.0
+        uses: docker/login-action@v3.1.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -88,14 +89,14 @@ jobs:
       - name: Extract Docker metadata
         if: env.PUSH == 'true'
         id: meta
-        uses: docker/metadata-action@v4.6.0
+        uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5.0.0
+        uses: docker/build-push-action@v5.3.0
         with:
           context: .
           file: .docker/Dockerfile
@@ -105,6 +106,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ env.PUSH }}
           platforms: linux/amd64,linux/arm64
+
   desktop:
     strategy:
       fail-fast: false
@@ -120,7 +122,7 @@ jobs:
 
       - name: Log into registry
         if: env.PUSH == 'true'
-        uses: docker/login-action@v3.0.0
+        uses: docker/login-action@v3.1.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -129,14 +131,14 @@ jobs:
       - name: Extract Docker metadata
         if: env.PUSH == 'true'
         id: meta
-        uses: docker/metadata-action@v4.6.0
+        uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5.0.0
+        uses: docker/build-push-action@v5.3.0
         with:
           context: .
           file: .docker/Dockerfile
@@ -145,6 +147,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           push: ${{ env.PUSH }}
+
   desktop-nvidia:
     strategy:
       fail-fast: false
@@ -160,7 +163,7 @@ jobs:
 
       - name: Log into registry
         if: env.PUSH == 'true'
-        uses: docker/login-action@v3.0.0
+        uses: docker/login-action@v3.1.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -169,14 +172,14 @@ jobs:
       - name: Extract Docker metadata
         if: env.PUSH == 'true'
         id: meta
-        uses: docker/metadata-action@v5.0.0
+        uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v5.0.0
+        uses: docker/build-push-action@v5.3.0
         with:
           context: .
           file: .docker/Dockerfile

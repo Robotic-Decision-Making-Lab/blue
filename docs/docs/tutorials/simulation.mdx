@@ -1,0 +1,53 @@
+---
+sidebar_position: 1
+title: Running Blue in Simulation
+---
+
+This tutorial describes how to launch an implemented vehicle in Gazebo with
+the Gazebo hydrodynamics plugins. Our tests have found that Gazebo provides
+a good representation of underwater vehicle dynamics. Alternative, *untested*
+underwater simulation options that can be used with ROS 2 include:
+
+* [Stonefish](https://stonefish.readthedocs.io/en/latest/index.html)
+* [HoloOcean](https://holoocean.readthedocs.io/en/master/)
+
+We recommend exploring each simulation option to determine what best fits your
+project's needs.
+
+## Dependencies
+
+This tutorial has the following dependencies:
+
+* Gazebo Garden or newer
+* [ardusub_driver](https://github.com/Robotic-Decision-Making-Lab/ardusub_driver)
+  (for use with the BlueROV2 vehicle models)
+
+These dependencies will be met by default if you have installed Blue with
+Docker as described in the [installation instructions](/installation).
+
+## Tutorial steps
+
+To launch a [supported vehicle](/overview#supported-vehicles) in Gazebo, run
+the following command:
+
+```bash
+ros2 launch blue_bringup <model-name>.launch.yaml use_sim:=true
+```
+
+where `<model-name>` should be replaced with the name of the desired vehicle.
+For instance, to launch Gazebo using the BlueROV2, run
+
+```bash
+ros2 launch blue_bringup bluerov2.launch.yaml use_sim:=true
+```
+
+This should bringup Gazebo, [ArduSub](https://github.com/ArduPilot/ardupilot),
+and [MAVROS](https://github.com/mavlink/mavros/tree/ros2). To test that the
+BlueROV2 has been launched correctly, try changing the ArduSub flight mode by
+running the following command in a new terminal:
+
+```bash
+ros2 service call /mavros/set_mode mavros_msgs/srv/SetMode "{base_mode: 0, custom_mode: 'STABILIZE'}"
+```
+
+which, if successful, should change the flight mode to `STABILIZE`.

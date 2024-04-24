@@ -1,0 +1,70 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "ROS 2: Build",
+      "detail": "Build the workspace using colcon",
+      "type": "shell",
+      "command": "colcon build --symlink-install",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "ROS 2: Test",
+      "detail": "Run system tests using colcon",
+      "type": "shell",
+      "command": "colcon test && colcon test-result --all",
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "ROS 2: Source workspace",
+      "detail": "Source the ROS 2 workspace",
+      "type": "shell",
+      "command": "source install/setup.bash",
+      "problemMatcher": []
+    },
+    {
+      "label": "ROS 2: Create ament_cmake package",
+      "detail": "Create a new ROS 2 ament_cmake package",
+      "type": "shell",
+      "command": "ros2 pkg create --build-type ament_cmake --license ${input:license} ${input:packageName}",
+      "problemMatcher": []
+    },
+    {
+      "label": "ROS 2: Create ament_python package",
+      "detail": "Create a new ROS 2 ament_python package",
+      "type": "shell",
+      "command": "ros2 pkg create --build-type ament_python --license ${input:license} ${input:packageName}",
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "license",
+      "type": "pickString",
+      "description": "License",
+      "options": [
+        "Apache-2.0",
+        "BSL-1.0",
+        "BSD-2.0",
+        "BSD-2-Clause",
+        "BSD-3-Clause",
+        "GPL-3.0-only",
+        "LGPL-3.0-only",
+        "MIT",
+        "MIT-0"
+      ]
+    },
+    {
+      "id": "packageName",
+      "type": "promptString",
+      "description": "Package name"
+    }
+  ]
+}

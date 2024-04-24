@@ -1,0 +1,3 @@
+[codespell]
+skip = *.json
+ignore-words-list = parm,ned,sitl

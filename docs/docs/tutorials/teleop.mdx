@@ -1,0 +1,291 @@
+---
+sidebar_position: 3
+title: Teleoperation
+---
+
+This page provides a collection of tutorials that describe how to teleoperate
+a simulated or real vehicle. Prior to starting these tutorials, you should have
+completed the [Running Blue in Simulation](/tutorials/simulation) tutorial and
+the [Integrating Custom Controllers](/tutorials/control) tutorial.
+
+## Keyboard teleoperation
+
+This tutorial describes how to teleoperate a simulated BlueROV2 using your
+keyboard.
+
+### Dependencies
+
+The following ROS 2 dependencies are required for this tutorial:
+
+* Gazebo Garden or newer
+* [ardusub_driver](https://github.com/Robotic-Decision-Making-Lab/ardusub_driver)
+* [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
+* [teleop_twist_keyboard](https://github.com/ros2/teleop_twist_keyboard)
+* [mobile_to_maritime](https://github.com/Robotic-Decision-Making-Lab/mobile_to_maritime)
+
+These dependencies will be met by default if you have installed Blue with
+Docker as described in the [installation instructions](/installation).
+
+### Tutorial steps
+
+1. Launch the demo Dependencies in simulation by running the following command:
+
+   ```bash
+   ros2 launch blue_demos bluerov2_demo.launch.yaml use_sim:=true
+   ```
+
+2. Once Gazebo, ArduSub, and MAVROS have fully loaded, open a new terminal and
+   launch the demo control framework:
+
+   ```bash
+   ros2 launch blue_demos bluerov2_controllers.launch.py use_sim:=true
+   ```
+
+3. Open a new terminal and launch the `teleop_twist_keyboard` node:
+
+   ```bash
+   ros2 run teleop_twist_keyboard teleop_twist_keyboard
+   ```
+
+4. The `teleop_twist_keyboard` node will publish velocity commands according to
+   [REP-105](https://ros.org/reps/rep-0105.html); however, the launched ISMC
+   adheres to the maritime conventions recorded in [REP-156](https://github.com/ros-infrastructure/rep/pull/398).
+   To convert the velocity commands to the appropriate convention, run the
+   following `mobile_to_maritime` message filter in a new terminal:
+
+   ```bash
+   ros2 run mobile_to_maritime mobile_twist_to_maritime_twist --ros-args -p in_topic:=/cmd_vel -p out_topic:=/integral_sliding_mode_controller/reference
+   ```
+
+5. You should now be able to teleoperate the BlueROV2 using your keyboard.
+
+
+## Gamepad teleoperation
+
+This tutorial describes how to teleoperate a simulated BlueROV2 using a gamepad.
+
+### Dependencies
+
+The following ROS 2 dependencies are needed for this tutorial:
+
+* Gazebo Garden or newer
+* [ardusub_driver](https://github.com/Robotic-Decision-Making-Lab/ardusub_driver)
+* [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
+* [mobile_to_maritime](https://github.com/Robotic-Decision-Making-Lab/mobile_to_maritime)
+* [joy_teleop](https://github.com/ros-teleop/teleop_tools)
+* [joy_linux](https://github.com/ros-drivers/joystick_drivers/tree/ros2)
+
+These dependencies will be met by default if you have installed Blue with
+Docker as described in the [installation instructions](/installation).
+
+In addition to the aforementioned requirements, you should also install the
+`joystick` apt package, which provides Linux drivers for gamepads:
+
+```bash
+sudo apt-get install joystick
+```
+
+Verify your installation with [jstest](https://www.mankier.com/1/jstest-gtk) by
+running the following command:
+
+```bash
+jstest /dev/input/<device>
+```
+
+where `<device>` should be replaced with the device name of your gamepad (e.g.,
+`js0`).
+
+:::note
+
+For those using the Docker installation, the `joystick` package should be
+installed on your local machine **outside** of the container.
+
+:::
+
+### Tutorial steps
+
+1. Launch the demo BlueROV2 in simulation by running the following command:
+
+   ```bash
+   ros2 launch blue_demos bluerov2_demo.launch.yaml use_sim:=true
+   ```
+
+2. Once Gazebo, ArduSub, and MAVROS have fully loaded, open a new terminal and
+   launch the demo control framework:
+
+   ```bash
+   ros2 launch blue_demos bluerov2_controllers.launch.py use_sim:=true
+   ```
+
+3. Open a new terminal and launch the ROS 2 joystick driver using the provided
+   demo launch file:
+
+   ```bash
+   ros2 launch blue_demos joy_teleop.launch.yaml
+   ```
+
+4. You should now be able to teleoperate the BlueROV2 using your gamepad. If
+   the system is not responding, ensure that the
+   [teleoperation demo configuration](https://github.com/Robotic-Decision-Making-Lab/blue/blob/31-user-docs/blue_demos/teleoperation/config/joy_teleop.yaml)
+   references the correct device.
+
+:::tip
+
+The gamepad demo uses the left trigger as a deadman switch. To enable joystick
+inputs, press and release the left trigger.
+
+:::
+
+## USB/IP gamepad teleoperation
+
+This tutorial describes how to configure [USB/IP](https://www.kernel.org/doc/html/latest/usb/usbip_protocol.html)
+so that you can teleoperate a remote vehicle connected to a topside computer
+via a tether with a gamepad connected to your topside machine. In this
+configuration, we recommend using a [Logitech F310 Gamepad](https://www.logitechg.com/en-us/products/gamepads/f310-gamepad.940-000110.html).
+
+### Dependencies
+
+The following apt packages are needed for this tutorial:
+
+* `linux-tools-generic`
+* `hwdata`
+* `joystick`
+
+which can be installed with the following command:
+
+```bash
+sudo apt-get install linux-tools-generic hwdata joystick
+```
+
+:::note
+
+For those using the Docker installation, the aforementioned packages should be
+installed on your local machine **outside** of the container.
+
+:::
+
+### Topside configuration steps
+
+1. Enable the `usbip-core` and `usbip-host` kernel modules:
+
+   ```bash
+   sudo modprobe usbip-core && \
+   sudo modprobe usbip-host
+   ```
+
+2. Start the USB/IP process as a daemon:
+
+   ```bash
+   sudo usbipd &
+   ```
+   :::tip
+
+   USB/IP gets installed into directories that are not in your `$PATH`. Because
+   of this, it creates symlinks in the `/usr/bin` directory. Sometimes you will
+   get an error when using the default symlinks indicating that the installed
+   `linux-tools-generic` version does not match the kernel. If this happens,
+   delete the existing symlinks and replace them with new ones.
+
+   :::
+
+3. With your gamepad connected to your topside machine, verify that USB/IP is
+   able to detect the gamepad device:
+
+   ```bash
+   usbip list -l
+   ```
+
+   You should observe your gamepad in the devices listed along with its bus ID.
+   For instance, the Logitech F310 gamepad may be listed as
+
+   ```
+   - busid 3-4 (046d:c216)
+     Logitech, Inc. : F310 Gamepad [DirectInput Mode] (046d:c216)
+   ```
+
+   where `3-4` is the bus ID.
+
+4. Bind the gamepad device to the USB/IP process:
+
+   ```bash
+   sudo usbip bind -b <bus-id>
+   ```
+
+   where `<bus-id>` should be replaced with the bus ID of your gamepad.
+
+5. Verify that the device has been bound by listing the exportable devices:
+
+   ```
+   usbip list -r 127.0.0.1
+   ```
+
+   which should show the gamepad device. For example, the Logitech F310 gamepad
+   device may appear as
+
+   ```
+   Exportable USB devices
+   ======================
+   - 127.0.0.1
+        3-4: Logitech, Inc. : F310 Gamepad [DirectInput Mode] (046d:c216)
+           : /sys/devices/pci0000:00/0000:00:01.2/0000:20:00.0/0000:21:08.0/0000:2a:00.3/usb3/3-4
+           : (Defined at Interface level) (00/00/00)
+   ```
+
+### Vehicle configuration steps
+
+1. Load the `vhci-hcd` kernel module on the vehicle's computer:
+
+   ```bash
+   sudo modprobe vhci-hcd
+   ```
+
+2. Check that the device configured on the topside machine is observable on the
+   vehicle:
+
+   ```bash
+   sudo usbip list -r <topside-ip-address>
+   ```
+
+   where `<topside-ip-address>` should be replaced with the IP address of the
+   topside machine.
+
+3. Attach the device to the vehicle:
+
+   ```bash
+   sudo usbip attach -r <topside-ip-address> -b <bus-id>
+   ```
+
+4. You should now be able to interact with the gamepad device as if it were
+   connected directly to the vehicle. Confirm this with `jstest` using the
+   following command:
+
+   ```bash
+   jstest /dev/input/<device>
+   ```
+
+   where `<device>` should be replaced with the device name of your gamepad on
+   the vehicle.
+
+### USB/IP shutdown steps
+
+1. Identify the port at which the vehicle has establishe a connection with the
+   topside machine:
+
+   ```bash
+   sudo usbip port
+   ```
+
+2. Detach the device from the vehicle:
+
+   ```bash
+   sudo usbip detach -p <port>
+   ```
+
+   where `<port>` should be replaced with the identified port number used for
+   the connection.
+
+3. Unbind the device from the USB/IP process:
+
+   ```bash
+   sudo usbip unbind -b <bus-id>
+   ```
