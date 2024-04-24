@@ -1,0 +1,64 @@
+{
+  "files.associations": {
+    "*.repos": "yaml",
+    "*.world": "xml",
+    "*.xacro": "xml",
+    "*.srdf": "xml",
+    "*.rviz": "yaml",
+    "*.config": "xml",
+    "*.sdf": "xml"
+  },
+  "terminal.integrated.defaultProfile.linux": "bash",
+  "terminal.integrated.profiles.linux": {
+    "bash": {
+      "path": "bash",
+      "icon": "terminal-bash",
+      "args": ["-i"]
+    }
+  },
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "editor.formatOnSave": true,
+  "editor.tabSize": 2,
+  "autoDocstring.startOnNewLine": false,
+  "autoDocstring.docstringFormat": "google-notypes",
+  "python.autoComplete.extraPaths": [
+    "/opt/ros/humble/lib/python3.10/site-packages/",
+    "/opt/ros/humble/local/lib/python3.10/dist-packages/",
+    "${workspaceFolder}/install/"
+  ],
+  "python.analysis.extraPaths": [
+    "/opt/ros/humble/lib/python3.10/site-packages/",
+    "/opt/ros/humble/local/lib/python3.10/dist-packages/",
+    "${workspaceFolder}/install/"
+  ],
+  "[python]": {
+    "editor.tabSize": 4,
+    "editor.rulers": [90],
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    },
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "[dockerfile]": {
+    "editor.quickSuggestions": {
+      "strings": true
+    },
+    "editor.defaultFormatter": "ms-azuretools.vscode-docker",
+    "editor.tabSize": 4
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[xml]": {
+    "editor.defaultFormatter": "redhat.vscode-xml"
+  },
+  "search.exclude": {
+    "**/build": true,
+    "**/install": true,
+    "**/log": true
+  },
+  "python.analysis.typeCheckingMode": "basic"
+}

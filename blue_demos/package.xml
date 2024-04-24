@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
+<package format="3">
+
+  <name>blue_demos</name>
+  <version>0.0.1</version>
+  <description>A collection of demonstrations that show how to use Blue</description>
+
+  <maintainer email="evanp922@gmail.com">Evan Palmer</maintainer>
+  <license>MIT</license>
+
+  <url type="repository">https://github.com/Robotic-Decision-Making-Lab/blue.git</url>
+  <url type="bugtracker">https://github.com/Robotic-Decision-Making-Lab/blue/issues</url>
+
+  <author>Evan Palmer</author>
+
+  <buildtool_depend>ament_cmake</buildtool_depend>
+
+  <exec_depend>teleop_twist_keyboard</exec_depend>
+  <exec_depend>joy_teleop</exec_depend>
+  <exec_depend>joy_linux</exec_depend>
+
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
+</package>

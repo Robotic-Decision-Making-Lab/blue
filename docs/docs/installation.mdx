@@ -1,0 +1,72 @@
+---
+sidebar_position: 3
+---
+
+# Installation
+
+Blue is currently supported on Linux and is available for the ROS distributions
+Humble and Iron. Blue can be installed from source or using one of
+the provided Docker images. If you plan to use Blue for simulation and have
+a system with limited compute power, we recommend installing Blue from source.
+For all other cases, we recommend installing Blue using Docker.
+
+## Docker installation
+
+Prior to installing Blue using Docker, make sure that Docker is installed on
+your system and that you are logged into the GitHub Container Registry. If
+Docker is not installed, you may follow the instructions provided
+[here](https://docs.docker.com/get-docker/). If you are not already logged into
+the GitHub Container Registry, please do so by following the instructions
+provided [here](https://docs.github.com/en/packages/working-with-a-github-packages-registry/working-with-the-container-registry).
+Once you have successfully installed Docker and logged into the GitHub Container
+Registry, you can install Blue by pulling one of the provided [Docker
+images](https://github.com/Robotic-Decision-Making-Lab/blue/pkgs/container/blue).
+A complete list of the provided images is documented below (where `*` should be
+replaced with the desired ROS distribution, e.g., `humble-robot`):
+
+| Supported ROS Versions | Image Tag | Build Architectures | Description |
+| ---------------------- | --------- | ------------------- | ----------- |
+| Humble, Iron | *-robot   | `amd64`, `arm64` | A bare-bones image that includes all dependencies without simulation or visualization features. This can be used to deploy Blue to hardware. |
+| Humble, Iron | *-desktop | `amd64` | Image that includes all dependencies, including simulation and visualization features. This can be used for development, testing, and top-side deployment. |
+| Humble, Iron | *-desktop-nvidia | `amd64` | Extension of the `*-desktop` image that provides support for NVIDIA GPU drivers. This image is *strongly* recommended for systems that have an NVIDIA GPU, and requires the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). |
+
+If you plan to use either the `*-desktop` or `*-desktop-nvidia` images, you may
+use the provided [Docker Compose scripts](https://github.com/Robotic-Decision-Making-Lab/blue/tree/main/.docker/compose)
+to install and run Blue. For instance, to pull and run the `iron-desktop` image,
+first run the command:
+
+```bash
+wget https://raw.githubusercontent.com/Robotic-Decision-Making-Lab/blue/iron/.docker/compose/nouveau-desktop.yaml && \
+docker compose -f nouveau-desktop.yaml up
+```
+
+then in a new tab, enter the container by running
+
+```bash
+docker exec -it <image-name> /bin/bash
+```
+
+where `<image-name>` should be replaced with the name of the container that was
+created.
+
+### Development container
+
+We recommend using one of the provided Visual Studio Code
+[development containers](https://github.com/Robotic-Decision-Making-Lab/blue/tree/main/.devcontainer)
+to implement and test your own packages. These containers use the `*-desktop`
+and `*-desktop-nvidia` images as base images. To use the development containers,
+first verify that you can run Visual Studio Code inside a Docker container by
+following the tutorial provided [here](https://code.visualstudio.com/docs/devcontainers/tutorial).
+Once you have successfully verified that you can run Visual Studio Code inside a
+Docker container, open the Blue repository in Visual Studio Code and select the option
+to reopen the folder inside a container when prompted. This will automatically
+build the development container and install all necessary dependencies. Once the
+container is built, you can start developing your own packages!
+
+## Source installation
+
+We recommend using the project [Dockerfile](https://github.com/Robotic-Decision-Making-Lab/blue/blob/main/.docker/Dockerfile)
+(beginning at the `robot` stage) for complete source installation details. This
+installation may be customized according to your specific needs. For example,
+if you do not plan to use the simulation environment, you may forego installing
+Gazebo and its dependencies.

@@ -1,0 +1,48 @@
+launch:
+  - node:
+      pkg: tf2_ros
+      exec: static_transform_publisher
+      name: base_link_to_thruster1
+      args: --x 0.088 --y -0.102 --z -0.04 --roll -1.571 --pitch 1.571 --yaw -1.047 --frame-id base_link --child-frame-id thruster1
+
+  - node:
+      pkg: tf2_ros
+      exec: static_transform_publisher
+      name: base_link_to_thruster2
+      args: --x 0.088 --y 0.102 --z -0.04 --roll -1.571 --pitch 1.571 --yaw -2.094 --frame-id base_link --child-frame-id thruster2
+
+  - node:
+      pkg: tf2_ros
+      exec: static_transform_publisher
+      name: base_link_to_thruster3
+      args: --x -0.088 --y -0.102 --z -0.04 --roll -1.571 --pitch 1.571 --yaw 1.047 --frame-id base_link --child-frame-id thruster3
+
+  - node:
+      pkg: tf2_ros
+      exec: static_transform_publisher
+      name: base_link_to_thruster4
+      args: --x -0.088 --y 0.102 --z -0.04 --roll -1.571 --pitch 1.571 --yaw 2.094 --frame-id base_link --child-frame-id thruster4
+
+  - node:
+      pkg: tf2_ros
+      exec: static_transform_publisher
+      name: base_link_to_thruster5
+      args: --x 0.118 --y -0.215 --z 0.064 --frame-id base_link --child-frame-id thruster5
+
+  - node:
+      pkg: tf2_ros
+      exec: static_transform_publisher
+      name: base_link_to_thruster6
+      args: --x 0.118 --y 0.215 --z 0.064 --frame-id base_link --child-frame-id thruster6
+
+  - node:
+      pkg: tf2_ros
+      exec: static_transform_publisher
+      name: base_link_to_thruster7
+      args: --x -0.118 --y -0.215 --z 0.064 --frame-id base_link --child-frame-id thruster7
+
+  - node:
+      pkg: tf2_ros
+      exec: static_transform_publisher
+      name: base_link_to_thruster8
+      args: --x -0.118 --y 0.215 --z 0.064 --frame-id base_link --child-frame-id thruster8

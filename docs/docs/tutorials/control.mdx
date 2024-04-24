@@ -1,0 +1,88 @@
+---
+sidebar_position: 2
+title: Integrating Custom Controllers
+---
+
+Blue integrates [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
+for vehicle control. This offers the benefit of supporting the development of
+custom control algorithms and enabling benchmarking against existing
+controllers. The following tutorial describes how to use custom controllers
+with Blue. The files used for this tutorial are available in the
+`blue_demos/control_integration` directory. Prior to starting this tutorial,
+you should have completed the [Running Blue in Simulation](/tutorials/simulation)
+tutorial.
+
+## Dependencies
+
+The following ROS 2 dependencies are required for this tutorial:
+
+* Gazebo Garden or newer
+* [ardusub_driver](https://github.com/Robotic-Decision-Making-Lab/ardusub_driver)
+  (for use with the BlueROV2 vehicle models)
+* [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
+
+These dependencies will be met by default if you have installed Blue with
+Docker as described in the [installation instructions](/installation).
+
+## Tutorial steps
+
+1. Launch the demo BlueROV2 in simulation by running the following command:
+
+   ```bash
+   ros2 launch blue_demos bluerov2_demo.launch.yaml use_sim:=true
+   ```
+
+2. Wait for Gazebo, ArduSub, and MAVROS to fully load. Typically, the `param`
+   MAVROS plugin is the last to fully load, which is indicated by the following
+   message:
+
+   ```bash
+   [mavros.param]: PR: parameters list received
+   ```
+
+3. Open a new terminal and launch the demo control framework:
+
+   ```bash
+   ros2 launch blue_demos bluerov2_controllers.launch.py use_sim:=true
+   ```
+
+   This should launch a set of cascading controllers, concluding with the
+   `integral_sliding_mode_controller` (ISMC) controller. The control framework
+   uses the `thruster_hardware/ThrusterHardware` system interface to enable
+   thruster-level control with ArduSub.
+
+   :::tip
+
+   On occasion, the ros2_control controller manager will fail to load all of
+   the controllers. If this happens, stop the launch and try again.
+
+   :::
+
+4. Verify that the controllers are running with the following command:
+
+   ```bash
+   ros2 control list_controllers
+   ```
+
+   The output should resemble:
+
+   ```
+   integral_sliding_mode_controller[velocity_controllers/IntegralSlidingModeController] active
+   thruster_allocation_matrix_controller[thruster_allocation_matrix_controller/ThrusterAllocationMatrixController] active
+   thruster_1_controller[thruster_controllers/PolynomialThrustCurveController] active
+   thruster_2_controller[thruster_controllers/PolynomialThrustCurveController] active
+   thruster_3_controller[thruster_controllers/PolynomialThrustCurveController] active
+   thruster_4_controller[thruster_controllers/PolynomialThrustCurveController] active
+   thruster_5_controller[thruster_controllers/PolynomialThrustCurveController] active
+   thruster_6_controller[thruster_controllers/PolynomialThrustCurveController] active
+   ```
+
+   :::tip
+
+   Many of the controllers implemented in `auv_controllers` support dynamically
+   modifying controller parameters and gains. We encourage you to take
+   advantage of this feature to tune the controllers to your specific vehicle.
+   This helps avoid the need to recompile and relauch the system for each
+   change that you make.
+
+   :::
