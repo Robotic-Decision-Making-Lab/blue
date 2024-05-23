@@ -99,14 +99,14 @@ RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashr
 FROM robot as desktop
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV GZ_VERSION=garden
+ENV GZ_VERSION=harmonic
 
-# Install Gazebo Garden: https://gazebosim.org/docs/garden/install_ubuntu
+# Install Gazebo Harmonic: https://gazebosim.org/docs/harmonic/install_ubuntu
 RUN sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
     && sudo apt-get -q update \
     && sudo apt-get -y --quiet --no-install-recommends install \
-    gz-garden \
+    gz-harmonic \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
