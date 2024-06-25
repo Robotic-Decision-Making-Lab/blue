@@ -75,6 +75,9 @@ def generate_launch_description() -> LaunchDescription:
                 ]
             ),
         ],
+        remappings=[
+            ("/controller_manager/robot_description", "/robot_description"),
+        ],
     )
 
     velocity_controller_spawner = Node(
