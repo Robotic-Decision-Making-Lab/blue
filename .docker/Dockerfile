@@ -81,6 +81,8 @@ RUN sudo apt-get -q update \
     gstreamer1.0-plugins-ugly \
     gstreamer1.0-plugins-bad \
     gstreamer1.0-libav \
+    libgstreamer1.0-dev \
+    gstreamer1.0-gl \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
@@ -118,6 +120,9 @@ RUN sudo apt-get -q update \
     python3-wxgtk4.0 \
     rapidjson-dev \
     xterm \
+    libgz-sim7-dev \
+    rapidjson-dev \
+    libopencv-dev \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
