@@ -43,7 +43,7 @@ launch:
 
   - arg:
       name: mavros_file
-      default: $(find-pkg-share blue_description)/config/mavros.yaml
+      default: $(find-pkg-share blue_description)/config/ardusub/mavros.yaml
 
   - arg:
       name: manager_file
