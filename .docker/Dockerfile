@@ -83,6 +83,7 @@ RUN sudo apt-get -q update \
     gstreamer1.0-libav \
     libgstreamer1.0-dev \
     gstreamer1.0-gl \
+    libgstreamer-plugins-base1.0-dev \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
