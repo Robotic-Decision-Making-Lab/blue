@@ -44,7 +44,7 @@ from rclpy.qos import (
     HistoryPolicy,
     QoSProfile,
     ReliabilityPolicy,
-    qos_profile_default,
+    qos_profile_system_default,
     qos_profile_sensor_data,
 )
 from scipy.spatial.transform import Rotation as R
@@ -148,12 +148,12 @@ class PoseLocalizer(Localizer):
         self.vision_pose_pub = self.create_publisher(
             PoseStamped,
             "/mavros/vision_pose/pose",
-            qos_profile_default,
+            qos_profile_system_default,
         )
         self.vision_pose_cov_pub = self.create_publisher(
             PoseWithCovarianceStamped,
             "/mavros/vision_pose/pose_cov",
-            qos_profile_default,
+            qos_profile_system_default,
         )
 
     def publish(self) -> None:
@@ -183,12 +183,12 @@ class TwistLocalizer(Localizer):
 
         # Twists are sent to the ArduPilot EKF
         self.vision_speed_pub = self.create_publisher(
-            TwistStamped, "/mavros/vision_speed/speed", qos_profile_default
+            TwistStamped, "/mavros/vision_speed/speed", qos_profile_system_default
         )
         self.vision_speed_cov_pub = self.create_publisher(
             TwistWithCovarianceStamped,
             "/mavros/vision_speed/speed_cov",
-            qos_profile_default,
+            qos_profile_system_default,
         )
 
     def publish(self) -> None:
@@ -484,7 +484,7 @@ class QualisysLocalizer(PoseLocalizer):
         self.mocap_pose_pub = self.create_publisher(
             PoseStamped,
             "/mavros/mocap/pose",
-            qos_profile_default,
+            qos_profile_system_default,
         )
 
         # Store the pose information in a buffer and apply an LWMA filter to it
