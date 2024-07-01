@@ -4,7 +4,7 @@
       "name": "Linux",
       "includePath": [
         "${workspaceFolder}/**",
-        "/opt/ros/iron/include/**",
+        "/opt/ros/rolling/include/**",
         "/usr/include/eigen3/**",
         "/home/ros/ws_ros/**"
       ],

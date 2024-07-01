@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - 33-feature-ros2-control
   pull_request:
     paths:
       - docs/**

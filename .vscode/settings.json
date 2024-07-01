@@ -23,13 +23,13 @@
   "autoDocstring.startOnNewLine": false,
   "autoDocstring.docstringFormat": "google-notypes",
   "python.autoComplete.extraPaths": [
-    "/opt/ros/iron/lib/python3.10/site-packages/",
-    "/opt/ros/iron/local/lib/python3.10/dist-packages/",
+    "/opt/ros/rolling/lib/python3.10/site-packages/",
+    "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
     "${workspaceFolder}/install/"
   ],
   "python.analysis.extraPaths": [
-    "/opt/ros/iron/lib/python3.10/site-packages/",
-    "/opt/ros/iron/local/lib/python3.10/dist-packages/",
+    "/opt/ros/rolling/lib/python3.10/site-packages/",
+    "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
     "${workspaceFolder}/install/"
   ],
   "[python]": {
