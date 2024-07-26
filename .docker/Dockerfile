@@ -1,10 +1,5 @@
-<<<<<<< HEAD
 ARG ROS_DISTRO=humble
-FROM ros:$ROS_DISTRO-ros-base as ci
-=======
-ARG ROS_DISTRO=rolling
 FROM ros:$ROS_DISTRO-ros-base AS ci
->>>>>>> 8bbb19e (Fix case on "as" in Dockerfile (#214))
 
 ENV DEBIAN_FRONTEND=noninteractive
 
