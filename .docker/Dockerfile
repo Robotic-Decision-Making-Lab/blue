@@ -1,5 +1,5 @@
 ARG ROS_DISTRO=iron
-FROM ros:$ROS_DISTRO-ros-base as ci
+FROM ros:$ROS_DISTRO-ros-base AS ci
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -36,7 +36,7 @@ RUN apt-get -q update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-FROM ci as robot
+FROM ci AS robot
 
 # Configure a new non-root user
 ARG USERNAME=blue
@@ -99,7 +99,7 @@ RUN sudo apt-get -q update \
 RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
     && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc
 
-FROM robot as desktop
+FROM robot AS desktop
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GZ_VERSION=garden
@@ -177,7 +177,7 @@ RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
 # Setup the simulation environment variables
 RUN echo "source ${USER_WORKSPACE}/src/blue/.docker/entrypoints/sim.sh" >> /home/$USERNAME/.bashrc
 
-FROM desktop as desktop-nvidia
+FROM desktop AS desktop-nvidia
 
 # Install NVIDIA software
 RUN sudo apt-get update \
