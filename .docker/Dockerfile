@@ -1,5 +1,5 @@
 ARG ROS_DISTRO=rolling
-FROM ros:$ROS_DISTRO-ros-base as ci
+FROM ros:$ROS_DISTRO-ros-base AS ci
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -196,7 +196,7 @@ RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
 # Setup the simulation environment variables
 RUN echo "source ${USER_WORKSPACE}/src/blue/.docker/entrypoints/sim.sh" >> /home/$USERNAME/.bashrc
 
-FROM desktop as desktop-nvidia
+FROM desktop AS desktop-nvidia
 
 # Install NVIDIA software
 RUN sudo apt-get update \
