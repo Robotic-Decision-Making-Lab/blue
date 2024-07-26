@@ -6,6 +6,7 @@
 !blue_localization
 !blue_description
 !blue_demos
-!blue.repos
+!blue_robot.repos
+!blue_sim.repos
 !.docker/entrypoints
 !requirements-build.txt

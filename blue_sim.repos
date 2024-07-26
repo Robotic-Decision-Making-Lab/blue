@@ -1,0 +1,10 @@
+#
+# Note this is _in addition to_ blue_robot.repos
+# (i.e. you need to vcs import both files)
+#
+repositories:
+
+  ros_gz:
+    type: git
+    url: https://github.com/gazebosim/ros_gz
+    version: ros2

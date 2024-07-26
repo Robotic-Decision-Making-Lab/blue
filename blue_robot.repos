@@ -1,0 +1,21 @@
+repositories:
+
+  hydrodynamics:
+    type: git
+    url: https://github.com/Robotic-Decision-Making-Lab/hydrodynamics.git
+    version: main
+
+  auv_controllers:
+    type: git
+    url: https://github.com/Robotic-Decision-Making-Lab/auv_controllers.git
+    version: main
+
+  ardusub_driver:
+    type: git
+    url: https://github.com/Robotic-Decision-Making-Lab/ardusub_driver.git
+    version: main
+
+  mobile_to_maritime:
+    type: git
+    url: https://github.com/Robotic-Decision-Making-Lab/mobile_to_maritime.git
+    version: main
