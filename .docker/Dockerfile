@@ -27,6 +27,7 @@ RUN apt-get -q update \
     && rm -rf /var/lib/apt/lists/*
 
 # Install all ROS dependencies for _just_ blue
+# (we have not imported other repos from .repos files)
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
     && rosdep update \
@@ -36,7 +37,16 @@ RUN apt-get -q update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-FROM ci as blue_src
+# This stage includes
+#   - Switching to the non-root user
+#   - Copying 'blue' source from this repo into the non-root user's workspace
+#   - Installing blue deps using pip, apt and rosdep
+#
+# Does not include:
+#   - Importing blue deps using vcs
+#   - Building blue
+#
+FROM ci AS blue_src_and_deps
 
 # Configure a new non-root user
 ARG USERNAME=blue
@@ -99,10 +109,12 @@ RUN sudo apt-get -q update \
 RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
     && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc
 
-# "robot" image installs blue dependencies (from .repos, then with rosdep)
-# then builds
+# The "robot" stage:
+#   - Installs the remaining blue dependencies from blue_robot.repos
+#   - Installs deps from rosdep for all src dependencies
+#   - colcon build
 #
-FROM blue_src AS robot
+FROM blue_src_and_deps AS robot
 
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
@@ -118,7 +130,7 @@ RUN sudo apt-get -q update \
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
     && colcon build
 
-FROM blue_src as desktop
+FROM robot AS desktop
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GZ_VERSION=garden
