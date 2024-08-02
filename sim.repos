@@ -1,5 +1,5 @@
 #
-# Note this is _in addition to_ blue_robot.repos
+# Note this is _in addition to_ blue.repos
 # (i.e. you need to vcs import both files independently)
 #
 repositories:

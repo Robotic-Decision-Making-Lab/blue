@@ -41,12 +41,11 @@ RUN apt-get -q update \
 #   - Switching to the non-root user
 #   - Copying 'blue' source from this repo into the non-root user's workspace
 #   - Installing blue deps using pip, apt and rosdep
+#   - Installs the remaining blue dependencies from blue_robot.repos
+#   - Installs deps from rosdep for all src dependencies
+#   - colcon build
 #
-# Does not include:
-#   - Importing blue deps using vcs
-#   - Building blue
-#
-FROM ci AS blue_src_and_deps
+FROM ci AS robot
 
 # Configure a new non-root user
 ARG USERNAME=blue
@@ -98,28 +97,10 @@ RUN sudo apt-get -q update \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
-RUN sudo apt-get -q update \
-    && sudo apt-get -q -y upgrade \
-    && rosdep update \
-    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
-    && sudo apt-get autoremove -y \
-    && sudo apt-get clean -y \
-    && sudo rm -rf /var/lib/apt/lists/*
-
-RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
-    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc
-
-# The "robot" stage:
-#   - Installs the remaining blue dependencies from blue_robot.repos
-#   - Installs deps from rosdep for all src dependencies
-#   - colcon build
-#
-FROM blue_src_and_deps AS robot
-
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
-    && vcs import src < src/blue/blue_robot.repos \
+    && vcs import src < src/blue/blue.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
     && sudo apt-get autoremove -y \
@@ -129,6 +110,9 @@ RUN sudo apt-get -q update \
 # Actually build workspace
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
     && colcon build
+
+RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
+    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc
 
 FROM robot AS desktop
 
@@ -192,7 +176,7 @@ RUN [ "/bin/bash" , "-c" , " \
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
-    && vcs import src < src/blue/blue_sim.repos \
+    && vcs import src < src/blue/sim.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
     && sudo apt-get autoremove -y \
