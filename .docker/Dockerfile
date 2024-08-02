@@ -102,14 +102,14 @@ RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashr
 FROM robot AS desktop
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV GZ_VERSION=garden
+ENV GZ_VERSION=harmonic
 
-# Install Gazebo Garden: https://gazebosim.org/docs/garden/install_ubuntu
+# Install Gazebo Harmonic: https://gazebosim.org/docs/harmonic/install_ubuntu
 RUN sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
     && sudo apt-get -q update \
     && sudo apt-get -y --quiet --no-install-recommends install \
-    gz-garden \
+    gz-${GZ_VERSION} \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
@@ -118,10 +118,14 @@ RUN sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrin
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && sudo apt-get -q install --no-install-recommends -y \
+    python3-pexpect \
     python3-wxgtk4.0 \
+    python3-future \
     rapidjson-dev \
     xterm \
-    libgz-sim7-dev \
+    libgz-sim?-dev \
+    gz-transport?? \
+    libgz-transport??-dev \
     rapidjson-dev \
     libopencv-dev \
     && sudo apt-get autoremove -y \
@@ -133,7 +137,10 @@ RUN sudo apt-get -q update \
 # When deployed onto hardware, the native installation of ArduSub
 # (on the FCU) will be used.
 WORKDIR /home/$USERNAME
-RUN git clone https://github.com/ArduPilot/ardupilot.git --recurse-submodules
+# Really should do version pinning but Sub-4.5 is waaaay behind master
+# (e.g. it doesn't know about "noble" yet)
+ARG ARDUPILOT_RELEASE=master
+RUN git clone -b ${ARDUPILOT_RELEASE} https://github.com/ArduPilot/ardupilot.git --recurse-submodules
 
 # Install ArduSub dependencies
 WORKDIR /home/$USERNAME/ardupilot
@@ -159,11 +166,13 @@ RUN [ "/bin/bash" , "-c" , " \
 
 # Install ros_gz and other project dependencies
 WORKDIR $USER_WORKSPACE
+# Some gz_* rosdep keys must be skipped because they are not in the rosdep yaml humble/iron
+# (despite the fact the packages are available).  Ensure they are installed manually.
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && vcs import src < src/blue/blue.repos \
     && rosdep update \
-    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
+    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO}  --skip-keys="gz-transport13 gz-sim8 gz-math7 gz-msgs10" \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
