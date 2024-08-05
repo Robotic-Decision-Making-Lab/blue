@@ -7,5 +7,6 @@
 !blue_description
 !blue_demos
 !blue.repos
+!sim.repos
 !.docker/entrypoints
 !requirements-build.txt
