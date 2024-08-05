@@ -27,7 +27,8 @@ RUN apt-get -q update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Install all ROS dependencies
+# Install all ROS dependencies for _just_ blue
+# (we have not imported other repos from .repos files)
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
     && rosdep update \
@@ -37,6 +38,14 @@ RUN apt-get -q update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
+# This stage includes
+#   - Switching to the non-root user
+#   - Copying 'blue' source from this repo into the non-root user's workspace
+#   - Installing blue deps using pip, apt and rosdep
+#   - Installs the remaining blue dependencies from blue_robot.repos
+#   - Installs deps from rosdep for all src dependencies
+#   - colcon build
+#
 FROM ci AS robot
 
 #
@@ -99,13 +108,19 @@ RUN sudo apt-get -q update \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
+WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
+    && vcs import src < src/blue/blue.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
+
+# Actually build workspace
+RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
+    && colcon build
 
 RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
     && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc \
@@ -182,7 +197,7 @@ RUN [ "/bin/bash" , "-c" , " \
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
-    && vcs import src < src/blue/blue.repos \
+    && vcs import src < src/blue/sim.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
     && sudo apt-get autoremove -y \
