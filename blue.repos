@@ -1,13 +1,5 @@
 repositories:
 
-<<<<<<< HEAD
-  ros_gz:
-    type: git
-    url: https://github.com/gazebosim/ros_gz
-    version: iron
-
-=======
->>>>>>> ba77c25 (Add "robot" container (#221))
   hydrodynamics:
     type: git
     url: https://github.com/Robotic-Decision-Making-Lab/hydrodynamics.git
