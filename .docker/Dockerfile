@@ -140,6 +140,7 @@ RUN apt-get -q update \
     xterm \
     rapidjson-dev \
     libopencv-dev \
+    cppzmq-dev \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
