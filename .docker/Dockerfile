@@ -105,32 +105,33 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV GZ_VERSION=harmonic
 
 # Install Gazebo Harmonic: https://gazebosim.org/docs/harmonic/install_ubuntu
-RUN sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
-    && sudo apt-get -q update \
-    && sudo apt-get -y --quiet --no-install-recommends install \
+USER root
+# Install custom rosdep list
+ADD --chown=root:root --chmod=0644 https://raw.githubusercontent.com/osrf/osrf-rosdep/master/gz/00-gazebo.list /etc/ros/rosdep/sources.list.d/00-gazebo.list
+RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" |  tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
+    && apt-get -q update \
+    && apt-get -y --quiet --no-install-recommends install \
     gz-${GZ_VERSION} \
-    && sudo apt-get autoremove -y \
-    && sudo apt-get clean -y \
-    && sudo rm -rf /var/lib/apt/lists/*
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
 
 # Install ArduPilot and ardupilot_gazebo dependencies
-RUN sudo apt-get -q update \
-    && sudo apt-get -q -y upgrade \
-    && sudo apt-get -q install --no-install-recommends -y \
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
+    && apt-get -q install --no-install-recommends -y \
     python3-pexpect \
     python3-wxgtk4.0 \
     python3-future \
     rapidjson-dev \
     xterm \
-    libgz-sim?-dev \
-    gz-transport?? \
-    libgz-transport??-dev \
     rapidjson-dev \
     libopencv-dev \
-    && sudo apt-get autoremove -y \
-    && sudo apt-get clean -y \
-    && sudo rm -rf /var/lib/apt/lists/*
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+USER $USERNAME
 
 # Clone ArduSub
 # ArduSub is installed for simulation purposes ONLY
@@ -166,13 +167,11 @@ RUN [ "/bin/bash" , "-c" , " \
 
 # Install ros_gz and other project dependencies
 WORKDIR $USER_WORKSPACE
-# Some gz_* rosdep keys must be skipped because they are not in the rosdep yaml humble/iron
-# (despite the fact the packages are available).  Ensure they are installed manually.
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && vcs import src < src/blue/blue.repos \
     && rosdep update \
-    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO}  --skip-keys="gz-transport13 gz-sim8 gz-math7 gz-msgs10" \
+    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
