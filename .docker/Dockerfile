@@ -18,6 +18,7 @@ RUN apt-get -q update \
     clang-tools \
     python3-pip \
     python3-dev \
+    python3-venv \
     lsb-release \
     wget \
     gnupg \
@@ -38,14 +39,14 @@ RUN apt-get -q update \
 
 FROM ci AS robot
 
-# Configure a new non-root user
-ARG USERNAME=blue
+#
+# Ubuntu 24.04 "Noble", which is used as the base image for
+# jazzy and rolling images, now includes a user "ubuntu" at UID 1000
+ARG USERNAME=ubuntu
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
     && usermod -a -G dialout $USERNAME \
     && echo "source /usr/share/bash-completion/completions/git" >> /home/$USERNAME/.bashrc
@@ -55,6 +56,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Switch to the non-root user for the rest of the installation
 USER $USERNAME
 ENV USER=$USERNAME
+
+# Python in Ubuntu is now marked as a "Externally managed environment",
+# Per best practice, create a venv for local python packages
+#
+# These two ENVs effectively "activate" the venv for subsequent calls to
+# python/pip in the Dockerfile
+WORKDIR /home/$USERNAME
+ENV VIRTUAL_ENV=/home/$USERNAME/.venv/blue
+RUN python3 -m venv --system-site-packages --symlinks $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install MAVROS dependencies
 WORKDIR /home/$USERNAME
@@ -97,7 +108,8 @@ RUN sudo apt-get -q update \
     && sudo rm -rf /var/lib/apt/lists/*
 
 RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
-    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc
+    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc \
+    && echo "\n# Ensure colcon is run in the venv\nalias colcon='python3 -m colcon'" >> /home/$USERNAME/.bashrc
 
 FROM robot AS desktop
 
