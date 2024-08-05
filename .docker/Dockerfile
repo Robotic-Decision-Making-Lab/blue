@@ -170,6 +170,7 @@ RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pk
     xterm \
     rapidjson-dev \
     libopencv-dev \
+    cppzmq-dev \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
