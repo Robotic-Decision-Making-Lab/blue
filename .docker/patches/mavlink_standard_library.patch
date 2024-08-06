@@ -1,0 +1,15 @@
+diff --git a/pymavlink/generator/mavgen.py b/pymavlink/generator/mavgen.py
+index ea62c961..35353184 100755
+--- a/pymavlink/generator/mavgen.py
++++ b/pymavlink/generator/mavgen.py
+@@ -23,8 +23,8 @@ General process:
+ '''
+
+ from __future__ import print_function
+-from future import standard_library
+-standard_library.install_aliases()
++#from future import standard_library
++#standard_library.install_aliases()
+ from builtins import object
+ import os
+ import re

@@ -108,6 +108,18 @@ RUN sudo apt-get -q update \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
+# Manually install MAVROS from source in the ws_blue/ workspace
+WORKDIR $USER_WORKSPACE/src/
+ARG MAVROS_RELEASE=ros2
+ARG MAVLINK_RELEASE=release/rolling/mavlink
+RUN git clone --depth 1 -b ${MAVROS_RELEASE} https://github.com/mavlink/mavros.git
+RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/mavlink/mavlink-gbp-release.git mavlink
+# mavgen uses future.standard_library for backwards compatibility with Python2;
+# However, this caused issues Python3.12 as installed in "noble".
+# Comment those lines out in mavlink.
+# n.b. This may not be the best way to do this.  A sed one-liner?
+RUN patch -d mavlink -p 1 < $USER_WORKSPACE/src/blue/.docker/patches/mavlink_standard_library.patch
+
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
