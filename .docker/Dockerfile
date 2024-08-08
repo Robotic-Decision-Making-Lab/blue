@@ -117,38 +117,40 @@ RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashr
 FROM robot AS desktop
 
 ENV DEBIAN_FRONTEND=noninteractive
-ENV GZ_VERSION=garden
+ENV GZ_VERSION=harmonic
 
-# Install Gazebo Garden: https://gazebosim.org/docs/garden/install_ubuntu
-RUN sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
-    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
-    && sudo apt-get -q update \
-    && sudo apt-get -y --quiet --no-install-recommends install \
-    gz-garden \
-    && sudo apt-get autoremove -y \
-    && sudo apt-get clean -y \
-    && sudo rm -rf /var/lib/apt/lists/*
-
-# Install ArduPilot and ardupilot_gazebo dependencies
-RUN sudo apt-get -q update \
-    && sudo apt-get -q -y upgrade \
-    && sudo apt-get -q install --no-install-recommends -y \
+# Install Gazebo Harmonic: https://gazebosim.org/docs/harmonic/install_ubuntu
+# Per DL3004, use "USER root" rather than "sudo"
+#    https://github.com/hadolint/hadolint/wiki/DL3004
+USER root
+# Install custom rosdep list
+ADD --chown=root:root --chmod=0644 https://raw.githubusercontent.com/osrf/osrf-rosdep/master/gz/00-gazebo.list /etc/ros/rosdep/sources.list.d/00-gazebo.list
+RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" |  tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
+    && apt-get -q update \
+    && apt-get -y --quiet --no-install-recommends install \
+    gz-${GZ_VERSION} \
+    python3-pexpect \
     python3-wxgtk4.0 \
+    python3-future \
     rapidjson-dev \
     xterm \
-    libgz-sim7-dev \
     rapidjson-dev \
     libopencv-dev \
-    && sudo apt-get autoremove -y \
-    && sudo apt-get clean -y \
-    && sudo rm -rf /var/lib/apt/lists/*
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+USER $USERNAME
 
 # Clone ArduSub
 # ArduSub is installed for simulation purposes ONLY
 # When deployed onto hardware, the native installation of ArduSub
 # (on the FCU) will be used.
 WORKDIR /home/$USERNAME
-RUN git clone https://github.com/ArduPilot/ardupilot.git --recurse-submodules
+# Really should do version pinning but Sub-4.5 is waaaay behind master
+# (e.g. it doesn't know about "noble" yet)
+ARG ARDUPILOT_RELEASE=master
+RUN git clone -b ${ARDUPILOT_RELEASE} https://github.com/ArduPilot/ardupilot.git --recurse-submodules
 
 # Install ArduSub dependencies
 WORKDIR /home/$USERNAME/ardupilot
