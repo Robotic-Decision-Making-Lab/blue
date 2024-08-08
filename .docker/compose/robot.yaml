@@ -1,0 +1,21 @@
+services:
+  blue:
+    image: ghcr.io/robotic-decision-making-lab/blue:rolling-robot
+    build:
+      dockerfile: .docker/Dockerfile
+      target: robot
+      context: ../../
+    network_mode: host
+    privileged: true
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    volumes:
+      - /dev:/dev
+      - /run/user/1000:/run/user/1000
+      - type: bind
+        source: ../../
+        target: /home/blue/ws_blue/src/blue
+    command: tail -f /dev/null
