@@ -120,7 +120,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV GZ_VERSION=harmonic
 
 # Install Gazebo Harmonic: https://gazebosim.org/docs/harmonic/install_ubuntu
-# Per DL3004, user USER rather than "sudo"
+# Per DL3004, use "USER root" rather than "sudo"
 #    https://github.com/hadolint/hadolint/wiki/DL3004
 USER root
 # Install custom rosdep list
