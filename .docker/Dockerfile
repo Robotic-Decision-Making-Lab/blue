@@ -148,6 +148,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV GZ_VERSION=harmonic
 
 # Install Gazebo Harmonic: https://gazebosim.org/docs/harmonic/install_ubuntu
+# Per DL3004, use "USER root" rather than "sudo"
+#    https://github.com/hadolint/hadolint/wiki/DL3004
 USER root
 # Install custom rosdep list
 ADD --chown=root:root --chmod=0644 https://raw.githubusercontent.com/osrf/osrf-rosdep/master/gz/00-gazebo.list /etc/ros/rosdep/sources.list.d/00-gazebo.list
@@ -155,15 +157,8 @@ RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pk
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" |  tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
     && apt-get -q update \
     && apt-get -y --quiet --no-install-recommends install \
+    cppzmq-dev \
     gz-${GZ_VERSION} \
-    && apt-get autoremove -y \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install ArduPilot and ardupilot_gazebo dependencies
-RUN apt-get -q update \
-    && apt-get -q -y upgrade \
-    && apt-get -q install --no-install-recommends -y \
     python3-pexpect \
     python3-wxgtk4.0 \
     python3-future \
@@ -171,7 +166,6 @@ RUN apt-get -q update \
     xterm \
     rapidjson-dev \
     libopencv-dev \
-    cppzmq-dev \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
