@@ -119,6 +119,9 @@ RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/mav
 # Comment those lines out in mavlink.
 # n.b. This may not be the best way to do this.  A sed one-liner?
 RUN patch -d mavlink -p 1 < $USER_WORKSPACE/src/blue/.docker/patches/mavlink_standard_library.patch
+# Fix linkage for yaml-cpp in mavros_extra_plugins
+RUN patch -d mavros -p 1 < $USER_WORKSPACE/src/blue/.docker/patches/mavros_extra_yaml_linkage.patch
+
 
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
