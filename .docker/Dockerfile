@@ -139,6 +139,7 @@ RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
 
 RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
     && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc \
+    && echo "source $VIRTUAL_ENV/bin/activate" >> /home/$USERNAME/.bashrc \
     && echo "\n# Ensure colcon is run in the venv\nalias colcon='python3 -m colcon'" >> /home/$USERNAME/.bashrc
 
 FROM robot AS desktop
@@ -189,6 +190,10 @@ RUN git clone -b ${ARDUPILOT_RELEASE} https://github.com/ArduPilot/ardupilot.git
 # Install ArduSub dependencies
 WORKDIR /home/$USERNAME/ardupilot
 ENV SKIP_AP_EXT_ENV=1 SKIP_AP_GRAPHIC_ENV=1 SKIP_AP_COV_ENV=1 SKIP_AP_GIT_CHECK=1
+# Do not install the STM development tools
+ENV DO_AP_STM_ENV=0
+# Do not activate the Ardupilot venv by default
+ENV DO_PYTHON_VENV_ENV=0
 RUN Tools/environment_install/install-prereqs-ubuntu.sh -y
 
 # Build ArduSub
