@@ -188,7 +188,8 @@ ENV SKIP_AP_EXT_ENV=1 SKIP_AP_GRAPHIC_ENV=1 SKIP_AP_COV_ENV=1 SKIP_AP_GIT_CHECK=
 ENV DO_AP_STM_ENV=0
 # Do not activate the Ardupilot venv by default
 ENV DO_PYTHON_VENV_ENV=0
-RUN Tools/environment_install/install-prereqs-ubuntu.sh -y
+RUN echo "\n# Below from ardupilot script \"install-prereqs-ubuntu.sh\"\n" >> /home/$USERNAME/.bashrc && \
+    Tools/environment_install/install-prereqs-ubuntu.sh -y
 
 # Build ArduSub
 WORKDIR /home/$USERNAME/ardupilot
