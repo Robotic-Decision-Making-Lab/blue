@@ -1,36 +1,40 @@
+# syntax=docker/dockerfile:1.7-labs
+# Above must be the first line in Dockerfile.  It enables the "copy --parents" syntax
 ARG ROS_DISTRO=rolling
 FROM ros:$ROS_DISTRO-ros-base AS ci
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-WORKDIR /root/ws_blue
-COPY . src/blue
-
 # Install apt packages needed for CI
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
     && apt-get -q install --no-install-recommends -y \
-    git \
-    sudo \
     clang \
     clang-format-14 \
     clang-tidy \
     clang-tools \
-    python3-pip \
-    python3-dev \
-    lsb-release \
-    wget \
+    git \
     gnupg \
+    lsb-release \
+    python3-dev \
+    python3-pip \
     software-properties-common \
+    sudo \
+    wget \
     && apt-get autoremove -y \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Install all ROS dependencies for _just_ blue
-# (we have not imported other repos from .repos files)
+WORKDIR /root/ws_blue/src/blue
+COPY --parents */package.xml .
+COPY blue.repos .
+WORKDIR /root/ws_blue
+
+# Install all ROS dependencies for _just_ blue and packages from blue.repos
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
     && rosdep update \
+    && vcs import src < src/blue/blue.repos \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
     && rm -rf src \
     && apt-get autoremove -y \
@@ -65,6 +69,25 @@ ENV DEBIAN_FRONTEND=noninteractive
 USER $USERNAME
 ENV USER=$USERNAME
 
+# Install gstreamer
+RUN sudo apt-get -q update \
+    && sudo apt-get -q -y upgrade \
+    && sudo apt-get -q install --no-install-recommends -y \
+    gir1.2-gst-plugins-base-1.0 \
+    gir1.2-gstreamer-1.0 \
+    gstreamer1.0-gl \
+    gstreamer1.0-libav \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-tools \
+    libgstreamer-plugins-base1.0-dev \
+    libgstreamer1.0-dev \
+    python3-gi \
+    && sudo apt-get autoremove -y \
+    && sudo apt-get clean -y \
+    && sudo rm -rf /var/lib/apt/lists/*
+
 # Install MAVROS dependencies
 WORKDIR /home/$USERNAME
 RUN wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/install_geographiclib_datasets.sh \
@@ -77,25 +100,6 @@ COPY --chown=$USER_UID:$USER_GID . src/blue
 
 # Install the Python requirements that aren't available as rosdeps
 RUN python3 -m pip install -r $(pwd)/src/blue/requirements-build.txt
-
-# Install gstreamer
-RUN sudo apt-get -q update \
-    && sudo apt-get -q -y upgrade \
-    && sudo apt-get -q install --no-install-recommends -y \
-    python3-gi \
-    gstreamer1.0-tools \
-    gir1.2-gstreamer-1.0 \
-    gir1.2-gst-plugins-base-1.0 \
-    gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-ugly \
-    gstreamer1.0-plugins-bad \
-    gstreamer1.0-libav \
-    libgstreamer1.0-dev \
-    gstreamer1.0-gl \
-    libgstreamer-plugins-base1.0-dev \
-    && sudo apt-get autoremove -y \
-    && sudo apt-get clean -y \
-    && sudo rm -rf /var/lib/apt/lists/*
 
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
@@ -125,20 +129,12 @@ RUN sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrin
     && sudo apt-get -q update \
     && sudo apt-get -y --quiet --no-install-recommends install \
     gz-garden \
-    && sudo apt-get autoremove -y \
-    && sudo apt-get clean -y \
-    && sudo rm -rf /var/lib/apt/lists/*
-
-# Install ArduPilot and ardupilot_gazebo dependencies
-RUN sudo apt-get -q update \
-    && sudo apt-get -q -y upgrade \
-    && sudo apt-get -q install --no-install-recommends -y \
+    libgz-sim7-dev \
+    libopencv-dev \
     python3-wxgtk4.0 \
     rapidjson-dev \
-    xterm \
-    libgz-sim7-dev \
     rapidjson-dev \
-    libopencv-dev \
+    xterm \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
@@ -198,12 +194,12 @@ FROM desktop AS desktop-nvidia
 RUN sudo apt-get update \
     && sudo apt-get -q -y upgrade \
     && sudo apt-get install -y -qq --no-install-recommends \
-    libglvnd0 \
-    libgl1 \
-    libglx0 \
     libegl1 \
-    libxext6 \
+    libgl1 \
+    libglvnd0 \
+    libglx0 \
     libx11-6 \
+    libxext6 \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
