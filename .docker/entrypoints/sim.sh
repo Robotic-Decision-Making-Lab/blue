@@ -17,6 +17,3 @@ export GZ_SIM_RESOURCE_PATH=$HOME/ws_blue/src/blue/blue_description/gazebo/model
 
 # Add blue meshes
 export GZ_SIM_RESOURCE_PATH=$HOME/ws_blue/src/blue/blue_description/meshes:$GZ_SIM_RESOURCE_PATH
-
-# Build ros_gz for Gazebo Garden
-export GZ_VERSION=garden
