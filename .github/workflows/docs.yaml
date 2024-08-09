@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main
-      - 232-doc-document-related-projects
 
 jobs:
   docs:
