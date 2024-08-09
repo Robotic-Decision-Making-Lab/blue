@@ -9,5 +9,4 @@
 !blue.repos
 !sim.repos
 !.docker/entrypoints
-!.docker/patches
 !requirements-build.txt
