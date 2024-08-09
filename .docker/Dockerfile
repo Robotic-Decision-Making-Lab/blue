@@ -192,7 +192,34 @@ RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
     && colcon build
 
 # Setup the simulation environment variables
-RUN echo "source ${USER_WORKSPACE}/src/blue/.docker/entrypoints/sim.sh" >> /home/$USERNAME/.bashrc
+# Since
+# RUN echo "\n# Add results of ArduSub build\nexport PATH=\$HOME/ardupilot/build/sitl/bin:\$PATH" >> /home/$USERNAME/.bashrc && \
+#     echo "\n# Optional: add autotest to the PATH, helpful for running sim_vehicle.py\nexport PATH=\$HOME/ardupilot/Tools/autotest:\$PATH" >> /home/$USERNAME/.bashrc && \
+#     echo "\n# Add ardupilot_gazebo plugin\nexport GZ_SIM_SYSTEM_PLUGIN_PATH=\$HOME/ardupilot_gazebo/build:\$GZ_SIM_SYSTEM_PLUGIN_PATH" >> /home/$USERNAME/.bashrc && \
+#     echo "\n# Add ardupilot_gazebo models and worlds\nexport GZ_SIM_RESOURCE_PATH=\$HOME/ardupilot_gazebo/models:\$HOME/ardupilot_gazebo/worlds:\$GZ_SIM_RESOURCE_PATH" >> /home/$USERNAME/.bashrc && \
+#     echo "\n# Add blue models and worlds\nexport GZ_SIM_RESOURCE_PATH=\$HOME/ws_blue/src/blue/blue_description/gazebo/models:\$HOME/ws_blue/src/blue/blue_description/gazebo/worlds:\$GZ_SIM_RESOURCE_PATH" >> /home/$USERNAME/.bashrc && \
+#     echo "\n# Add blue meshes\nexport GZ_SIM_RESOURCE_PATH=\$HOME/ws_blue/src/blue/blue_description/meshes:\$GZ_SIM_RESOURCE_PATH" >> /home/$USERNAME/.bashrc
+
+RUN  <<EOT cat >> /home/$USERNAME/.bashrc
+
+# Add results of ArduSub build
+export PATH=\$HOME/ardupilot/build/sitl/bin:\$PATH
+
+# Optional: add autotest to the PATH, helpful for running sim_vehicle.py
+export PATH=\$HOME/ardupilot/Tools/autotest:\$PATH
+
+# Add ardupilot_gazebo plugin
+export GZ_SIM_SYSTEM_PLUGIN_PATH=\$HOME/ardupilot_gazebo/build:\$GZ_SIM_SYSTEM_PLUGIN_PATH
+
+# Add ardupilot_gazebo models and worlds
+export GZ_SIM_RESOURCE_PATH=\$HOME/ardupilot_gazebo/models:\$HOME/ardupilot_gazebo/worlds:\$GZ_SIM_RESOURCE_PATH
+
+# Add blue models and worlds
+export GZ_SIM_RESOURCE_PATH=\$HOME/ws_blue/src/blue/blue_description/gazebo/models:\$HOME/ws_blue/src/blue/blue_description/gazebo/worlds:\$GZ_SIM_RESOURCE_PATH
+
+# Add blue meshes
+export GZ_SIM_RESOURCE_PATH=\$HOME/ws_blue/src/blue/blue_description/meshes:\$GZ_SIM_RESOURCE_PATH
+EOT
 
 FROM desktop AS desktop-nvidia
 
