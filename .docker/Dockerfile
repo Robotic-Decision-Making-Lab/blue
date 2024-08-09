@@ -131,14 +131,6 @@ RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pk
     && apt-get -y --quiet --no-install-recommends install \
     gz-${GZ_VERSION} \
     ros-${ROS_DISTRO}-ros-gz${GZ_VERSION} \
-    && apt-get autoremove -y \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
-
-# Install ArduPilot and ardupilot_gazebo dependencies
-RUN apt-get -q update \
-    && apt-get -q -y upgrade \
-    && apt-get -q install --no-install-recommends -y \
     python3-pexpect \
     python3-wxgtk4.0 \
     python3-future \
