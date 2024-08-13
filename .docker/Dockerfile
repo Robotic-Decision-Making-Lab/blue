@@ -1,17 +1,102 @@
 ARG ROS_DISTRO=rolling
-FROM ros:$ROS_DISTRO-ros-base AS ci
+FROM ros:$ROS_DISTRO-ros-base AS base
+
+# Create the non-root user early because both "mavros" and "robot"
+# stages depend its existence
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
+    && apt-get -q install --no-install-recommends -y \
+    git \
+    gosu \
+    sudo \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Ubuntu 24.04 "Noble", which is used as the base image for
+# jazzy and rolling images, now includes a user "ubuntu" at UID 1000
+ARG USERNAME=ubuntu
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME \
+    && usermod -a -G dialout $USERNAME \
+    && echo "source /usr/share/bash-completion/completions/git" >> /home/$USERNAME/.bashrc
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV USER=$USERNAME
+
+# This needs to be defined in a shared stage so it's available in both "mavros" and "robot"
+ENV MAVROS_WORKSPACE=/home/$USERNAME/ws_mavros
+
+#== Build Mavros/Mavlink from source in its own workspace.
+#   Extend that workspace into the "blue" workspace
+#
+FROM base AS mavros
+
+ENV DEBIAN_FRONTEND=noninteractive
+USER $USERNAME
+
+WORKDIR $MAVROS_WORKSPACE/src
+
+# As a reminder to self.   git clone by itself will not break cache
+# when the repo changes.   To rebuild mavros from the latest, you
+# must "docker build --no-cache" to force a rebuild
+ARG MAVROS_RELEASE=ros2
+ARG MAVLINK_RELEASE=release/rolling/mavlink
+RUN git clone --depth 1 -b ${MAVROS_RELEASE} https://github.com/mavlink/mavros.git
+RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/mavlink/mavlink-gbp-release.git mavlink
+# Fix two issues currently in mavros/ros2
+# - mavgen uses future.standard_library for backwards compatibility with Python2;
+#   However, this caused issues with Python 3.12 installed in "noble".
+#   Comment those lines out in mavlink.
+#
+# - Fix linkage for yaml-cpp in mavros_extra_plugins
+RUN sed -i -e 's/^from future import standard_library/#from future import standard_library/' \
+    -e 's/standard_library.install_aliases()/#standard_library.install_aliases()/' \
+    mavlink/pymavlink/generator/mavgen.py && \
+    sed -i -e 's/^# find_package(yaml_cpp REQUIRED)/find_package(yaml-cpp REQUIRED)/' \
+    -e '/^ament_target_dependencies(mavros_extras_plugins$/i target_link_libraries(mavros_extras_plugins yaml-cpp::yaml-cpp)' \
+    -e '/^ament_target_dependencies(mavros_extras$/i target_link_libraries(mavros_extras yaml-cpp::yaml-cpp)' \
+    mavros/mavros_extras/CMakeLists.txt
+
+WORKDIR $MAVROS_WORKSPACE
+USER root
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
+    && gosu $USERNAME rosdep update \
+    && gosu $USERNAME rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+USER $USERNAME
+
+# Build Mavros workspace
+RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
+    && colcon build \
+    && rm -rf $MAVROS_WORKSPACE/build
+
+# == "Standard" Blue Docker image proceeds from here
+#
+FROM base AS ci
+
+ENV DEBIAN_FRONTEND=noninteractive
+USER root
 
 WORKDIR /root/ws_blue
 COPY . src/blue
 
 # Install apt packages needed for CI
+#
+# Explicitly uninstall and block mavros and mavlink packages from APT
+# this will trigger an error if rosdep attempts to install mavros
+# from APT rather than using the version in $MAVROS_WORKSPACE
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
+    && apt-get remove -y "*mavros*" "*mavlink*" \
+    && apt-mark hold "*mavros*" "*mavlink*" \
     && apt-get -q install --no-install-recommends -y \
-    git \
-    sudo \
     clang \
     clang-format-14 \
     clang-tidy \
@@ -27,12 +112,17 @@ RUN apt-get -q update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Install all ROS dependencies for _just_ blue
-# (we have not imported other repos from .repos files)
+# As it's a dependency for blue, copy Mavros from its build stage
+COPY --from=mavros --chown=$USERNAME:$USERNAME $MAVROS_WORKSPACE $MAVROS_WORKSPACE
+
+# Install all ROS dependencies for _just_ blue (and mavros)
+# (we have not imported the other repos from blue.repos files)
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
     && rosdep update \
-    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
+    && . "${MAVROS_WORKSPACE}/install/setup.sh" \
+    && rosdep install -y --from-paths ${MAVROS_WORKSPACE}/src --ignore-src --rosdistro ${ROS_DISTRO} \
+    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
     && rm -rf src \
     && apt-get autoremove -y \
     && apt-get clean -y \
@@ -48,23 +138,8 @@ RUN apt-get -q update \
 #
 FROM ci AS robot
 
-#
-# Ubuntu 24.04 "Noble", which is used as the base image for
-# jazzy and rolling images, now includes a user "ubuntu" at UID 1000
-ARG USERNAME=ubuntu
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
-
-RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-    && chmod 0440 /etc/sudoers.d/$USERNAME \
-    && usermod -a -G dialout $USERNAME \
-    && echo "source /usr/share/bash-completion/completions/git" >> /home/$USERNAME/.bashrc
-
-ENV DEBIAN_FRONTEND=noninteractive
-
 # Switch to the non-root user for the rest of the installation
 USER $USERNAME
-ENV USER=$USERNAME
 
 # Python in Ubuntu is now marked as a "Externally managed environment",
 # Per best practice, create a venv for local python packages
@@ -108,41 +183,23 @@ RUN sudo apt-get -q update \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
-# Manually install MAVROS from source in the ws_blue/ workspace
-WORKDIR $USER_WORKSPACE/src/
-ARG MAVROS_RELEASE=ros2
-ARG MAVLINK_RELEASE=release/rolling/mavlink
-RUN git clone --depth 1 -b ${MAVROS_RELEASE} https://github.com/mavlink/mavros.git
-RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/mavlink/mavlink-gbp-release.git mavlink
-# - mavgen uses future.standard_library for backwards compatibility with Python2;
-#   However, this caused issues with Python 3.12 installed in "noble".
-#   Comment those lines out in mavlink.
-#
-# - Fix linkage for yaml-cpp in mavros_extra_plugins
-RUN sed -i -e 's/^from future import standard_library/#from future import standard_library/' \
-    -e 's/standard_library.install_aliases()/#standard_library.install_aliases()/' \
-    mavlink/pymavlink/generator/mavgen.py && \
-    sed -i -e 's/^# find_package(yaml_cpp REQUIRED)/find_package(yaml-cpp REQUIRED)/' \
-    -e '/^ament_target_dependencies(mavros_extras_plugins$/i target_link_libraries(mavros_extras_plugins yaml-cpp::yaml-cpp)' \
-    -e '/^ament_target_dependencies(mavros_extras$/i target_link_libraries(mavros_extras yaml-cpp::yaml-cpp)' \
-    mavros/mavros_extras/CMakeLists.txt
-
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && vcs import src < src/blue/blue.repos \
     && rosdep update \
+    && . "${MAVROS_WORKSPACE}/install/setup.sh" \
+    && rosdep install -y --from-paths ${MAVROS_WORKSPACE}/src --ignore-src --rosdistro ${ROS_DISTRO} \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
 # Actually build workspace
-RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
+RUN . "${MAVROS_WORKSPACE}/install/setup.sh" \
     && colcon build
 
 RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
-    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc \
     && echo "source $VIRTUAL_ENV/bin/activate" >> /home/$USERNAME/.bashrc \
     && echo "\n# Ensure colcon is run in the venv\nalias colcon='python3 -m colcon'" >> /home/$USERNAME/.bashrc
 
@@ -219,6 +276,7 @@ RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && vcs import src < src/blue/sim.repos \
     && rosdep update \
+    && . "${MAVROS_WORKSPACE}/install/setup.sh" \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
@@ -227,7 +285,7 @@ RUN sudo apt-get -q update \
 # For users that build this on a laptop or system with limited RAM,
 # Modify the 'colcon build' line to be 'MAKEFLAGS="-j1 -l1" colcon build'
 # This will limit the amount of RAM that colcon is allowed to use
-RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
+RUN . "${MAVROS_WORKSPACE}/install/setup.sh" \
     && colcon build
 
 # Setup the simulation environment variables
