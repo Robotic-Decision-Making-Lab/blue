@@ -65,7 +65,6 @@ jobs:
       matrix:
         ROS_DISTRO: [rolling]
     runs-on: ubuntu-latest
-    timeout-minutes: 600
     permissions:
       packages: write
       contents: read
