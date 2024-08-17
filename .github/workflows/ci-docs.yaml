@@ -3,8 +3,7 @@ name: Check Documentation
 on:
   push:
     branches:
-      - main
-      - 33-feature-ros2-control
+      - jazzy
   pull_request:
     paths:
       - docs/**

@@ -3,7 +3,7 @@ name: Check Implementation
 on:
   push:
     branches:
-      - main
+      - jazzy
   pull_request:
   workflow_dispatch:
 
