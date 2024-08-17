@@ -1,4 +1,9 @@
-FROM ghcr.io/robotic-decision-making-lab/blue:rolling-desktop-nvidia
+#
+# Dockerfile for *-robot development container
+#
+ARG BLUE_GITHUB_REPO=Robotic-Decision-Making-Lab/blue
+ARG ROS_DISTRO=rolling
+FROM ${BLUE_GITHUB_REPO}:${ROS_DISTRO}-robot
 
 # Install ROS dependencies
 # This is done in a previous stage, but we include it again here in case anyone wants to

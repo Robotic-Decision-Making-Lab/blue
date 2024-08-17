@@ -18,6 +18,7 @@ RUN apt-get -q update \
     clang-tools \
     python3-pip \
     python3-dev \
+    python3-venv \
     lsb-release \
     wget \
     gnupg \
@@ -38,14 +39,14 @@ RUN apt-get -q update \
 
 FROM ci as robot
 
-# Configure a new non-root user
-ARG USERNAME=blue
+#
+# Ubuntu 24.04 "Noble", which is used as the base image for
+# jazzy and rolling images, now includes a user "ubuntu" at UID 1000
+ARG USERNAME=ubuntu
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
     && usermod -a -G dialout $USERNAME \
     && echo "source /usr/share/bash-completion/completions/git" >> /home/$USERNAME/.bashrc
@@ -55,6 +56,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Switch to the non-root user for the rest of the installation
 USER $USERNAME
 ENV USER=$USERNAME
+
+# Python in Ubuntu is now marked as a "Externally managed environment",
+# Per best practice, create a venv for local python packages
+#
+# These two ENVs effectively "activate" the venv for subsequent calls to
+# python/pip in the Dockerfile
+WORKDIR /home/$USERNAME
+ENV VIRTUAL_ENV=/home/$USERNAME/.venv/blue
+RUN python3 -m venv --system-site-packages --symlinks $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install MAVROS dependencies
 WORKDIR /home/$USERNAME
@@ -85,6 +96,29 @@ RUN sudo apt-get -q update \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
+<<<<<<< HEAD
+=======
+# Manually install MAVROS from source in the ws_blue/ workspace
+WORKDIR $USER_WORKSPACE/src/
+ARG MAVROS_RELEASE=ros2
+ARG MAVLINK_RELEASE=release/rolling/mavlink
+RUN git clone --depth 1 -b ${MAVROS_RELEASE} https://github.com/mavlink/mavros.git
+RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/mavlink/mavlink-gbp-release.git mavlink
+# - mavgen uses future.standard_library for backwards compatibility with Python2;
+#   However, this caused issues with Python 3.12 installed in "noble".
+#   Comment those lines out in mavlink.
+#
+# - Fix linkage for yaml-cpp in mavros_extra_plugins
+RUN sed -i -e 's/^from future import standard_library/#from future import standard_library/' \
+    -e 's/standard_library.install_aliases()/#standard_library.install_aliases()/' \
+    mavlink/pymavlink/generator/mavgen.py && \
+    sed -i -e 's/^# find_package(yaml_cpp REQUIRED)/find_package(yaml-cpp REQUIRED)/' \
+    -e '/^ament_target_dependencies(mavros_extras_plugins$/i target_link_libraries(mavros_extras_plugins yaml-cpp::yaml-cpp)' \
+    -e '/^ament_target_dependencies(mavros_extras$/i target_link_libraries(mavros_extras yaml-cpp::yaml-cpp)' \
+    mavros/mavros_extras/CMakeLists.txt
+
+WORKDIR $USER_WORKSPACE
+>>>>>>> fe3861d (Rolling ROS image is now based on "noble" (#220))
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && rosdep update \
@@ -94,13 +128,16 @@ RUN sudo apt-get -q update \
     && sudo rm -rf /var/lib/apt/lists/*
 
 RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
-    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc
+    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc \
+    && echo "source $VIRTUAL_ENV/bin/activate" >> /home/$USERNAME/.bashrc \
+    && echo "\n# Ensure colcon is run in the venv\nalias colcon='python3 -m colcon'" >> /home/$USERNAME/.bashrc
 
 FROM robot as desktop
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GZ_VERSION=garden
 
+<<<<<<< HEAD
 # Install Gazebo Garden: https://gazebosim.org/docs/garden/install_ubuntu
 RUN sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
@@ -115,6 +152,21 @@ RUN sudo wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrin
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && sudo apt-get -q install --no-install-recommends -y \
+=======
+# Install Gazebo Harmonic: https://gazebosim.org/docs/harmonic/install_ubuntu
+# Per DL3004, use "USER root" rather than "sudo"
+#    https://github.com/hadolint/hadolint/wiki/DL3004
+USER root
+# Install custom rosdep list
+ADD --chown=root:root --chmod=0644 https://raw.githubusercontent.com/osrf/osrf-rosdep/master/gz/00-gazebo.list /etc/ros/rosdep/sources.list.d/00-gazebo.list
+RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" |  tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
+    && apt-get -q update \
+    && apt-get -y --quiet --no-install-recommends install \
+    cppzmq-dev \
+    gz-${GZ_VERSION} \
+    python3-pexpect \
+>>>>>>> fe3861d (Rolling ROS image is now based on "noble" (#220))
     python3-wxgtk4.0 \
     rapidjson-dev \
     xterm \
@@ -132,7 +184,12 @@ RUN git clone https://github.com/ArduPilot/ardupilot.git --recurse-submodules
 # Install ArduSub dependencies
 WORKDIR /home/$USERNAME/ardupilot
 ENV SKIP_AP_EXT_ENV=1 SKIP_AP_GRAPHIC_ENV=1 SKIP_AP_COV_ENV=1 SKIP_AP_GIT_CHECK=1
-RUN Tools/environment_install/install-prereqs-ubuntu.sh -y
+# Do not install the STM development tools
+ENV DO_AP_STM_ENV=0
+# Do not activate the Ardupilot venv by default
+ENV DO_PYTHON_VENV_ENV=0
+RUN echo "\n# Below from ardupilot script \"install-prereqs-ubuntu.sh\"\n" >> /home/$USERNAME/.bashrc && \
+    Tools/environment_install/install-prereqs-ubuntu.sh -y
 
 # Build ArduSub
 WORKDIR /home/$USERNAME/ardupilot
