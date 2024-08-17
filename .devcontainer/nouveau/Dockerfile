@@ -1,9 +1,9 @@
-FROM ghcr.io/robotic-decision-making-lab/blue:rolling-desktop
+FROM ghcr.io/robotic-decision-making-lab/blue:jazzy-desktop
 
 # Install ROS dependencies
 # This is done in a previous stage, but we include it again here in case anyone wants to
 # add new dependencies during development
-ENV USERNAME=blue
+ENV USERNAME=ubuntu
 ENV USER_WORKSPACE=/home/$USERNAME/ws_blue
 WORKDIR $USER_WORKSPACE
 

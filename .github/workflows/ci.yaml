@@ -19,8 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          - IMAGE: rolling-ci
-            ROS_DISTRO: rolling
+          - IMAGE: jazzy-ci
+            ROS_DISTRO: jazzy
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
           submodules: recursive
 
       - name: Log into registry
-        uses: docker/login-action@v3.1.0
+        uses: docker/login-action@v3.3.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}

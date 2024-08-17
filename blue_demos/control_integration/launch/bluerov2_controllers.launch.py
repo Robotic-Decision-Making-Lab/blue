@@ -21,12 +21,7 @@
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, RegisterEventHandler
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import (
-    Command,
-    FindExecutable,
-    LaunchConfiguration,
-    PathJoinSubstitution,
-)
+from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -52,29 +47,6 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
-    robot_description_content = Command(
-        [
-            PathJoinSubstitution([FindExecutable(name="xacro")]),
-            " ",
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("blue_demos"),
-                    "control_integration",
-                    "description",
-                    "urdf",
-                    "bluerov2.config.xacro",
-                ]
-            ),
-            " ",
-            "prefix:=",
-            LaunchConfiguration("prefix"),
-            " ",
-            "use_sim:=",
-            LaunchConfiguration("use_sim"),
-        ]
-    )
-    robot_description = {"robot_description": robot_description_content}
-
     # The ISMC expects state information to be provided in the FSD frame
     mobile_to_maritime_velocity_state = Node(
         package="mobile_to_maritime",
@@ -95,7 +67,6 @@ def generate_launch_description() -> LaunchDescription:
         executable="ros2_control_node",
         output="both",
         parameters=[
-            robot_description,
             PathJoinSubstitution(
                 [
                     FindPackageShare("blue_demos"),
@@ -104,6 +75,9 @@ def generate_launch_description() -> LaunchDescription:
                     "bluerov2_controllers.yaml",
                 ]
             ),
+        ],
+        remappings=[
+            ("/controller_manager/robot_description", "/robot_description"),
         ],
     )
 
