@@ -1,8 +1,7 @@
 version: "3"
 services:
   blue:
-    # image: ghcr.io/robotic-decision-making-lab/blue:jazzy-desktop-nvidia
-    image: blue-test
+    image: ghcr.io/robotic-decision-making-lab/blue:jazzy-desktop-nvidia
     environment:
       - DISPLAY=${DISPLAY}
       - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
