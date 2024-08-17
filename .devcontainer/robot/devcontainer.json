@@ -5,7 +5,7 @@
     "context": "../..",
     "args": {
       "BLUE_GITHUB_REPO": "ghcr.io/robotic-decision-making-lab/blue",
-      "ROS_DISTRO": "rolling"
+      "ROS_DISTRO": "jazzy"
     }
   },
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/ubuntu/ws_blue/src/blue,type=bind",

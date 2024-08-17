@@ -2,7 +2,7 @@
 # Dockerfile for *-robot development container
 #
 ARG BLUE_GITHUB_REPO=Robotic-Decision-Making-Lab/blue
-ARG ROS_DISTRO=rolling
+ARG ROS_DISTRO=jazzy
 FROM ${BLUE_GITHUB_REPO}:${ROS_DISTRO}-robot
 
 # Install ROS dependencies

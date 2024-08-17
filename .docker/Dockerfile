@@ -1,4 +1,4 @@
-ARG ROS_DISTRO=rolling
+ARG ROS_DISTRO=jazzy
 FROM ros:$ROS_DISTRO-ros-base AS ci
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -111,6 +111,7 @@ RUN sudo apt-get -q update \
 # Manually install MAVROS from source in the ws_blue/ workspace
 WORKDIR $USER_WORKSPACE/src/
 ARG MAVROS_RELEASE=ros2
+# mavlink-gdp-release has not been released for Jazzy, so we use the Rolling release
 ARG MAVLINK_RELEASE=release/rolling/mavlink
 RUN git clone --depth 1 -b ${MAVROS_RELEASE} https://github.com/mavlink/mavros.git
 RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/mavlink/mavlink-gbp-release.git mavlink

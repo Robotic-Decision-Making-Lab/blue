@@ -1,6 +1,6 @@
 services:
   blue:
-    image: ghcr.io/robotic-decision-making-lab/blue:rolling-robot
+    image: ghcr.io/robotic-decision-making-lab/blue:jazzy-robot
     build:
       dockerfile: .docker/Dockerfile
       target: robot
