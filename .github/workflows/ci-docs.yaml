@@ -3,7 +3,7 @@ name: Check Documentation
 on:
   push:
     branches:
-      - jazzy
+      - main
   pull_request:
     paths:
       - docs/**
