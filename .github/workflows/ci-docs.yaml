@@ -3,7 +3,11 @@ name: Check Documentation
 on:
   push:
     branches:
+<<<<<<< HEAD
       - jazzy
+=======
+      - main
+>>>>>>> 992b51b (Update and remove stale project configurations (#256))
   pull_request:
     paths:
       - docs/**
