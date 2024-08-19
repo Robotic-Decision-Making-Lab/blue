@@ -26,6 +26,11 @@
   },
   "customizations": {
     "vscode": {
+      "settings": {
+        "python.defaultInterpreterPath": "/home/ubuntu/.venv/blue/bin/python",
+        "python.autoComplete.extraPaths": ["${workspaceFolder}/install/"],
+        "python.analysis.extraPaths": ["${workspaceFolder}/install/"]
+      },
       "extensions": [
         "ms-azuretools.vscode-docker",
         "ms-python.python",
