@@ -2,9 +2,9 @@
   "name": "NVIDIA Dev Container",
   "dockerFile": "Dockerfile",
   "context": "../..",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/home/blue/ws_blue/src/blue,type=bind",
-  "workspaceFolder": "/home/blue/ws_blue/src/blue",
-  "remoteUser": "blue",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/ubuntu/ws_blue/src/blue,type=bind",
+  "workspaceFolder": "/home/ubuntu/ws_blue/src/blue",
+  "remoteUser": "ubuntu",
   "runArgs": [
     "--network=host",
     "--cap-add=SYS_PTRACE",
