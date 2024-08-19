@@ -2,12 +2,7 @@
   "configurations": [
     {
       "name": "Linux",
-      "includePath": [
-        "${workspaceFolder}/**",
-        "/opt/ros/rolling/include/**",
-        "/usr/include/eigen3/**",
-        "/home/ros/ws_ros/**"
-      ],
+      "includePath": ["${workspaceFolder}/**", "/opt/ros/rolling/include/**"],
       "defines": [],
       "compilerPath": "/usr/bin/gcc",
       "cStandard": "c99",
