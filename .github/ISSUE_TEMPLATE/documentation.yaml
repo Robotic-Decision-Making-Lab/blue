@@ -1,5 +1,5 @@
 name: Documentation Improvement
-description: Report an issue related to the BlueROV2 driver documentation.
+description: Report an issue related to the Blue documentation.
 title: "[DOC]: <Please write a descriptive title after the '[DOC]: ' prefix>"
 labels: [documentation, needs triage]
 
@@ -16,9 +16,9 @@ body:
       label: Documentation Change Type
       description: Please indicate what type of documentation issue you are reporting.
       options:
-        - Adding new documentation to the BlueROV2 driver documentation
-        - Changing existing BlueROV2 driver documentation
-        - Removing existing BlueROV2 driver documentation
+        - Adding new documentation to the Blue documentation
+        - Changing existing documentation
+        - Removing existing documentation
     validations:
       required: true
 

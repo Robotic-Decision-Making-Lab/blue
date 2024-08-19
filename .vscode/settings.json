@@ -23,6 +23,7 @@
   "autoDocstring.startOnNewLine": false,
   "autoDocstring.docstringFormat": "google-notypes",
   "python.autoComplete.extraPaths": [
+<<<<<<< HEAD
     "/opt/ros/humble/lib/python3.10/site-packages/",
     "/opt/ros/humble/local/lib/python3.10/dist-packages/",
     "${workspaceFolder}/install/"
@@ -31,6 +32,14 @@
     "/opt/ros/humble/lib/python3.10/site-packages/",
     "/opt/ros/humble/local/lib/python3.10/dist-packages/",
     "${workspaceFolder}/install/"
+=======
+    "/opt/ros/rolling/lib/python3.12/site-packages/",
+    "/opt/ros/rolling/local/lib/python3.12/dist-packages/"
+  ],
+  "python.analysis.extraPaths": [
+    "/opt/ros/rolling/lib/python3.12/site-packages/",
+    "/opt/ros/rolling/local/lib/python3.12/dist-packages/"
+>>>>>>> 992b51b (Update and remove stale project configurations (#256))
   ],
   "[python]": {
     "editor.tabSize": 4,
