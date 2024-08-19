@@ -84,7 +84,7 @@ jobs:
             desktop-nvidia.cache-to=type=gha,mode=max,scope=desktop-nvidia
 
       # Pull request builds are not cached; and only built for AMD64
-      - if: (github.event_name == 'pull_request') || (workflow_dispath)
+      - if: github.event_name == 'pull_request'
         name: Build and push (PR)
         uses: docker/bake-action@v5.5.0
         with:
