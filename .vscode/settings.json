@@ -42,6 +42,7 @@
     },
     "editor.defaultFormatter": "charliermarsh.ruff"
   },
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/blue/bin/python",
   "[dockerfile]": {
     "editor.quickSuggestions": {
       "strings": true
