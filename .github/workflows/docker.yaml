@@ -1,6 +1,7 @@
 name: Docker
 
 on:
+  # Disable schedule for preliminary testing
   # schedule:
   #   - cron: "0 17 * * 6"
   push:
@@ -15,7 +16,7 @@ on:
   workflow_dispatch:
 
 env:
-  PUSH: ${{ (github.event_name != 'pull_request') && (github.repository == 'apl-ocean-engineering/blue') }}
+  PUSH: ${{ (github.event_name != 'pull_request') && (github.repository == 'Robotic-Decision-Making-Lab/blue') }}
 
 jobs:
   docker_build:
@@ -54,6 +55,8 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # tbd:  not sure how to update this for buildx
+      #
       # -
       #   name: Extract Docker metadata
       #   if: env.PUSH == 'true'
@@ -71,7 +74,6 @@ jobs:
           workdir: .docker
           push: ${{ env.PUSH }}
           set: |
-            *.platform=linux/amd64
             *.cache-from=type=gha,scope=ci
             *.cache-from=type=gha,scope=robot
             *.cache-from=type=gha,scope=desktop
@@ -81,6 +83,7 @@ jobs:
             desktop.cache-to=type=gha,mode=max,scope=desktop
             desktop-nvidia.cache-to=type=gha,mode=max,scope=desktop-nvidia
 
+      # Pull request builds are not cached; and only built for AMD64
       - if: github.event_name == 'pull_request'
         name: Build and push (PR)
         uses: docker/bake-action@v5.5.0
