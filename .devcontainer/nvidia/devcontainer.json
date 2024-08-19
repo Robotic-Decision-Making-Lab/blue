@@ -26,6 +26,10 @@
   },
   "customizations": {
     "vscode": {
+      "settings": {
+        "python.autoComplete.extraPaths": ["${workspaceFolder}/install/"],
+        "python.analysis.extraPaths": ["${workspaceFolder}/install/"]
+      },
       "extensions": [
         "ms-azuretools.vscode-docker",
         "ms-python.python",
