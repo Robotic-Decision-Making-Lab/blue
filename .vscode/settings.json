@@ -24,15 +24,12 @@
   "autoDocstring.docstringFormat": "google-notypes",
   "python.autoComplete.extraPaths": [
     "/opt/ros/rolling/lib/python3.10/site-packages/",
-    "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
-    "${workspaceFolder}/install/"
+    "/opt/ros/rolling/local/lib/python3.10/dist-packages/"
   ],
   "python.analysis.extraPaths": [
     "/opt/ros/rolling/lib/python3.10/site-packages/",
-    "/opt/ros/rolling/local/lib/python3.10/dist-packages/",
-    "${workspaceFolder}/install/"
+    "/opt/ros/rolling/local/lib/python3.10/dist-packages/"
   ],
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv/blue/bin/python",
   "[python]": {
     "editor.tabSize": 4,
     "editor.rulers": [90],
