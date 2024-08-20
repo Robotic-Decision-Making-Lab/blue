@@ -32,6 +32,9 @@ target "ci" {
   tags = [
     "ghcr.io/${BLUE_GITHUB_REPO}:${BLUE_ROS_DISTRO}-ci"
   ]
+  labels = {
+    "org.opencontainers.image.source" = "https://github.com/${BLUE_GITHUB_REPO}"
+  }
   cache_from =[
     "ghcr.io/${BLUE_GITHUB_REPO}:${BLUE_ROS_DISTRO}-ci",
     "ghcr.io/${BLUE_GITHUB_REPO}:${BLUE_ROS_DISTRO}-robot",
