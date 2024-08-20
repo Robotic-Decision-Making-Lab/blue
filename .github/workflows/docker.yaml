@@ -28,9 +28,6 @@ jobs:
     permissions:
       packages: write
       contents: read
-    env:
-      BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
-      BLUE_GITHUB_REPO: ${{ github.repository }}
     steps:
       -
         name: Checkout repository
@@ -55,6 +52,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - id: lower-repo
+        name: Repository to lowercase
+        run: |
+          echo "repository=${GITHUB_REPOSITORY@L}" >> $GITHUB_OUTPUT
+
       # tbd:  not sure how to update this for buildx
       #
       # -
@@ -70,6 +72,9 @@ jobs:
       - if: github.event_name == 'push'
         name: Build and push (non PR)
         uses: docker/bake-action@v5.5.0
+        env:
+          BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
+          BLUE_GITHUB_REPO: ${{ steps.lower-repo.outputs.repository }}
         with:
           workdir: .docker
           push: ${{ env.PUSH }}
@@ -87,6 +92,9 @@ jobs:
       - if: github.event_name == 'pull_request'
         name: Build and push (PR)
         uses: docker/bake-action@v5.5.0
+        env:
+          BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
+          BLUE_GITHUB_REPO: ${{ steps.lower-repo.outputs.repository }}
         with:
           workdir: .docker
           targets: |
