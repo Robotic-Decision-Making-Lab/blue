@@ -24,6 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         ROS_DISTRO: [rolling]
+        stage: ["ci", "robot", "desktop", "desktop-nvidia"]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -63,15 +64,21 @@ jobs:
 
       # tbd:  not sure how to update this for buildx
       #
-      # -
-      #   name: Extract Docker metadata
-      #   if: env.PUSH == 'true'
-      #   id: meta
-      #   uses: docker/metadata-action@v5.5.1
-      #   with:
-      #     images: ghcr.io/${{ github.repository }}
-      #     tags: |
-      #       type=raw,value=${{ matrix.ROS_DISTRO }}-${{ matrix.stage }}
+      # metadata-action can be used with bake:
+      #  https://github.com/docker/metadata-action?tab=readme-ov-file#bake-definition
+      #
+      # But not quite sure how to handle multiple targets given we don't iterate
+      # through the stages at this level (it happens within bake)
+      #
+      -
+        name: Extract Docker metadata
+        if: env.PUSH == 'true'
+        id: meta
+        uses: docker/metadata-action@v5.5.1
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=${{ matrix.ROS_DISTRO }}-${{ matrix.stage }}
 
       - if: github.event_name == 'push'
         name: Build and push (non PR)
@@ -81,16 +88,18 @@ jobs:
           BLUE_GITHUB_REPO: ${{ steps.lower-repo.outputs.repository }}
         with:
           workdir: .docker
+          files: |
+            ./docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
+          targets: |
+            ${{ matrix.stage }}
           push: ${{ env.PUSH }}
           set: |
             *.cache-from=type=gha,scope=ci
             *.cache-from=type=gha,scope=robot
             *.cache-from=type=gha,scope=desktop
             *.cache-from=type=gha,scope=desktop-nvidia
-            ci.cache-to=type=gha,mode=max,scope=ci
-            robot.cache-to=type=gha,mode=max,scope=robot
-            desktop.cache-to=type=gha,mode=max,scope=desktop
-            desktop-nvidia.cache-to=type=gha,mode=max,scope=desktop-nvidia
+            ${{ matrix.stage }}.cache-to=type=gha,mode=max,scope=${{ matrix.stage }}
 
       # Pull request builds are not cached; and only built for AMD64
       - if: github.event_name == 'pull_request'
@@ -101,6 +110,9 @@ jobs:
           BLUE_GITHUB_REPO: ${{ steps.lower-repo.outputs.repository }}
         with:
           workdir: .docker
+          files: |
+            ./docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
           targets: |
             ${{ matrix.stage }}
           set: |
