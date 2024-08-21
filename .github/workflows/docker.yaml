@@ -30,9 +30,6 @@ jobs:
       packages: write
       contents: read
     steps:
-      -
-        name: Checkout repository
-        uses: actions/checkout@v4
 
       -
         # Add support for more platforms with QEMU (optional)
@@ -87,6 +84,7 @@ jobs:
           BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
           BLUE_GITHUB_REPO: ${{ steps.lower-repo.outputs.repository }}
         with:
+          source: "${{ github.server_url }}/${{ github.repository }}.git#${{ github.ref }}"
           workdir: .docker
           files: |
             ./docker-bake.hcl
@@ -95,11 +93,11 @@ jobs:
             ${{ matrix.stage }}
           push: ${{ env.PUSH }}
           set: |
-            *.cache-from=type=gha,scope=ci
-            *.cache-from=type=gha,scope=robot
-            *.cache-from=type=gha,scope=desktop
-            *.cache-from=type=gha,scope=desktop-nvidia
-            ${{ matrix.stage }}.cache-to=type=gha,mode=max,scope=${{ matrix.stage }}
+            *.cache-from=type=registry,ref="ghcr.io/${GITHUB_REPOSITORY}:ci-${ matrix.ROS_DISTRO }-ci",
+            *.cache-from=type=registry,ref="ghcr.io/${GITHUB_REPOSITORY}:ci-${ matrix.ROS_DISTRO }-robot",
+            *.cache-from=type=registry,ref="ghcr.io/${GITHUB_REPOSITORY}:ci-${ matrix.ROS_DISTRO }-desktop",
+            *.cache-from=type=registry,ref="ghcr.io/${GITHUB_REPOSITORY}:ci-${ matrix.ROS_DISTRO }-desktop-nvidia",
+            ${{ matrix.stage }}.cache-to=type=registry,mode=max,ref="ghcr.io/${GITHUB_REPOSITORY}:ci-${ matrix.ROS_DISTRO }-${ matrix.stage }",
 
       # Pull request builds are not cached; and only built for AMD64
       - if: github.event_name == 'pull_request'
@@ -109,6 +107,7 @@ jobs:
           BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
           BLUE_GITHUB_REPO: ${{ steps.lower-repo.outputs.repository }}
         with:
+          source: "${{ github.server_url }}/${{ github.repository }}.git#${{ github.ref }}"
           workdir: .docker
           files: |
             ./docker-bake.hcl
@@ -117,8 +116,7 @@ jobs:
             ${{ matrix.stage }}
           set: |
             *.platform=linux/amd64
-            *.cache-from=type=gha,scope=ci
-            *.cache-from=type=gha,scope=robot
-            *.cache-from=type=gha,scope=desktop
-            *.cache-from=type=gha,scope=desktop-nvidia
-            *.cache-to=
+            *.cache-from=type=registry,ref="ghcr.io/${GITHUB_REPOSITORY}:ci-${ matrix.ROS_DISTRO }-ci",
+            *.cache-from=type=registry,ref="ghcr.io/${GITHUB_REPOSITORY}:ci-${ matrix.ROS_DISTRO }-desktop",
+            *.cache-from=type=registry,ref="ghcr.io/${GITHUB_REPOSITORY}:ci-${ matrix.ROS_DISTRO }-desktop-nvidia",
+            ${{ matrix.stage }}.cache-to=type=registry,mode=max,ref="ghcr.io/${GITHUB_REPOSITORY}:ci-${ matrix.ROS_DISTRO }-${ matrix.stage }",
