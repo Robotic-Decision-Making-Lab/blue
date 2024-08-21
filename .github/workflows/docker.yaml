@@ -52,6 +52,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # buildx bake, unfortunately, requires lower-cased repository names
+      # This shell ... er, hack, creates a local variable containing
+      # a down-cased version of $GITHUB_REPOSITORY
+      #
       - id: lower-repo
         name: Repository to lowercase
         run: |
