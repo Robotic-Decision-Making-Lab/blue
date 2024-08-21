@@ -16,6 +16,9 @@ group "default" {
   targets = ["ci", "robot", "desktop", "desktop-nvidia"]
 }
 
+# In Github CI, populated by metadata-action Github action
+target "docker-metadata-action" {}
+
 #
 # All images can pull cache from the images published at Github
 # or local storage (within the Buildkit image)
@@ -23,6 +26,7 @@ group "default" {
 # ... and push cache to local storage
 #
 target "ci" {
+  inherits = ["docker-metadata-action"]
   dockerfile = ".docker/Dockerfile"
   target = "ci"
   context = ".."
