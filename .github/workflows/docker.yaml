@@ -79,14 +79,16 @@ jobs:
       - if: github.event_name == 'push'
         name: Build and push (non PR)
         uses: docker/bake-action@v5.5.0
-        files: |
-          .docker/docker-bake.hcl
-          ${{ steps.meta.outputs.bake-file }}
         env:
           BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
           BLUE_GITHUB_REPO: ${{ steps.lower-repo.outputs.repository }}
         with:
           workdir: .docker
+          files: |
+            ./docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
+          targets: |
+            ${{ matrix.stage }}
           push: ${{ env.PUSH }}
           set: |
             *.cache-from=type=gha,scope=ci
@@ -99,14 +101,14 @@ jobs:
       - if: github.event_name == 'pull_request'
         name: Build and push (PR)
         uses: docker/bake-action@v5.5.0
-        files: |
-          .docker/docker-bake.hcl
-          ${{ steps.meta.outputs.bake-file }}
         env:
           BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
           BLUE_GITHUB_REPO: ${{ steps.lower-repo.outputs.repository }}
         with:
           workdir: .docker
+          files: |
+            ./docker-bake.hcl
+            ${{ steps.meta.outputs.bake-file }}
           targets: |
             ${{ matrix.stage }}
           set: |
