@@ -16,3 +16,6 @@ mav.parm
 mav.tlog
 mav.tlog.raw
 logs/
+
+# Allow overrides in docker-bake
+.docker/docker-bake.override.hcl

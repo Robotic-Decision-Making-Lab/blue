@@ -1,8 +1,9 @@
 name: Docker
 
 on:
-  schedule:
-    - cron: "0 17 * * 6"
+  # Disable schedule for preliminary testing
+  # schedule:
+  #   - cron: "0 17 * * 6"
   push:
     branches:
       - main
@@ -18,7 +19,7 @@ env:
   PUSH: ${{ (github.event_name != 'pull_request') && (github.repository == 'Robotic-Decision-Making-Lab/blue') }}
 
 jobs:
-  ci:
+  docker_build:
     strategy:
       fail-fast: false
       matrix:
@@ -28,164 +29,106 @@ jobs:
       packages: write
       contents: read
     steps:
-      - name: Checkout repository
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Log into registry
-        if: env.PUSH == 'true'
-        uses: docker/login-action@v3.3.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        if: env.PUSH == 'true'
-        id: meta
-        uses: docker/metadata-action@v5.5.1
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6.7.0
-        with:
-          context: .
-          file: .docker/Dockerfile
-          build-args: ROS_DISTRO=${{ matrix.ROS_DISTRO }}
-          target: ${{ github.job }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          push: ${{ env.PUSH }}
-
-  robot:
-    strategy:
-      fail-fast: false
-      matrix:
-        ROS_DISTRO: [rolling]
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.2.0
+      - # Add support for more platforms with QEMU (optional)
+        # https://github.com/docker/setup-qemu-action
+        name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Log into registry
-        if: env.PUSH == 'true'
+      - if: env.PUSH == 'true'
+        name: Log into registry
         uses: docker/login-action@v3.3.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata
+      # buildx bake, unfortunately, requires lower-cased repository names
+      # This shell ... er, hack, creates a local variable containing
+      # a down-cased version of $GITHUB_REPOSITORY
+      #
+      - id: lowercase-repo
+        name: Repository to lowercase
+        run: |
+          echo "repository=${GITHUB_REPOSITORY@L}" >> $GITHUB_OUTPUT
+
+      # Set metadata for each stage-image separately
+      - name: Set Docker metadata for "ci"
         if: env.PUSH == 'true'
-        id: meta
+        id: meta-ci
         uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/${{ github.repository }}
+          bake-target: docker-metadata-action-ci
           tags: |
-            type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
+            type=raw,value=${{ matrix.ROS_DISTRO }}-ci
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6.7.0
-        with:
-          context: .
-          file: .docker/Dockerfile
-          build-args: ROS_DISTRO=${{ matrix.ROS_DISTRO }}
-          target: ${{ github.job }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          push: ${{ env.PUSH }}
-          platforms: linux/amd64
-          #platforms: linux/amd64,linux/arm64
-
-  desktop:
-    strategy:
-      fail-fast: false
-      matrix:
-        ROS_DISTRO: [rolling]
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log into registry
+      - name: Set Docker metadata for "robot"
         if: env.PUSH == 'true'
-        uses: docker/login-action@v3.3.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        if: env.PUSH == 'true'
-        id: meta
+        id: meta-robot
         uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/${{ github.repository }}
+          bake-target: docker-metadata-action-robot
           tags: |
-            type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
+            type=raw,value=${{ matrix.ROS_DISTRO }}-robot
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6.7.0
-        with:
-          context: .
-          file: .docker/Dockerfile
-          build-args: ROS_DISTRO=${{ matrix.ROS_DISTRO }}
-          target: ${{ github.job }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          push: ${{ env.PUSH }}
-
-  desktop-nvidia:
-    strategy:
-      fail-fast: false
-      matrix:
-        ROS_DISTRO: [rolling]
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log into registry
+      - name: Set Docker metadata for "desktop"
         if: env.PUSH == 'true'
-        uses: docker/login-action@v3.3.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        if: env.PUSH == 'true'
-        id: meta
+        id: meta-desktop
         uses: docker/metadata-action@v5.5.1
         with:
           images: ghcr.io/${{ github.repository }}
+          bake-target: docker-metadata-action-desktop
           tags: |
-            type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
+            type=raw,value=${{ matrix.ROS_DISTRO }}-desktop
 
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6.7.0
+      - name: Set Docker metadata for "desktop-nvidia"
+        if: env.PUSH == 'true'
+        id: meta-desktop-nvidia
+        uses: docker/metadata-action@v5.5.1
         with:
-          context: .
-          file: .docker/Dockerfile
-          build-args: ROS_DISTRO=${{ matrix.ROS_DISTRO }}
-          target: ${{ github.job }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          images: ghcr.io/${{ github.repository }}
+          bake-target: docker-metadata-action-desktop-nvidia
+          tags: |
+            type=raw,value=${{ matrix.ROS_DISTRO }}-desktop-nvidia
+
+      - if: github.event_name == 'push'
+        name: Build and push (non PR)
+        uses: docker/bake-action@v5.5.0
+        env:
+          BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
+          BLUE_GITHUB_REPO: ${{ steps.lowercase-repo.outputs.repository }}
+        with:
+          workdir: .docker
+          files: |
+            ./docker-bake.hcl
+            ${{ steps.meta-ci.outputs.bake-file }}
+            ${{ steps.meta-robot.outputs.bake-file }}
+            ${{ steps.meta-desktop.outputs.bake-file }}
+            ${{ steps.meta-desktop-nvidia.outputs.bake-file }}
           push: ${{ env.PUSH }}
+          set: |
+            *.cache-from=type=registry,ref=ghcr.io/${{ github.repository }}:cache-${{ matrix.ROS_DISTRO }}
+            *.cache-to=type=registry,mode=max,ref=ghcr.io/${{ github.repository }}:cache-${{ matrix.ROS_DISTRO }}
+
+      # Pull request builds are not cached; and only built for AMD64
+      - if: github.event_name == 'pull_request'
+        name: Build and push (PR)
+        uses: docker/bake-action@v5.5.0
+        env:
+          BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
+          BLUE_GITHUB_REPO: ${{ steps.lowercase-repo.outputs.repository }}
+        with:
+          workdir: .docker
+          files: |
+            ./docker-bake.hcl
+          set: |
+            *.platform=linux/amd64
+            *.cache-from=type=registry,ref=ghcr.io/${{ github.repository }}:cache-${{ matrix.ROS_DISTRO }}
+            *.cache-to=
