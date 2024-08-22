@@ -1,9 +1,8 @@
 name: Docker
 
 on:
-  # Disable schedule for preliminary testing
-  # schedule:
-  #   - cron: "0 17 * * 6"
+  schedule:
+    - cron: "0 17 * * 6"
   push:
     branches:
       - main
@@ -114,8 +113,8 @@ jobs:
             ${{ steps.meta-desktop-nvidia.outputs.bake-file }}
           push: ${{ env.PUSH }}
           set: |
-            *.cache-from=type=registry,ref=ghcr.io/${{ github.repository }}:cache-${{ matrix.ROS_DISTRO }}
-            *.cache-to=type=registry,mode=max,ref=ghcr.io/${{ github.repository }}:cache-${{ matrix.ROS_DISTRO }}
+            *.cache-from=type=registry,ref=ghcr.io/${{ steps.lowercase-repo.outputs.repository }}:cache-${{ matrix.ROS_DISTRO }}
+            *.cache-to=type=registry,mode=max,ref=ghcr.io/${{ steps.lowercase-repo.outputs.repository }}:cache-${{ matrix.ROS_DISTRO }}
 
       # Pull request builds are not cached; and only built for AMD64
       - if: github.event_name == 'pull_request'
@@ -130,5 +129,5 @@ jobs:
             ./docker-bake.hcl
           set: |
             *.platform=linux/amd64
-            *.cache-from=type=registry,ref=ghcr.io/${{ github.repository }}:cache-${{ matrix.ROS_DISTRO }}
+            *.cache-from=type=registry,ref=ghcr.io/${{ steps.lowercase-repo.outputs.repository }}:cache-${{ matrix.ROS_DISTRO }}
             *.cache-to=
