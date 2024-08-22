@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 env:
-  PUSH: ${{ (github.event_name != 'pull_request') && (github.repository == 'apl-ocean-engineering/blue') }}
+  PUSH: ${{ (github.event_name != 'pull_request') && (github.repository == 'Robotic-Decision-Making-Lab/blue') }}
 
 jobs:
   docker_build:
@@ -29,22 +29,18 @@ jobs:
       packages: write
       contents: read
     steps:
-      -
-        name: Checkout
+      - name: Checkout
         uses: actions/checkout@v4
 
-      -
-        # Add support for more platforms with QEMU (optional)
+      - # Add support for more platforms with QEMU (optional)
         # https://github.com/docker/setup-qemu-action
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
-      -
-        name: Set up Docker Buildx
+      - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      -
-        if: env.PUSH == 'true'
+      - if: env.PUSH == 'true'
         name: Log into registry
         uses: docker/login-action@v3.3.0
         with:
@@ -56,14 +52,13 @@ jobs:
       # This shell ... er, hack, creates a local variable containing
       # a down-cased version of $GITHUB_REPOSITORY
       #
-      - id: lower-repo
+      - id: lowercase-repo
         name: Repository to lowercase
         run: |
           echo "repository=${GITHUB_REPOSITORY@L}" >> $GITHUB_OUTPUT
 
       # Set metadata for each stage-image separately
-      -
-        name: Set Docker metadata for "ci"
+      - name: Set Docker metadata for "ci"
         if: env.PUSH == 'true'
         id: meta-ci
         uses: docker/metadata-action@v5.5.1
@@ -73,8 +68,7 @@ jobs:
           tags: |
             type=raw,value=${{ matrix.ROS_DISTRO }}-ci
 
-      -
-        name: Set Docker metadata for "robot"
+      - name: Set Docker metadata for "robot"
         if: env.PUSH == 'true'
         id: meta-robot
         uses: docker/metadata-action@v5.5.1
@@ -84,8 +78,7 @@ jobs:
           tags: |
             type=raw,value=${{ matrix.ROS_DISTRO }}-robot
 
-      -
-        name: Set Docker metadata for "desktop"
+      - name: Set Docker metadata for "desktop"
         if: env.PUSH == 'true'
         id: meta-desktop
         uses: docker/metadata-action@v5.5.1
@@ -95,8 +88,7 @@ jobs:
           tags: |
             type=raw,value=${{ matrix.ROS_DISTRO }}-desktop
 
-      -
-        name: Set Docker metadata for "desktop-nvidia"
+      - name: Set Docker metadata for "desktop-nvidia"
         if: env.PUSH == 'true'
         id: meta-desktop-nvidia
         uses: docker/metadata-action@v5.5.1
@@ -111,7 +103,7 @@ jobs:
         uses: docker/bake-action@v5.5.0
         env:
           BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
-          BLUE_GITHUB_REPO: ${{ steps.lower-repo.outputs.repository }}
+          BLUE_GITHUB_REPO: ${{ steps.lowercase-repo.outputs.repository }}
         with:
           workdir: .docker
           files: |
@@ -131,7 +123,7 @@ jobs:
         uses: docker/bake-action@v5.5.0
         env:
           BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
-          BLUE_GITHUB_REPO: ${{ steps.lower-repo.outputs.repository }}
+          BLUE_GITHUB_REPO: ${{ steps.lowercase-repo.outputs.repository }}
         with:
           workdir: .docker
           files: |
