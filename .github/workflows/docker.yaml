@@ -32,56 +32,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-<<<<<<< HEAD
-      - name: Log into registry
-        if: env.PUSH == 'true'
-        uses: docker/login-action@v3.3.0
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Extract Docker metadata
-        if: env.PUSH == 'true'
-        id: meta
-        uses: docker/metadata-action@v5.5.1
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=raw,value=${{ matrix.ROS_DISTRO }}-${{ github.job }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6.7.0
-        with:
-          context: .
-          file: .docker/Dockerfile
-          build-args: ROS_DISTRO=${{ matrix.ROS_DISTRO }}
-          target: ${{ github.job }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          push: ${{ env.PUSH }}
-
-  robot:
-    strategy:
-      fail-fast: false
-      matrix:
-        ROS_DISTRO: [humble]
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3.2.0
-=======
       - # Add support for more platforms with QEMU (optional)
         # https://github.com/docker/setup-qemu-action
         name: Set up QEMU
         uses: docker/setup-qemu-action@v3
->>>>>>> a8681d0 (Add Docker BuildX config (#266))
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -114,36 +68,7 @@ jobs:
           tags: |
             type=raw,value=${{ matrix.ROS_DISTRO }}-ci
 
-<<<<<<< HEAD
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6.7.0
-        with:
-          context: .
-          file: .docker/Dockerfile
-          build-args: ROS_DISTRO=${{ matrix.ROS_DISTRO }}
-          target: ${{ github.job }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          push: ${{ env.PUSH }}
-          platforms: linux/amd64,linux/arm64
-
-  desktop:
-    strategy:
-      fail-fast: false
-      matrix:
-        ROS_DISTRO: [humble]
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log into registry
-=======
       - name: Set Docker metadata for "robot"
->>>>>>> a8681d0 (Add Docker BuildX config (#266))
         if: env.PUSH == 'true'
         id: meta-robot
         uses: docker/metadata-action@v5.5.1
@@ -153,35 +78,7 @@ jobs:
           tags: |
             type=raw,value=${{ matrix.ROS_DISTRO }}-robot
 
-<<<<<<< HEAD
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v6.7.0
-        with:
-          context: .
-          file: .docker/Dockerfile
-          build-args: ROS_DISTRO=${{ matrix.ROS_DISTRO }}
-          target: ${{ github.job }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          push: ${{ env.PUSH }}
-
-  desktop-nvidia:
-    strategy:
-      fail-fast: false
-      matrix:
-        ROS_DISTRO: [humble]
-    runs-on: ubuntu-latest
-    permissions:
-      packages: write
-      contents: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Log into registry
-=======
       - name: Set Docker metadata for "desktop"
->>>>>>> a8681d0 (Add Docker BuildX config (#266))
         if: env.PUSH == 'true'
         id: meta-desktop
         uses: docker/metadata-action@v5.5.1
