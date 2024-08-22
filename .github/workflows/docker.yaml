@@ -24,6 +24,7 @@ jobs:
       fail-fast: false
       matrix:
         ROS_DISTRO: [rolling]
+        stage: ["ci", "robot", "desktop", "desktop-nvidia"]
     runs-on: ubuntu-latest
     permissions:
       packages: write
