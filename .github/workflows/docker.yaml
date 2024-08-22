@@ -129,5 +129,5 @@ jobs:
             ./docker-bake.hcl
           set: |
             *.platform=linux/amd64
-            *.cache-from=type=registry,ref=ghcr.io/${{ github.repository }}:cache-${{ matrix.ROS_DISTRO }}
+            *.cache-from=type=registry,ref=ghcr.io/${{ steps.lowercase-repo.outputs.repository }}:cache-${{ matrix.ROS_DISTRO }}
             *.cache-to=
