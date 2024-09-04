@@ -1,10 +1,9 @@
+# syntax=docker/dockerfile:1.7-labs
+# Above must be the first line in Dockerfile.  It enables the "copy --parents" syntax
 ARG ROS_DISTRO=rolling
 FROM ros:$ROS_DISTRO-ros-base AS ci
 
 ENV DEBIAN_FRONTEND=noninteractive
-
-WORKDIR /root/ws_blue
-COPY . src/blue
 
 # Install apt packages needed for CI
 RUN apt-get -q update \
@@ -27,11 +26,17 @@ RUN apt-get -q update \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Install all ROS dependencies for _just_ blue
-# (we have not imported other repos from .repos files)
+# Pull in _just_ the */package.xml files from blue's subdirectories
+# Install rosdeps for all of those sub-packages
+WORKDIR /root/ws_blue/src/blue
+COPY --parents */package.xml .
+COPY blue.repos .
+WORKDIR /root/ws_blue
+
 RUN apt-get -q update \
     && apt-get -q -y upgrade \
     && rosdep update \
+    && vcs import src < src/blue/blue.repos \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
     && rm -rf src \
     && apt-get autoremove -y \
@@ -47,6 +52,29 @@ RUN apt-get -q update \
 #   - colcon build
 #
 FROM ci AS robot
+
+# Install gstreamer, plus geographiclib-tools for install_geographiclib_datasets
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
+    && apt-get -q install --no-install-recommends -y \
+    python3-gi \
+    gstreamer1.0-tools \
+    gir1.2-gstreamer-1.0 \
+    gir1.2-gst-plugins-base-1.0 \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-libav \
+    libgstreamer1.0-dev \
+    gstreamer1.0-gl \
+    libgstreamer-plugins-base1.0-dev \
+    geographiclib-tools \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install MAVROS dependencies
+RUN wget -O - https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/install_geographiclib_datasets.sh | sh
 
 #
 # Ubuntu 24.04 "Noble", which is used as the base image for
@@ -76,37 +104,12 @@ ENV VIRTUAL_ENV=/home/$USERNAME/.venv/blue
 RUN python3 -m venv --system-site-packages --symlinks $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install MAVROS dependencies
-WORKDIR /home/$USERNAME
-RUN wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/install_geographiclib_datasets.sh \
-    && chmod +x install_geographiclib_datasets.sh \
-    && sudo ./install_geographiclib_datasets.sh
-
 ENV USER_WORKSPACE=/home/$USERNAME/ws_blue
 WORKDIR $USER_WORKSPACE
 COPY --chown=$USER_UID:$USER_GID . src/blue
 
 # Install the Python requirements that aren't available as rosdeps
 RUN python3 -m pip install -r $(pwd)/src/blue/requirements-build.txt
-
-# Install gstreamer
-RUN sudo apt-get -q update \
-    && sudo apt-get -q -y upgrade \
-    && sudo apt-get -q install --no-install-recommends -y \
-    python3-gi \
-    gstreamer1.0-tools \
-    gir1.2-gstreamer-1.0 \
-    gir1.2-gst-plugins-base-1.0 \
-    gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-ugly \
-    gstreamer1.0-plugins-bad \
-    gstreamer1.0-libav \
-    libgstreamer1.0-dev \
-    gstreamer1.0-gl \
-    libgstreamer-plugins-base1.0-dev \
-    && sudo apt-get autoremove -y \
-    && sudo apt-get clean -y \
-    && sudo rm -rf /var/lib/apt/lists/*
 
 # Manually install MAVROS from source in the ws_blue/ workspace
 WORKDIR $USER_WORKSPACE/src/
@@ -141,8 +144,7 @@ RUN sudo apt-get -q update \
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
     && colcon build
 
-RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
-    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc \
+RUN echo "if [ -f ${USER_WORKSPACE}/install/setup.bash ]; then source ${USER_WORKSPACE}/install/setup.bash; else source /opt/ros/${ROS_DISTRO}/setup.bash; fi" >> /home/$USERNAME/.bashrc \
     && echo "source $VIRTUAL_ENV/bin/activate" >> /home/$USERNAME/.bashrc \
     && echo "\n# Ensure colcon is run in the venv\nalias colcon='python3 -m colcon'" >> /home/$USERNAME/.bashrc
 
