@@ -37,6 +37,7 @@ jobs:
       - name: Run ROS Industrial CI
         uses: ros-industrial/industrial_ci@master
         env:
+          ROSDEP_SKIP_KEYS: mavlink mavros
           DOCKER_IMAGE: ghcr.io/robotic-decision-making-lab/blue:${{ matrix.env.IMAGE }}
           CXXFLAGS: >-
             -Wall -Wextra -Wpedantic -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
