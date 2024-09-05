@@ -37,7 +37,7 @@ RUN apt-get -q update \
     && apt-get -q -y upgrade \
     && rosdep update \
     && vcs import src < src/blue/blue.repos \
-    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false --skip-keys="mavros mavlink" \
+    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --as-root=apt:false \
     && rm -rf src \
     && apt-get autoremove -y \
     && apt-get clean -y \
