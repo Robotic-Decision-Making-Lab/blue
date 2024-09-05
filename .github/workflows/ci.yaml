@@ -19,7 +19,7 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          - IMAGE: hmuble-ci
+          - IMAGE: humble-ci
             ROS_DISTRO: humble
     steps:
       - name: Checkout repository
