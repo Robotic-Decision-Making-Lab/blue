@@ -1,9 +1,8 @@
 {
   "name": "Documentation",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:20",
   "remoteUser": "node",
+  "forwardPorts": [3000],
   "customizations": {
     "vscode": {
       "settings": {
@@ -13,10 +12,7 @@
         "editor.tabSize": 2,
         "editor.rulers": [80]
       },
-      "extensions": [
-        "esbenp.prettier-vscode",
-        "unifiedjs.vscode-mdx"
-      ]
+      "extensions": ["esbenp.prettier-vscode", "unifiedjs.vscode-mdx"]
     }
   }
 }
