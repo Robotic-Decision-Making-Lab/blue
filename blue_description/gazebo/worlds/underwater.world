@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <sdf version="1.6">
-  <world name="bluerov2_heavy_reach_underwater">
+  <world name="underwater_world">
 
     <plugin
       filename="gz-sim-physics-system"
@@ -31,7 +31,6 @@
           <density>1</density>
         </density_change>
       </graded_buoyancy>
-      <enable>bluerov2_heavy_reach</enable>
     </plugin>
 
     <include>
