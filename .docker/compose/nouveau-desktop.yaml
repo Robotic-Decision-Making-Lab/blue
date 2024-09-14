@@ -1,4 +1,3 @@
-version: "3"
 services:
   blue:
     image: ghcr.io/robotic-decision-making-lab/blue:rolling-desktop
