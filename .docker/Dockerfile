@@ -205,13 +205,6 @@ export GZ_SIM_SYSTEM_PLUGIN_PATH=\$HOME/ardupilot_gazebo/build:\$GZ_SIM_SYSTEM_P
 
 # Add ardupilot_gazebo models and worlds
 export GZ_SIM_RESOURCE_PATH=\$HOME/ardupilot_gazebo/models:\$HOME/ardupilot_gazebo/worlds:\$GZ_SIM_RESOURCE_PATH
-
-# Add blue models and worlds
-BLUE_DESCRIPTION=\$USER_WORKSPACE/src/blue/blue_description
-export GZ_SIM_RESOURCE_PATH=\$BLUE_DESCRIPTION/gazebo/models:\$BLUE_DESCRIPTION/gazebo/worlds:\$GZ_SIM_RESOURCE_PATH
-
-# Add blue meshes
-export GZ_SIM_RESOURCE_PATH=\$BLUE_DESCRIPTION/meshes:\$GZ_SIM_RESOURCE_PATH
 EOT
 
 FROM desktop AS desktop-nvidia
