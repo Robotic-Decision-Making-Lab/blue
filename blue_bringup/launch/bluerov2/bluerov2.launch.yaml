@@ -39,7 +39,7 @@ launch:
 
   - arg:
       name: gazebo_world_file
-      default: $(find-pkg-share blue_description)/gazebo/worlds/$(var model_name)_underwater.world
+      default: $(find-pkg-share blue_description)/gazebo/worlds/underwater.world
 
   - arg:
       name: mavros_file
