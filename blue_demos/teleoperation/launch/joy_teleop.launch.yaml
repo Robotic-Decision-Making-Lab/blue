@@ -27,4 +27,4 @@ launch:
       file: $(find-pkg-share message_transforms)/launch/message_transforms.launch.py
       arg:
         - name: parameters_file
-          value: $(var params_file)
+          value: $(var transforms_file)

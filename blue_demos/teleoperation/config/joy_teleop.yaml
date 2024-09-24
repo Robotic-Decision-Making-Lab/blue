@@ -8,7 +8,7 @@ joy_teleop:
     manual_control:
       type: topic
       interface_type: geometry_msgs/msg/Twist
-      topic_name: cmd_vel
+      topic_name: /cmd_vel
       deadman_axes: [2]
       axis_mappings:
         linear-x:
