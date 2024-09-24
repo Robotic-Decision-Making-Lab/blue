@@ -22,7 +22,6 @@ launch:
       param:
         - from: $(var joy_file)
 
-  # Launch the message transforms
   - include:
       file: $(find-pkg-share message_transforms)/launch/message_transforms.launch.py
       arg:
