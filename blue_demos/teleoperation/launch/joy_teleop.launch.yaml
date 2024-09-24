@@ -5,8 +5,8 @@ launch:
       default: $(find-pkg-share blue_demos)/teleoperation/config/joy_teleop.yaml
 
   - arg:
-      name: use_maritime
-      default: "true"
+      name: transforms_file
+      default: $(find-pkg-share blue_demos)/teleoperation/config/transforms.yaml
 
   - node:
       pkg: joy_linux
@@ -22,12 +22,9 @@ launch:
       param:
         - from: $(var joy_file)
 
-  - node:
-      pkg: mobile_to_maritime
-      exec: mobile_twist_to_maritime_twist
-      param:
-        - name: in_topic
-          value: cmd_vel
-        - name: out_topic
-          value: /integral_sliding_mode_controller/reference
-      if: $(var use_maritime)
+  # Launch the message transforms
+  - include:
+      file: $(find-pkg-share message_transforms)/launch/message_transforms.launch.py
+      arg:
+        - name: parameters_file
+          value: $(var params_file)
