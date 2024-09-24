@@ -51,10 +51,17 @@ Docker as described in the [installation instructions](/installation).
    [REP-105](https://ros.org/reps/rep-0105.html); however, the launched ISMC
    adheres to the maritime conventions recorded in [REP-156](https://github.com/ros-infrastructure/rep/pull/398).
    To convert the velocity commands to the appropriate convention, run the
-   following `mobile_to_maritime` message filter in a new terminal:
+   `message_transforms` node in a new terminal:
 
    ```bash
-   ros2 run mobile_to_maritime mobile_twist_to_maritime_twist --ros-args -p in_topic:=/cmd_vel -p out_topic:=/integral_sliding_mode_controller/reference
+   ros2 launch message_transforms message_transforms.launch.py parameters_file:=<path/to/transforms.yaml>
+   ```
+
+   where `<path/to/transforms.yaml>` should be replaced with the path to the
+   `transforms.yaml` file in the `blue_demos` package, e.g.,
+
+   ```bash
+   ros2 launch message_transforms message_transforms.launch.py parameters_file:=./blue_demos/teleoperation/config/transforms.yaml
    ```
 
 5. You should now be able to teleoperate the BlueROV2 using your keyboard.
