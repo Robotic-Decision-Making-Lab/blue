@@ -9,4 +9,3 @@
         outgoing_topic: /integral_sliding_mode_controller/system_state
         message_type: geometry_msgs/msg/TwistStamped
         frame_id: base_link_fsd
-
