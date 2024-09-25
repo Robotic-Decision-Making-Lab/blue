@@ -117,15 +117,9 @@ RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/mav
 # - mavgen uses future.standard_library for backwards compatibility with Python2;
 #   However, this caused issues with Python 3.12 installed in "noble".
 #   Comment those lines out in mavlink.
-#
-# - Fix linkage for yaml-cpp in mavros_extra_plugins
 RUN sed -i -e 's/^from future import standard_library/#from future import standard_library/' \
     -e 's/standard_library.install_aliases()/#standard_library.install_aliases()/' \
-    mavlink/pymavlink/generator/mavgen.py && \
-    sed -i -e 's/^# find_package(yaml_cpp REQUIRED)/find_package(yaml-cpp REQUIRED)/' \
-    -e '/^ament_target_dependencies(mavros_extras_plugins$/i target_link_libraries(mavros_extras_plugins yaml-cpp::yaml-cpp)' \
-    -e '/^ament_target_dependencies(mavros_extras$/i target_link_libraries(mavros_extras yaml-cpp::yaml-cpp)' \
-    mavros/mavros_extras/CMakeLists.txt
+    mavlink/pymavlink/generator/mavgen.py 
 
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
