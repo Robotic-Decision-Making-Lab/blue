@@ -19,9 +19,14 @@
 # THE SOFTWARE.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, RegisterEventHandler
+from launch.actions import (
+    DeclareLaunchArgument,
+    IncludeLaunchDescription,
+    RegisterEventHandler,
+)
 from launch.event_handlers import OnProcessExit
-from launch.substitutions import PathJoinSubstitution
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import PathJoinSubstitution, TextSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -47,18 +52,27 @@ def generate_launch_description() -> LaunchDescription:
     ]
 
     # The ISMC expects state information to be provided in the FSD frame
-    mobile_to_maritime_velocity_state = Node(
-        package="mobile_to_maritime",
-        executable="mobile_twist_stamped_to_maritime_twist",
-        name="velocity_state_transform",
-        parameters=[
-            {
-                "in_topic": "/mavros/local_position/velocity_body",
-                "out_topic": "/integral_sliding_mode_controller/system_state",
-                "qos_reliability": "best_effort",
-                "qos_durability": "volatile",
-            }
-        ],
+    message_transformer = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("message_transforms"),
+                    "launch",
+                    "message_transforms.launch.py",
+                ]
+            )
+        ),
+        launch_arguments={
+            "parameters_file": PathJoinSubstitution(
+                [
+                    FindPackageShare("blue_demos"),
+                    "control_integration",
+                    "config",
+                    "transforms.yaml",
+                ]
+            ),
+            "ns": TextSubstitution(text="control_integration"),
+        }.items(),
     )
 
     controller_manager = Node(
@@ -150,7 +164,7 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
             *args,
-            mobile_to_maritime_velocity_state,
+            message_transformer,
             controller_manager,
             *delay_thruster_spawners,
             delay_tam_controller_spawner_after_thruster_controller_spawners,
