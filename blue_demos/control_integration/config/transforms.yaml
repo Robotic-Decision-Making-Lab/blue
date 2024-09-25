@@ -1,0 +1,11 @@
+/control_integration/message_transforms:
+  ros__parameters:
+
+    incoming_topics:
+      - /mavros/local_position/velocity_body
+
+    transforms:
+      /mavros/local_position/velocity_body:
+        outgoing_topic: /integral_sliding_mode_controller/system_state
+        message_type: geometry_msgs/msg/TwistStamped
+        frame_id: base_link_fsd
