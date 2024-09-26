@@ -119,7 +119,7 @@ RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/mav
 #   Comment those lines out in mavlink.
 RUN sed -i -e 's/^from future import standard_library/#from future import standard_library/' \
     -e 's/standard_library.install_aliases()/#standard_library.install_aliases()/' \
-    mavlink/pymavlink/generator/mavgen.py 
+    mavlink/pymavlink/generator/mavgen.py
 
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
