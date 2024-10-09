@@ -19,8 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          - IMAGE: rolling-ci
-            ROS_DISTRO: rolling
+          - IMAGE: humble-ci
+            ROS_DISTRO: humble
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
