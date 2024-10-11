@@ -227,3 +227,7 @@ RUN sudo apt-get update \
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=graphics,utility,compute
 ENV QT_X11_NO_MITSHM=1
+
+# Incase rqt is not showing all the plugins.
+RUN sudo apt update
+RUN sudo apt install ros-${ROS_DISTRO}-rqt* -y
