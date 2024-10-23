@@ -1,10 +1,17 @@
 ARG ROS_DISTRO=iron
-FROM ros:$ROS_DISTRO-ros-base AS ci
+ARG USERNAME=blue
+ARG USER_GID=1000
+ARG USER_UID=1000
 
+FROM ros:$ROS_DISTRO-ros-base AS ci
+ARG USERNAME
+ARG USER_UID
+ARG USER_GID
 ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /root/ws_blue
 COPY . src/blue
+RUN echo 'ompl' > ompl.txt
 
 # Install apt packages needed for CI
 RUN apt-get -q update \
@@ -50,7 +57,7 @@ FROM ci AS robot
 # Configure a new non-root user
 ARG USERNAME=blue
 ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USER_GID=1000
 
 RUN groupadd --gid $USER_GID $USERNAME \
     && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
@@ -78,6 +85,8 @@ COPY --chown=$USER_UID:$USER_GID . src/blue
 # Install the Python requirements that aren't available as rosdeps
 RUN python3 -m pip install -r $(pwd)/src/blue/requirements-build.txt
 
+RUN sudo apt-get -q update && sudo apt-get install nano
+
 # Install gstreamer
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
@@ -100,6 +109,7 @@ RUN sudo apt-get -q update \
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
+    && sudo chown -R ${USER_UID}:${USER_GID} src \
     && vcs import src < src/blue/blue.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
@@ -109,13 +119,16 @@ RUN sudo apt-get -q update \
 
 # Actually build workspace
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
+    && sudo chown -R ${USER_UID}:${USER_GID} $USER_WORKSPACE \
     && colcon build
 
 RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
     && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc
 
 FROM robot AS desktop
-
+ARG USERNAME
+ARG USER_UID
+ARG USER_GID
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GZ_VERSION=harmonic
 
@@ -124,7 +137,12 @@ ENV GZ_VERSION=harmonic
 #    https://github.com/hadolint/hadolint/wiki/DL3004
 USER root
 # Install custom rosdep list
-ADD --chown=root:root --chmod=0644 https://raw.githubusercontent.com/osrf/osrf-rosdep/master/gz/00-gazebo.list /etc/ros/rosdep/sources.list.d/00-gazebo.list
+# ADD --chown=root:root --chmod=0644 https://raw.githubusercontent.com/osrf/osrf-rosdep/master/gz/00-gazebo.list /etc/ros/rosdep/sources.list.d/00-gazebo.list
+ADD https://raw.githubusercontent.com/osrf/osrf-rosdep/master/gz/00-gazebo.list /etc/ros/rosdep/sources.list.d/00-gazebo.list
+
+RUN sudo chown root:root /etc/ros/rosdep/sources.list.d/00-gazebo.list \
+    && sudo chmod 0644 /etc/ros/rosdep/sources.list.d/00-gazebo.list
+
 RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" |  tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
     && apt-get -q update \
@@ -142,7 +160,7 @@ RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pk
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 USER $USERNAME
-
+RUN echo $USERNAME
 # Clone ArduSub
 # ArduSub is installed for simulation purposes ONLY
 # When deployed onto hardware, the native installation of ArduSub
@@ -191,6 +209,12 @@ RUN sudo apt-get -q update \
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
     && colcon build
 
+# Install OMPL with ROS2
+RUN curl http://repo.ros2.org/repos.key | sudo apt-key add -\
+    && sudo apt-get update \
+    && sudo apt-get install -y nano \
+    && sudo apt-get install -y ros-iron-ompl
+
 # Setup the simulation environment variables
 RUN  <<EOT cat >> /home/$USERNAME/.bashrc
 
@@ -208,7 +232,9 @@ export GZ_SIM_RESOURCE_PATH=\$HOME/ardupilot_gazebo/models:\$HOME/ardupilot_gaze
 EOT
 
 FROM desktop AS desktop-nvidia
-
+ARG USERNAME
+ARG USER_UID
+ARG USER_GID
 # Install NVIDIA software
 RUN sudo apt-get update \
     && sudo apt-get -q -y upgrade \
@@ -223,11 +249,27 @@ RUN sudo apt-get update \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
+#Install nano
+RUN sudo apt-get update \
+    && sudo apt-get install -y nano
+
 # Env vars for the nvidia-container-runtime.
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=graphics,utility,compute
 ENV QT_X11_NO_MITSHM=1
 
-# Incase rqt is not showing all the plugins.
-RUN sudo apt update
-RUN sudo apt install ros-${ROS_DISTRO}-rqt* -y
+# # Incase rqt is not showing all the plugins.
+# RUN sudo apt update
+# RUN sudo apt install ros-${ROS_DISTRO}-rqt* -y
+
+
+
+# # Install OMPL with ROS2
+# RUN curl http://repo.ros2.org/repos.key | sudo apt-key add -
+# RUN sudo apt-get update
+# RUN sudo apt-get install -y ros-${ROS_DISTRO}-ompl
+
+# # Install learn_ros2
+# RUN cd ../..
+# RUN colcon build --packages-select learn_ros2
+# RUN . install/setup.bash
