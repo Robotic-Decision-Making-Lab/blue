@@ -16,6 +16,31 @@ RUN sudo apt-get -q update \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
+# Install OMPL with ROS2
+RUN curl http://repo.ros2.org/repos.key | sudo apt-key add -\
+    && sudo apt-get update \
+    && sudo apt-get install -y nano \
+    && sudo apt-get install -y ros-iron-ompl
+
+# RUN cd ${USER_WORKSPACE}/src/learn_ros2 \
+#     && echo "Check me" \
+#     && echo ls -d -- */
+
+# Install pinocchio
+RUN sudo apt update && sudo apt install -y ros-${ROS_DISTRO}-pinocchio
+
+# Update rqt to find plugins work with ROS2
+RUN  sudo apt update \
+    && sudo apt install -y ros-${ROS_DISTRO}-rqt*
+
+# Install the learn_ros2 package
+RUN cd ${USER_WORKSPACE} \
+    && echo "Check me" \
+    && pwd \
+    && colcon build --packages-select learn_ros2 \
+    && . install/setup.bash
+
+RUN echo 'nvidia' > ${USER_WORKSPACE}/nvidia.txt
 # Install debugging/linting Python packages
 RUN python3 -m pip install \
     pre-commit \
