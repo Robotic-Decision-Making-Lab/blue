@@ -33,6 +33,9 @@ RUN sudo apt update && sudo apt install -y ros-${ROS_DISTRO}-pinocchio
 RUN  sudo apt update \
     && sudo apt install -y ros-${ROS_DISTRO}-rqt*
 
+# tf2 depedencies
+# RUN sudo apt-get install ros-${ROS_DISTRO}-rviz2 ros-${ROS_DISTRO}-turtle-tf2-py ros-${ROS_DISTRO}-tf2-ros ros-${ROS_DISTRO}-tf2-tools ros-${ROS_DISTRO}-turtlesim
+
 # Install the learn_ros2 package
 RUN cd ${USER_WORKSPACE} \
     && echo "Check me" \
