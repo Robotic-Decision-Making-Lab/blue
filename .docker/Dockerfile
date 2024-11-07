@@ -46,7 +46,7 @@ WORKDIR $MAVROS_WORKSPACE/src
 ARG MAVROS_RELEASE=ros2
 ARG MAVLINK_RELEASE=release/rolling/mavlink
 RUN git clone --depth 1 -b ${MAVROS_RELEASE} https://github.com/mavlink/mavros.git
-RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/mavlink/mavlink-gbp-release.git mavlink
+RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE}  https://github.com/ros2-gbp/mavlink-gbp-release.git mavlink
 # Fix two issues currently in mavros/ros2
 # - mavgen uses future.standard_library for backwards compatibility with Python2;
 #   However, this caused issues with Python 3.12 installed in "noble".
