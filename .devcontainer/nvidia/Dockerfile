@@ -1,4 +1,5 @@
-FROM ghcr.io/robotic-decision-making-lab/blue:iron-desktop-nvidia
+FROM ghcr.io/jbvakshaya/blue:iron-nvidia-ompl
+# FROM ghcr.io/robotic-decision-making-lab/blue:iron-desktop-nvidia
 
 # Install ROS dependencies
 # This is done in a previous stage, but we include it again here in case anyone wants to
@@ -37,11 +38,11 @@ RUN  sudo apt update \
 # RUN sudo apt-get install ros-${ROS_DISTRO}-rviz2 ros-${ROS_DISTRO}-turtle-tf2-py ros-${ROS_DISTRO}-tf2-ros ros-${ROS_DISTRO}-tf2-tools ros-${ROS_DISTRO}-turtlesim
 
 # Install the learn_ros2 package
-RUN cd ${USER_WORKSPACE} \
-    && echo "Check me" \
-    && pwd \
-    && colcon build --packages-select learn_ros2 \
-    && . install/setup.bash
+# RUN cd ${USER_WORKSPACE} \
+#     && echo "Check me" \
+#     && pwd \
+#     && colcon build --packages-select learn_ros2 \
+#     && . install/setup.bash
 
 RUN echo 'nvidia' > ${USER_WORKSPACE}/nvidia.txt
 # Install debugging/linting Python packages
