@@ -7,6 +7,7 @@
       <hardware>
         <plugin>thruster_hardware/ThrusterHardware</plugin>
         <param name="max_set_param_attempts">${max_set_param_attempts}</param>
+        <param name="is_odom_si_present">true</param>
       </hardware>
 
       <joint name="${prefix}thruster1_joint">
