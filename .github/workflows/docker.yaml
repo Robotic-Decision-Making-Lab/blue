@@ -99,7 +99,7 @@ jobs:
 
       - if: github.event_name == 'push'
         name: Build and push (non PR)
-        uses: docker/bake-action@v5.10.0
+        uses: docker/bake-action@v5.11.0
         env:
           BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
           BLUE_GITHUB_REPO: ${{ steps.lowercase-repo.outputs.repository }}
@@ -119,7 +119,7 @@ jobs:
       # Pull request builds are not cached; and only built for AMD64
       - if: github.event_name == 'pull_request'
         name: Build and push (PR)
-        uses: docker/bake-action@v5.10.0
+        uses: docker/bake-action@v5.11.0
         env:
           BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
           BLUE_GITHUB_REPO: ${{ steps.lowercase-repo.outputs.repository }}
