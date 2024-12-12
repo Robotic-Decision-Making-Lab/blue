@@ -1,14 +1,30 @@
 #
-# Override these variables with environment variables
-# e.g.
+# By default this bakefile builds:
+#  - the "ci" and "robot" stages for both amd64 and arm64 (with Qemu), and
+#  - the "desktop" and "desktop-nvidia" stages for amd64
+# for ROS "rolling"
 #
-#   BLUE_ROS_DISTRO=iron docker buildx bake
+# To build all default targets and load the resulting images
+# to _this_ machine:
 #
-# or
+#    docker buildx bake --load
 #
-#   export BLUE_ROS_DISTRO=iron
-#   docker buildx bake
+# To override this default behavior, create a file "docker-bake.override.hcl"
+# in this directory which overrides the variables in this file.  For example,
 #
+# To build both "ci" and "robot" for _only_ amd64:
+#
+# >    target "ci" {
+# >     platforms = ["linux/amd64"]
+# >    }
+#
+# To set the ROS disto:
+#
+# >    variable "BLUE_ROS_DISTRO" { default = "jazzy" }
+#
+# Alternatively, set the environment variable BLUE_ROS_DISTRO
+#
+
 variable "BLUE_ROS_DISTRO" { default = "rolling" }
 variable "BLUE_GITHUB_REPO" { default = "robotic-decision-making-lab/blue" }
 
