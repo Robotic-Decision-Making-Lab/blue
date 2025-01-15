@@ -1,0 +1,33 @@
+launch:
+
+  - arg:
+        name: namespace
+        default: "rob_1"
+
+  - group:
+    - push-ros-namespace:
+        namespace: "$(var namespace)"
+
+    - arg:
+        name: use_sim
+        default: "false"
+
+    - arg:
+        name: prefix
+        default: "rob_1/"
+
+    - let:
+        name: description_file
+        value: $(find-pkg-share blue_demos)/control_integration/description/urdf/bluerov2_heavy.config.xacro
+
+    - let:
+        name: robot_description
+        value: $(command 'xacro $(var description_file) prefix:=$(var prefix) use_sim:=$(var use_sim)')
+
+    - include:
+        file: $(find-pkg-share blue_bringup)/launch/bluerov2_heavy/bluerov2_heavy_obs.launch.yaml
+        arg:
+          - name: robot_description
+            value: $(var robot_description)
+          - name: prefix
+            value: $(var prefix)
