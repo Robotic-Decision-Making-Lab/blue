@@ -49,8 +49,10 @@ from rclpy.qos import (
 )
 from scipy.spatial.transform import Rotation as R
 from sensor_msgs.msg import CameraInfo, Image
-from tf2_ros import TransformException  # type: ignore
-from tf2_ros import Time
+from tf2_ros import (
+    Time,
+    TransformException,  # type: ignore
+)
 from tf2_ros.buffer import Buffer
 from tf2_ros.transform_listener import TransformListener
 
@@ -72,6 +74,13 @@ class Localizer(Node, ABC):
         """
         Node.__init__(self, node_name)
         ABC.__init__(self)
+
+        # Set frame_names according to namespace
+        self.declare_parameter("prefix", "")
+        self.prefix = self.get_parameter("prefix").get_parameter_value().string_value
+        self.BASE_LINK_FRAME = self.prefix + self.BASE_LINK_FRAME
+        self.BASE_LINK_FRD_FRAME = self.prefix + self.BASE_LINK_FRD_FRAME
+        self.CAMERA_FRAME = self.prefix + self.CAMERA_FRAME
 
         self.declare_parameter("update_rate", 30.0)
 
@@ -143,18 +152,28 @@ class PoseLocalizer(Localizer):
             node_name: The name of the localizer node.
         """
         super().__init__(node_name)
-
-        # Poses are sent to the ArduPilot EKF
-        self.vision_pose_pub = self.create_publisher(
-            PoseStamped,
-            "/mavros/vision_pose/pose",
-            qos_profile_default,
-        )
-        self.vision_pose_cov_pub = self.create_publisher(
-            PoseWithCovarianceStamped,
-            "/mavros/vision_pose/pose_cov",
-            qos_profile_default,
-        )
+        if self.prefix != "":
+            self.vision_pose_pub = self.create_publisher(
+                PoseStamped,
+                f"/{self.prefix}vision_pose/pose",
+                qos_profile_default,
+            )
+            self.vision_pose_cov_pub = self.create_publisher(
+                PoseWithCovarianceStamped,
+                f"/{self.prefix}vision_pose/pose_cov",
+                qos_profile_default,
+            )
+        else:
+            self.vision_pose_pub = self.create_publisher(
+                PoseStamped,
+                "/mavros/vision_pose/pose",
+                qos_profile_default,
+            )
+            self.vision_pose_cov_pub = self.create_publisher(
+                PoseWithCovarianceStamped,
+                "/mavros/vision_pose/pose_cov",
+                qos_profile_default,
+            )
 
     def publish(self) -> None:
         """Publish a pose message to the ArduSub EKF."""
@@ -183,7 +202,9 @@ class TwistLocalizer(Localizer):
 
         # Twists are sent to the ArduPilot EKF
         self.vision_speed_pub = self.create_publisher(
-            TwistStamped, "/mavros/vision_speed/speed", qos_profile_default
+            TwistStamped,
+            "/mavros/vision_speed/speed",
+            qos_profile_default,
         )
         self.vision_speed_cov_pub = self.create_publisher(
             TwistWithCovarianceStamped,
@@ -475,7 +496,7 @@ class QualisysLocalizer(PoseLocalizer):
 
         self.mocap_sub = self.create_subscription(
             PoseStamped,
-            f"/blue/mocap/qualisys/{body}",
+            "/blue/mocap/qualisys/{body}",
             self.update_pose_cb,
             qos_profile_sensor_data,
         )
