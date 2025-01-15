@@ -17,6 +17,6 @@
   <!-- Import ros2_control macro -->
   <xacro:include
     filename="$(find blue_demos)/control_integration/description/ros2_control/bluerov2_heavy.ros2_control.xacro" />
-  <xacro:ardusub_thruster_system prefix="$(arg prefix)" name="bluerov2_heavy_thrusters" />
+  <xacro:ardusub_thruster_system prefix="$(arg prefix)" name="$(arg prefix)bluerov2_heavy_thrusters" />
 
 </robot>

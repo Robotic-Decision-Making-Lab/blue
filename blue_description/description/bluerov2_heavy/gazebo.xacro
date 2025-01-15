@@ -2,7 +2,7 @@
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
   <xacro:macro name="bluerov2_heavy_gazebo" params="prefix">
 
-    <xacro:property name="model" value="bluerov2_heavy" />
+    <xacro:property name="model" value="${prefix}bluerov2_heavy" />
 
     <gazebo>
       <plugin name="ArduPilotPlugin" filename="libArduPilotPlugin.so">
@@ -20,7 +20,7 @@
         <gazeboXYZToNED>0 0 0 3.142 0 1.571</gazeboXYZToNED>
 
         <!-- Sensors -->
-        <imuName>imu_sensor</imuName>
+        <imuName>${prefix}imu_sensor</imuName>
 
         <!-- Thrusters -->
         <control channel="0">
@@ -128,7 +128,7 @@
 
     <!-- IMU sensor gyro and accel data will be sent to ArduSub -->
     <gazebo reference="${prefix}base_link">
-      <sensor name="imu_sensor" type="imu">
+      <sensor name="${prefix}imu_sensor" type="imu">
         <!-- Transform from the Gazebo body frame (x-forward, y-left, z-up)
          to the ArduPilot body frame (x-forward, y-right, z-down) -->
         <pose>0 0 0 3.142 0 0</pose>
@@ -149,9 +149,14 @@
       </plugin>
     </gazebo>
 
+    <!-- <plugin
+      filename="gz-sim-joint-state-publisher-system"
+      name="gz::sim::systems::JointStatePublisher">
+    </plugin> -->
+
     <!-- Include the camera Gazebo macro -->
     <xacro:include filename="$(find blue_description)/description/camera/gazebo.xacro" />
-    <xacro:camera_gazebo reference="${prefix}camera_mount_link" />
+    <xacro:camera_gazebo reference="${prefix}camera_mount_link" prefix="${prefix}" />
 
     <!-- Include the T200 Gazebo macro -->
     <xacro:include filename="$(find blue_description)/description/t200/gazebo.xacro" />
