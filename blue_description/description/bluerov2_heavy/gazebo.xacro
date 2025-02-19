@@ -1,13 +1,14 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="bluerov2_heavy_gazebo" params="prefix">
+  <xacro:macro name="bluerov2_heavy_gazebo" params="prefix fdm_port_in fdm_port_out">
 
     <xacro:property name="model" value="${prefix}bluerov2_heavy" />
 
     <gazebo>
       <plugin name="ArduPilotPlugin" filename="libArduPilotPlugin.so">
         <fdm_addr>127.0.0.1</fdm_addr>
-        <fdm_port_in>9002</fdm_port_in>
+        <fdm_port_in>${fdm_port_in}</fdm_port_in>
+        <fdm_port_out>${fdm_port_out}</fdm_port_out>
         <connectionTimeoutMaxCount>5</connectionTimeoutMaxCount>
         <lock_step>1</lock_step>
 

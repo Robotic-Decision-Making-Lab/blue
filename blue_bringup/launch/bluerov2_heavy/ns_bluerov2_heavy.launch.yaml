@@ -1,0 +1,168 @@
+launch:
+
+  - let:
+      name: model_name
+      value: bluerov2_heavy
+
+  # Arguments
+  - arg:
+      name: use_camera
+      default: "false"
+
+  - arg:
+      name: use_mocap
+      default: "false"
+
+  - arg:
+      name: localization_source
+      default: gazebo
+      choice:
+        - value: gazebo
+        - value: mocap
+        - value: camera
+
+  - arg:
+      name: use_sim
+      default: "false"
+
+  - arg:
+      name: prefix
+      default: ""
+
+  - arg:
+      name: use_rviz
+      default: "false"
+
+  - arg:
+      name: use_manager
+      default: "true"
+
+  - arg:
+      name: rviz_config
+      default: $(find-pkg-share blue_description)/rviz/$(var model_name).rviz
+
+  - arg:
+      name: mavros_file
+      default: $(find-pkg-share blue_description)/config/ardusub/ns_mavros.yaml
+
+  - arg:
+      name: manager_file
+      default: $(find-pkg-share blue_description)/config/ardusub/ns_ardusub_manager.yaml
+
+  - arg:
+      name: ardusub_params_file
+      default: $(find-pkg-share blue_description)/config/$(var model_name)/ardusub.parm
+
+  - arg:
+      name: localization_file
+      default: $(find-pkg-share blue_description)/config/$(var model_name)/ns_localization.yaml
+
+  # Load the description file
+  - let:
+      name: description_file
+      value: $(find-pkg-share blue_description)/description/$(var model_name)/config.xacro
+
+  - arg:
+      name: robot_description
+      default: $(command 'xacro $(var description_file) prefix:=$(var prefix) use_sim:=$(var use_sim)')
+
+  - arg:
+      name: sitl_file
+      default: $(find-pkg-share ardusub_bringup)/launch/sitl_multi_robot.launch.yaml
+
+  - arg:
+      name: ardusub_instance
+      default: "0"
+
+  - arg:
+      name: sysid_thismav
+      default: "1"
+
+  - arg:
+      name: rob_x
+      default: "0.0"
+
+  - arg:
+      name: rob_y
+      default: "0.0"
+
+  - arg:
+      name: rob_z
+      default: "0.0"
+
+  # Nodes
+
+  - node:
+      pkg: robot_state_publisher
+      exec: robot_state_publisher
+      param:
+        - name: robot_description
+          value: $(var robot_description)
+        - name: use_sim_time
+          value: $(var use_sim)
+        - name: tf_prefix
+          value: $(var prefix)
+
+  - node:
+      pkg: rviz2
+      exec: rviz2
+      if: $(var use_rviz)
+      args: -d $(var rviz_config)
+      param:
+        - name: robot_description
+          value: $(var robot_description)
+
+# Includes
+  - include:
+      file: $(find-pkg-share ardusub_bringup)/launch/ns_ardusub.launch.yaml
+      arg:
+        - name: mavros_file
+          value: $(var mavros_file)
+        - name: ardusub_params_file
+          value: $(var ardusub_params_file)
+        - name: manager_file
+          value: $(var manager_file)
+        - name: model_name
+          value: $(var model_name)
+        - name: use_sim
+          value: $(var use_sim)
+        - name: use_manager
+          value: $(var use_manager)
+        - name: sitl_file
+          value: $(var sitl_file)
+        - name: ardusub_instance
+          value: $(var ardusub_instance)
+        - name: sysid_thismav
+          value: $(var sysid_thismav)
+        - name: rob_x
+          value: $(var rob_x)
+        - name: rob_y
+          value: $(var rob_y)
+        - name: rob_z
+          value: $(var rob_z)
+
+  - include:
+      file: $(find-pkg-share blue_localization)/localization.launch.py
+      arg:
+        - name: localization_source
+          value: $(var localization_source)
+        - name: use_camera
+          value: $(var use_camera)
+        - name: use_mocap
+          value: $(var use_mocap)
+        - name: use_sim_time
+          value: $(var use_sim)
+        - name: config_filepath
+          value: $(var localization_file)
+
+  - include:
+      file: $(find-pkg-share blue_bringup)/launch/$(var model_name)/thrusters.launch.yaml
+      arg:
+        - name: prefix
+          value: $(var prefix)
+
+  - include:
+      file: $(find-pkg-share message_transforms)/launch/tf.launch.yaml
+      arg:
+        - name: prefix
+          value: $(var prefix)

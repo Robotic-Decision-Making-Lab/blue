@@ -3,6 +3,11 @@
 
   <xacro:arg name="prefix" default="" />
   <xacro:arg name="use_sim" default="false" />
+  <xacro:arg name="fdm_port_in" default="9002" />
+  <xacro:arg name="fdm_port_out" default="9003" />
+  <xacro:arg name="use_mavros_odom" default="false" />
+  <xacro:arg name="mavros_odom_topic" default="/mavros/local_position/odom" />
+
 
   <!-- Import BlueROV2 macro -->
   <xacro:include filename="$(find blue_description)/description/bluerov2_heavy/urdf.xacro" />
@@ -11,12 +16,16 @@
   <!-- Import the Gazebo macro -->
   <xacro:if value="$(arg use_sim)">
     <xacro:include filename="$(find blue_description)/description/bluerov2_heavy/gazebo.xacro" />
-    <xacro:bluerov2_heavy_gazebo prefix="$(arg prefix)" />
+    <xacro:bluerov2_heavy_gazebo prefix="$(arg prefix)" fdm_port_in="$(arg fdm_port_in)"
+      fdm_port_out="$(arg fdm_port_out)" />
   </xacro:if>
 
   <!-- Import ros2_control macro -->
   <xacro:include
-    filename="$(find blue_demos)/control_integration/description/ros2_control/bluerov2_heavy.ros2_control.xacro" />
-  <xacro:ardusub_thruster_system prefix="$(arg prefix)" name="$(arg prefix)bluerov2_heavy_thrusters" />
+    filename="$(find
+  blue_demos)/control_integration/description/ros2_control/bluerov2_heavy.ros2_control.xacro" />
+  <xacro:ardusub_thruster_system prefix="$(arg prefix)" use_mavros_odom="$(arg use_mavros_odom)"
+    mavros_odom_topic="$(arg mavros_odom_topic)" name="$(arg prefix)bluerov2_heavy_thrusters"
+  />
 
 </robot>
