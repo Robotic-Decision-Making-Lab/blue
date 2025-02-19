@@ -1,0 +1,10 @@
+rob_1/message_transforms:
+  ros__parameters:
+
+    incoming_topics:
+      - /rob_1/cmd_vel
+
+    transforms:
+      /rob_1/cmd_vel:
+        outgoing_topic: /rob_1/integral_sliding_mode_controller/reference
+        message_type: geometry_msgs/msg/Twist

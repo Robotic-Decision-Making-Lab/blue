@@ -1,0 +1,118 @@
+launch:
+
+  - arg:
+        name: namespace
+        default: "rob_1"
+
+  - arg:
+        name: gazebo_world_file
+        default: $(find-pkg-share blue_demos)/multi_robot/description/gazebo/worlds/underwater_with_obstacles.world
+
+  - arg:
+        name: use_sim
+        default: "false"
+
+  - arg:
+      name: prefix
+      default: "rob_1/"
+
+  - arg:
+      name: use_rviz
+      default: "false"
+
+  - arg:
+      name: mavros_file
+      default: $(find-pkg-share blue_demos)/multi_robot/description/config/ardusub/rob_1_mavros.yaml
+
+  - let:
+      name: manager_file
+      value: $(find-pkg-share blue_demos)/multi_robot/description/config/ardusub/rob_1_ardusub_manager.yaml
+
+  - let:
+      name: localization_file
+      value: $(find-pkg-share blue_demos)/multi_robot/description/config/bluerov2_heavy/rob_1_localization.yaml
+
+  - let:
+      name: ardusub_instance
+      value: "0"
+
+  - let:
+      name: sysid_thismav
+      value: "1"
+
+  - let:
+      name: rob_x
+      value: "0.0"
+
+  - let:
+      name: rob_y
+      value: "4.0"
+
+  - let:
+      name: rob_z
+      value: "0.0"
+
+  - let:
+      name: sitl_file
+      value: $(find-pkg-share ardusub_bringup)/launch/sitl_multi_robot.launch.yaml
+
+  - let:
+      name: fdm_port_in
+      value: "9002"
+
+  - let:
+      name: fdm_port_out
+      value: "9003"
+
+  - let:
+      name: use_mavros_odom
+      value: "true"
+
+  - let:
+      name: mavros_odom_topic
+      value: /rob_1/local_position/odom
+
+  - group:
+    - push-ros-namespace:
+        namespace: "$(var namespace)"
+
+    - let:
+        name: description_file
+        value: $(find-pkg-share blue_demos)/control_integration/description/urdf/bluerov2_heavy.config.xacro
+
+    - let:
+        name: robot_description
+        value: $(command 'xacro $(var description_file) prefix:=$(var prefix) use_sim:=$(var use_sim) fdm_port_in:=$(var fdm_port_in) fdm_port_out:=$(var fdm_port_out) use_mavros_odom:=$(var use_mavros_odom) mavros_odom_topic:=$(var mavros_odom_topic)')
+
+    - include:
+        file: $(find-pkg-share blue_bringup)/launch/bluerov2_heavy/ns_bluerov2_heavy.launch.yaml
+        arg:
+          - name: robot_description
+            value: $(var robot_description)
+          - name: prefix
+            value: $(var prefix)
+          - name: mavros_file
+            value: $(var mavros_file)
+          - name: manager_file
+            value: $(var manager_file)
+          - name: sitl_file
+            value: $(var sitl_file)
+          - name: ardusub_instance
+            value: $(var ardusub_instance)
+          - name: sysid_thismav
+            value: $(var sysid_thismav)
+          - name: localization_file
+            value: $(var localization_file)
+          - name: rob_x
+            value: $(var rob_x)
+          - name: rob_y
+            value: $(var rob_y)
+          - name: rob_z
+            value: $(var rob_z)
+
+    #Spawn obstacles
+    - include:
+        file: $(find-pkg-share blue_demos)/control_integration/launch/obstacles.launch.yaml
+        arg:
+          - name: gazebo_world_file
+            value: $(var gazebo_world_file)
