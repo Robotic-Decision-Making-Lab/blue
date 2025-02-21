@@ -1,7 +1,5 @@
-ARG ROS_DISTRO=iron
-ARG USERNAME=blue
-ARG USER_GID=1000
-ARG USER_UID=1000
+ARG ROS_DISTRO=rolling
+FROM ros:$ROS_DISTRO-ros-base AS ci
 
 FROM ros:$ROS_DISTRO-ros-base AS ci
 ARG USERNAME
@@ -25,6 +23,7 @@ RUN apt-get -q update \
     clang-tools \
     python3-pip \
     python3-dev \
+    python3-venv \
     lsb-release \
     wget \
     gnupg \
@@ -54,14 +53,14 @@ RUN apt-get -q update \
 #
 FROM ci AS robot
 
-# Configure a new non-root user
-ARG USERNAME=blue
+#
+# Ubuntu 24.04 "Noble", which is used as the base image for
+# jazzy and rolling images, now includes a user "ubuntu" at UID 1000
+ARG USERNAME=ubuntu
 ARG USER_UID=1000
 ARG USER_GID=1000
 
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
-    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
     && usermod -a -G dialout $USERNAME \
     && echo "source /usr/share/bash-completion/completions/git" >> /home/$USERNAME/.bashrc
@@ -71,6 +70,16 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Switch to the non-root user for the rest of the installation
 USER $USERNAME
 ENV USER=$USERNAME
+
+# Python in Ubuntu is now marked as a "Externally managed environment",
+# Per best practice, create a venv for local python packages
+#
+# These two ENVs effectively "activate" the venv for subsequent calls to
+# python/pip in the Dockerfile
+WORKDIR /home/$USERNAME
+ENV VIRTUAL_ENV=/home/$USERNAME/.venv/blue
+RUN python3 -m venv --system-site-packages --symlinks $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 # Install MAVROS dependencies
 WORKDIR /home/$USERNAME
@@ -106,10 +115,16 @@ RUN sudo apt-get -q update \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
+# Manually install MAVROS from source in the ws_blue/ workspace
+WORKDIR $USER_WORKSPACE/src/
+ARG MAVROS_RELEASE=ros2
+ARG MAVLINK_RELEASE=release/rolling/mavlink
+RUN git clone --depth 1 -b ${MAVROS_RELEASE} https://github.com/mavlink/mavros.git
+RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/ros2-gbp/mavlink-gbp-release.git mavlink
+
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
-    && sudo chown -R ${USER_UID}:${USER_GID} src \
     && vcs import src < src/blue/blue.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
@@ -119,16 +134,15 @@ RUN sudo apt-get -q update \
 
 # Actually build workspace
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
-    && sudo chown -R ${USER_UID}:${USER_GID} $USER_WORKSPACE \
     && colcon build
 
 RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
-    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc
+    && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc \
+    && echo "source $VIRTUAL_ENV/bin/activate" >> /home/$USERNAME/.bashrc \
+    && echo "\n# Ensure colcon is run in the venv\nalias colcon='python3 -m colcon'" >> /home/$USERNAME/.bashrc
 
 FROM robot AS desktop
-ARG USERNAME
-ARG USER_UID
-ARG USER_GID
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV GZ_VERSION=harmonic
 
@@ -137,18 +151,13 @@ ENV GZ_VERSION=harmonic
 #    https://github.com/hadolint/hadolint/wiki/DL3004
 USER root
 # Install custom rosdep list
-# ADD --chown=root:root --chmod=0644 https://raw.githubusercontent.com/osrf/osrf-rosdep/master/gz/00-gazebo.list /etc/ros/rosdep/sources.list.d/00-gazebo.list
-ADD https://raw.githubusercontent.com/osrf/osrf-rosdep/master/gz/00-gazebo.list /etc/ros/rosdep/sources.list.d/00-gazebo.list
-
-RUN sudo chown root:root /etc/ros/rosdep/sources.list.d/00-gazebo.list \
-    && sudo chmod 0644 /etc/ros/rosdep/sources.list.d/00-gazebo.list
-
+ADD --chown=root:root --chmod=0644 https://raw.githubusercontent.com/osrf/osrf-rosdep/master/gz/00-gazebo.list /etc/ros/rosdep/sources.list.d/00-gazebo.list
 RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
     && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" |  tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null \
     && apt-get -q update \
     && apt-get -y --quiet --no-install-recommends install \
+    cppzmq-dev \
     gz-${GZ_VERSION} \
-    ros-${ROS_DISTRO}-ros-gz${GZ_VERSION} \
     python3-pexpect \
     python3-wxgtk4.0 \
     python3-future \
@@ -160,7 +169,7 @@ RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pk
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 USER $USERNAME
-RUN echo $USERNAME
+
 # Clone ArduSub
 # ArduSub is installed for simulation purposes ONLY
 # When deployed onto hardware, the native installation of ArduSub
@@ -174,7 +183,12 @@ RUN git clone -b ${ARDUPILOT_RELEASE} https://github.com/ArduPilot/ardupilot.git
 # Install ArduSub dependencies
 WORKDIR /home/$USERNAME/ardupilot
 ENV SKIP_AP_EXT_ENV=1 SKIP_AP_GRAPHIC_ENV=1 SKIP_AP_COV_ENV=1 SKIP_AP_GIT_CHECK=1
-RUN Tools/environment_install/install-prereqs-ubuntu.sh -y
+# Do not install the STM development tools
+ENV DO_AP_STM_ENV=0
+# Do not activate the Ardupilot venv by default
+ENV DO_PYTHON_VENV_ENV=0
+RUN echo "\n# Below from ardupilot script \"install-prereqs-ubuntu.sh\"\n" >> /home/$USERNAME/.bashrc && \
+    Tools/environment_install/install-prereqs-ubuntu.sh -y
 
 # Build ArduSub
 WORKDIR /home/$USERNAME/ardupilot
@@ -197,6 +211,7 @@ RUN [ "/bin/bash" , "-c" , " \
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
+    && vcs import src < src/blue/sim.repos \
     && rosdep update \
     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9 gz-plugin2" \
     && sudo apt-get autoremove -y \
@@ -232,6 +247,15 @@ export GZ_SIM_RESOURCE_PATH=\$HOME/ardupilot_gazebo/models:\$HOME/ardupilot_gaze
 EOT
 
 FROM desktop AS desktop-nvidia
+
+# Add ardupilot_gazebo plugin
+export GZ_SIM_SYSTEM_PLUGIN_PATH=\$HOME/ardupilot_gazebo/build:\$GZ_SIM_SYSTEM_PLUGIN_PATH
+
+# Add ardupilot_gazebo models and worlds
+export GZ_SIM_RESOURCE_PATH=\$HOME/ardupilot_gazebo/models:\$HOME/ardupilot_gazebo/worlds:\$GZ_SIM_RESOURCE_PATH
+EOT
+
+FROM desktop AS desktop-nvidia
 ARG USERNAME
 ARG USER_UID
 ARG USER_GID
@@ -257,19 +281,3 @@ RUN sudo apt-get update \
 ENV NVIDIA_VISIBLE_DEVICES=all
 ENV NVIDIA_DRIVER_CAPABILITIES=graphics,utility,compute
 ENV QT_X11_NO_MITSHM=1
-
-# # Incase rqt is not showing all the plugins.
-# RUN sudo apt update
-# RUN sudo apt install ros-${ROS_DISTRO}-rqt* -y
-
-
-
-# # Install OMPL with ROS2
-# RUN curl http://repo.ros2.org/repos.key | sudo apt-key add -
-# RUN sudo apt-get update
-# RUN sudo apt-get install -y ros-${ROS_DISTRO}-ompl
-
-# # Install learn_ros2
-# RUN cd ../..
-# RUN colcon build --packages-select learn_ros2
-# RUN . install/setup.bash

@@ -8,9 +8,9 @@
       "ROS_DISTRO": "rolling"
     }
   },
-  "workspaceMount": "source=${localWorkspaceFolder},target=/home/blue/ws_blue/src/blue,type=bind",
-  "workspaceFolder": "/home/blue/ws_blue/src/blue",
-  "remoteUser": "blue",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/ubuntu/ws_blue/src/blue,type=bind",
+  "workspaceFolder": "/home/ubuntu/ws_blue/src/blue",
+  "remoteUser": "ubuntu",
   "runArgs": [
     "--network=host",
     "--cap-add=SYS_PTRACE",
@@ -24,6 +24,7 @@
   "customizations": {
     "vscode": {
       "settings": {
+        "python.defaultInterpreterPath": "/home/ubuntu/.venv/blue/bin/python",
         "python.autoComplete.extraPaths": ["${workspaceFolder}/install/"],
         "python.analysis.extraPaths": ["${workspaceFolder}/install/"]
       },
