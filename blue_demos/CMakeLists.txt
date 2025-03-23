@@ -16,4 +16,11 @@ install(
   DESTINATION share/blue_demos/teleoperation
 )
 
+install(
+  DIRECTORY multi_robot/control_integration
+            multi_robot/teleoperation
+            multi_robot/description
+  DESTINATION share/blue_demos/multi_robot
+)
+
 ament_package()

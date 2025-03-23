@@ -1,6 +1,6 @@
 services:
   blue:
-    image: ghcr.io/robotic-decision-making-lab/blue:rolling-desktop
+    image: ghcr.io/robotic-decision-making-lab/blue:iron-desktop
     environment:
       - DISPLAY=${DISPLAY}
       - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
