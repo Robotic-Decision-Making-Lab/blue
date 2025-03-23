@@ -60,7 +60,7 @@ jobs:
       - name: Set Docker metadata for "ci"
         if: env.PUSH == 'true'
         id: meta-ci
-        uses: docker/metadata-action@v5.5.1
+        uses: docker/metadata-action@v5.7.0
         with:
           images: ghcr.io/${{ github.repository }}
           bake-target: docker-metadata-action-ci
@@ -70,7 +70,7 @@ jobs:
       - name: Set Docker metadata for "robot"
         if: env.PUSH == 'true'
         id: meta-robot
-        uses: docker/metadata-action@v5.5.1
+        uses: docker/metadata-action@v5.7.0
         with:
           images: ghcr.io/${{ github.repository }}
           bake-target: docker-metadata-action-robot
@@ -80,7 +80,7 @@ jobs:
       - name: Set Docker metadata for "desktop"
         if: env.PUSH == 'true'
         id: meta-desktop
-        uses: docker/metadata-action@v5.5.1
+        uses: docker/metadata-action@v5.7.0
         with:
           images: ghcr.io/${{ github.repository }}
           bake-target: docker-metadata-action-desktop
@@ -90,7 +90,7 @@ jobs:
       - name: Set Docker metadata for "desktop-nvidia"
         if: env.PUSH == 'true'
         id: meta-desktop-nvidia
-        uses: docker/metadata-action@v5.5.1
+        uses: docker/metadata-action@v5.7.0
         with:
           images: ghcr.io/${{ github.repository }}
           bake-target: docker-metadata-action-desktop-nvidia
