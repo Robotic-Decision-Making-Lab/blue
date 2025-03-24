@@ -13,7 +13,7 @@ RUN apt-get -q update \
     git \
     sudo \
     clang \
-    clang-format-14 \
+    clang-format-18 \
     clang-tidy \
     clang-tools \
     python3-pip \
@@ -104,13 +104,6 @@ RUN sudo apt-get -q update \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
-
-# Manually install MAVROS from source in the ws_blue/ workspace
-WORKDIR $USER_WORKSPACE/src/
-ARG MAVROS_RELEASE=ros2
-ARG MAVLINK_RELEASE=release/rolling/mavlink
-RUN git clone --depth 1 -b ${MAVROS_RELEASE} https://github.com/mavlink/mavros.git
-RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/ros2-gbp/mavlink-gbp-release.git mavlink
 
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \

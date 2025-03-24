@@ -14,7 +14,7 @@ The main features of Blue include:
   that you performed development and testing in
 - A development environment that includes many of the tools that you need to
   develop software for underwater vehicles
-- First-party sensor drivers for common underwater sensors.
+- First-party drivers for common underwater sensors
 
 ## Citation
 
