@@ -5,7 +5,7 @@ sidebar_position: 3
 # Installation
 
 Blue is currently supported on Linux and is available for the ROS distributions
-Humble and Iron. Blue can be installed from source or using one of
+Humble and Jazzy. Blue can be installed from source or using one of
 the provided Docker images. If you plan to use Blue for simulation and have
 a system with limited compute power, we recommend installing Blue from source.
 For all other cases, we recommend installing Blue using Docker.
@@ -26,17 +26,17 @@ replaced with the desired ROS distribution, e.g., `humble-robot`):
 
 | Supported ROS Versions | Image Tag | Build Architectures | Description |
 | ---------------------- | --------- | ------------------- | ----------- |
-| Humble, Iron | *-robot   | `amd64`, `arm64` | A bare-bones image that includes all dependencies without simulation or visualization features. This can be used to deploy Blue to hardware. |
-| Humble, Iron | *-desktop | `amd64` | Image that includes all dependencies, including simulation and visualization features. This can be used for development, testing, and top-side deployment. |
-| Humble, Iron | *-desktop-nvidia | `amd64` | Extension of the `*-desktop` image that provides support for NVIDIA GPU drivers. This image is *strongly* recommended for systems that have an NVIDIA GPU, and requires the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). |
+| Humble, Jazzy | *-robot   | `amd64`, `arm64` | A bare-bones image that includes all dependencies without simulation or visualization features. This can be used to deploy Blue to hardware. |
+| Humble, Jazzy | *-desktop | `amd64` | Image that includes all dependencies, including simulation and visualization features. This can be used for development, testing, and top-side deployment. |
+| Humble, Jazzy | *-desktop-nvidia | `amd64` | Extension of the `*-desktop` image that provides support for NVIDIA GPU drivers. This image is *strongly* recommended for systems that have an NVIDIA GPU, and requires the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). |
 
 If you plan to use either the `*-desktop` or `*-desktop-nvidia` images, you may
 use the provided [Docker Compose scripts](https://github.com/Robotic-Decision-Making-Lab/blue/tree/main/.docker/compose)
-to install and run Blue. For instance, to pull and run the `iron-desktop` image,
+to install and run Blue. For instance, to pull and run the `jazzy-desktop` image,
 first run the command:
 
 ```bash
-wget https://raw.githubusercontent.com/Robotic-Decision-Making-Lab/blue/iron/.docker/compose/nouveau-desktop.yaml && \
+wget https://raw.githubusercontent.com/Robotic-Decision-Making-Lab/blue/main/.docker/compose/nouveau-desktop.yaml && \
 docker compose -f nouveau-desktop.yaml up
 ```
 

@@ -1,0 +1,31 @@
+---
+sidebar_position: 4
+---
+
+# Supported Sensors
+
+This page provides a list of ROS drivers for sensors that are commonly used in underwater
+robotics research.
+
+## First-Party Sensors
+
+Below is a list of sensor drivers developed by our team that are supported by Blue.
+
+| Sensor                                                                | Driver                                                                            | Supported ROS Versions |
+| --------------------------------------------------------------------- | --------------------------------------------------------------------------------- | ---------------------- |
+| [Water Linked DVL-A50](https://waterlinked.com/dvl)                   | [waterlinked_dvl](https://github.com/Robotic-Decision-Making-Lab/waterlinked_dvl) | Humble, Jazzy          |
+| [Water Linked Underwater GPS](https://waterlinked.com/underwater-gps) | [waterlinked_ugps]()                                                              | Jazzy                  |
+
+## Third-Party Sensors
+
+Below is a list of underwater sensor drivers that have been developed by the community. This list is
+not exhaustive and not all drivers have been tested with Blue; however, we encourage you to try them out
+and provide feedback to the authors. If you have developed a driver for an underwater sensor and would like
+to have it listed here, please [submit a pull request](/contributing).
+
+| Sensor                                                                                                    | Driver                                                                              | Supported ROS Versions | Authors                                                                                         |
+| --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------- |
+| [Blueprint Subsea Oculus Sonar](https://www.blueprintsubsea.com/oculus/)                                  | [liboculus](https://github.com/apl-ocean-engineering/liboculus)                     | Noetic                 | [University of Washington Applied Physics Laboratory](https://github.com/apl-ocean-engineering) |
+| [BlueROV Camera](https://bluerobotics.com/product-category/sensors-cameras/cameras/)                      | [blue_rov_camera](https://gitlab.com/apl-ocean-engineering/bluerov/blue_rov_camera) | Jazzy, Humble          | [University of Washington Applied Physics Laboratory](https://github.com/apl-ocean-engineering) |
+| [Blue Robotics Ping 360 Sonar](https://bluerobotics.com/store/sonars/imaging-sonars/ping360-sonar-r1-rp/) | [ping360_sonar](https://github.com/CentraleNantesRobotics/ping360_sonar)            | Foxy                   | [Robotics Group at Centrale Nantes](https://github.com/CentraleNantesRobotics)                  |
+| Motion Capture Systems                                                                                    | [MOCAP4ROS2](https://mocap4ros2-project.github.io/index.html)                       | Jazzy, Humble          | [MOCAP4ROS2-Project](https://github.com/MOCAP4ROS2-Project)                                     |

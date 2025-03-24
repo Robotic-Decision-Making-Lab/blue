@@ -26,17 +26,11 @@ following features:
    vehicles, such as ROS 2, Gazebo, linters, and formatters. This helps you
    avoid spending resources setting up your development environment and focus on
    writing your robotics algorithms 😀
-4. **Custom control and localization algorithms**: Blue supports custom
-controllers implemented using [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
-and localization algorithms implemented using [blue_localization](https://github.com/Robotic-Decision-Making-Lab/blue/tree/main/blue_localization).
-
-:::info
-
-The features implemented in `blue_localization` are currently being ported to
-[marine_localization](https://github.com/Robotic-Decision-Making-Lab/marine_localization).
-Keep an eye on that repository for the latest changes and updates.
-
-:::
+4. **Custom control algorithms**: Blue supports custom
+   controllers implemented using [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers).
+5. **Localization**: We have implemented several drivers for common underwater
+   sensors, and integrate these sensors using the [robot_localization](https://docs.ros.org/en/noetic/api/robot_localization/html/configuring_robot_localization.html)
+   package. See [Supported Sensors](/sensors) for more information.
 
 ## Recommended workflow
 
@@ -86,3 +80,4 @@ If you find that Blue does not meet your needs, we recommend exploring the follo
 
 - [Orca4](https://github.com/clydemcqueen/orca4)
 - [Marine Vehicle Packages (MVP)](https://github.com/uri-ocean-robotics/mvp_readme)
+- [UVMS Simulator](https://github.com/edxmorgan/uvms-simulator)
