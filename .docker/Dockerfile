@@ -86,9 +86,6 @@ ENV USER_WORKSPACE=/home/$USERNAME/ws_blue
 WORKDIR $USER_WORKSPACE
 COPY --chown=$USER_UID:$USER_GID . src/blue
 
-# Install the Python requirements that aren't available as rosdeps
-RUN python3 -m pip install -r $(pwd)/src/blue/requirements-build.txt
-
 # Install gstreamer
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
