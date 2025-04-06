@@ -3,7 +3,6 @@
 
 # Except the following
 !blue_bringup
-!blue_localization
 !blue_description
 !blue_demos
 !blue.repos
