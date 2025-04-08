@@ -35,7 +35,7 @@ odom_sensor:
 
 integral_sliding_mode_controller:
   ros__parameters:
-    use_external_measured_states: true
+    use_external_measured_states: false
     reference_controller: thruster_allocation_matrix_controller
     gains:
       rho: 15.0

@@ -8,6 +8,5 @@
       /model/bluerov2/odometry:
         outgoing_topic: /model/bluerov2/odometry_fsd
         message_type: nav_msgs/msg/Odometry
-
         frame_id: map_fsd
         child_frame_id: base_link_fsd

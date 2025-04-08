@@ -9,11 +9,6 @@
         <param name="max_set_param_attempts">${max_set_param_attempts}</param>
       </hardware>
 
-      <hardware>
-        <plugin>topic_sensors/OdomSensor</plugin>
-        <param name="topic">/model/bluerov2/odometry_fsd</param>
-      </hardware>
-
       <joint name="${prefix}thruster1_joint">
         <param name="param_name">SERVO1_FUNCTION</param>
         <param name="default_param_value">33</param>
@@ -57,6 +52,15 @@
       </joint>
 
     </ros2_control>
+
+    <ros2_control name="${name}_odom_sensor" type="sensor">
+      <hardware>
+        <plugin>topic_sensors/OdomSensor</plugin>
+        <param name="topic">/model/bluerov2/odometry_fsd</param>
+        <param name="prefix">${prefix}</param>
+      </hardware>
+    </ros2_control>
+
   </xacro:macro>
 
 </robot>
