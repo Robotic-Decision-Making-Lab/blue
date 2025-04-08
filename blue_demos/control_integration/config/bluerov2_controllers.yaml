@@ -2,6 +2,9 @@ controller_manager:
   ros__parameters:
     update_rate: 100 # Hz
 
+    odom_sensor:
+      type: topic_sensors/OdomSensor
+
     integral_sliding_mode_controller:
       type: velocity_controllers/IntegralSlidingModeController
 
@@ -25,6 +28,10 @@ controller_manager:
 
     thruster6_controller:
       type: thruster_controllers/PolynomialThrustCurveController
+
+odom_sensor:
+  ros__parameters:
+    topic: "/model/bluerov2/odometry_fsd"
 
 integral_sliding_mode_controller:
   ros__parameters:

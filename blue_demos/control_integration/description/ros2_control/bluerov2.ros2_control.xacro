@@ -9,6 +9,11 @@
         <param name="max_set_param_attempts">${max_set_param_attempts}</param>
       </hardware>
 
+      <hardware>
+        <plugin>topic_sensors/OdomSensor</plugin>
+        <param name="topic">/model/bluerov2/odometry_fsd</param>
+      </hardware>
+
       <joint name="${prefix}thruster1_joint">
         <param name="param_name">SERVO1_FUNCTION</param>
         <param name="default_param_value">33</param>

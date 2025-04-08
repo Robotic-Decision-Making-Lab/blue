@@ -68,7 +68,7 @@ def generate_launch_description() -> LaunchDescription:
                     FindPackageShare("blue_demos"),
                     "control_integration",
                     "config",
-                    "transforms.yaml",
+                    "bluerov2_heavy_transforms.yaml",
                 ]
             ),
             "ns": TextSubstitution(text="control_integration"),
