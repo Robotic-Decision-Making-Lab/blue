@@ -52,7 +52,7 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
-    # The ISMC expects state information to be provided in the FSD frame
+    # The velocity controller expects state information to be provided in the FSD frame
     message_transformer = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             PathJoinSubstitution(
@@ -96,7 +96,7 @@ def generate_launch_description() -> LaunchDescription:
         package="controller_manager",
         executable="spawner",
         arguments=[
-            "integral_sliding_mode_controller",
+            "adaptive_integral_terminal_sliding_mode_controller",
             "--controller-manager",
             ["", "controller_manager"],
         ],
