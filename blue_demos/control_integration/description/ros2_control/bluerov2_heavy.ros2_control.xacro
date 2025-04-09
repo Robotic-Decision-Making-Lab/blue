@@ -66,6 +66,26 @@
       </joint>
 
     </ros2_control>
-  </xacro:macro>
 
+    <ros2_control name="${name}_odom_sensor" type="sensor">
+      <hardware>
+        <plugin>topic_sensors/OdomSensor</plugin>
+        <param name="topic">/model/bluerov2/odometry_fsd</param>
+        <param name="prefix">${prefix}</param>
+      </hardware>
+    </ros2_control>
+
+    <hydrodynamics>
+      <mass>13.5</mass>
+      <inertia ixx="0.16" iyy="0.16" izz="0.16" />
+      <added_mass Xdu="-5.50" Ydv="-12.70" Zdw="-14.60" Kdp="-0.12" Mdq="-0.12" Ndr="-0.12" />
+      <linear_damping Xu="-4.03" Yv="-6.22" Zw="-5.18" Kp="-0.07" Mq="-0.07" Nr="-0.07" />
+      <quadratic_damping Xuu="-18.18" Yvv="-21.66" Zww="-36.99" Kpp="-1.55" Mqq="-1.55" Nrr="-1.55" />
+      <weight>98.1</weight>
+      <buoyancy>112.80</buoyancy>
+      <center_of_gravity x="0.0" y="0.0" z="0.0" />
+      <center_of_buoyancy x="0.0" y="0.0" z="0.0" />
+    </hydrodynamics>
+
+  </xacro:macro>
 </robot>

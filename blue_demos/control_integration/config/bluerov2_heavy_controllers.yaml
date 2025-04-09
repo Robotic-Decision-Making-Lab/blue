@@ -34,25 +34,29 @@ controller_manager:
 
 integral_sliding_mode_controller:
   ros__parameters:
-    use_external_measured_states: true
     reference_controller: thruster_allocation_matrix_controller
+    vehicle_frame_id: "base_link_fsd"
+    odom_frame_id: "map_ned"
     gains:
-      rho: 20.0
       lambda: 200.0
-      Kp: [10.0, 10.0, 6.0, 3.0, 6.0, 10.0]
-    tf:
-      base_frame: "base_link_fsd"
-      odom_frame: "map_ned"
-    hydrodynamics:
-      mass: 13.5
-      weight: 114.80
-      buoyancy: 112.80
-      moments_of_inertia: [0.16, 0.16, 0.16]
-      added_mass: [-5.50, -12.70, -14.60, -0.12, -0.12, -0.12]
-      center_of_buoyancy: [0.0, 0.0, 0.0]
-      center_of_gravity: [0.0, 0.0, 0.0]
-      linear_damping: [-4.03, -6.22, -5.18, -0.07, -0.07, -0.07]
-      quadratic_damping: [-18.18, -21.66, -36.99, -1.55, -1.55, -1.55]
+      x:
+        kp: 10.0
+        rho: 20.0
+      y:
+        kp: 10.0
+        rho: 20.0
+      z:
+        kp: 6.0
+        rho: 20.0
+      rx:
+        kp: 3.0
+        rho: 20.0
+      ry:
+        kp: 6.0
+        rho: 20.0
+      rz:
+        kp: 10.0
+        rho: 20.0
 
 thruster_allocation_matrix_controller:
   ros__parameters:
