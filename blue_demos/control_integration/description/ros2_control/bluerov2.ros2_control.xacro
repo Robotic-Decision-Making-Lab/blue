@@ -3,7 +3,6 @@
 
   <xacro:macro name="ardusub_thruster_system" params="prefix name max_set_param_attempts:=^3">
     <ros2_control name="${name}" type="system">
-
       <hardware>
         <plugin>thruster_hardware/ThrusterHardware</plugin>
         <param name="max_set_param_attempts">${max_set_param_attempts}</param>
@@ -50,7 +49,6 @@
         <param name="channel">6</param>
         <command_interface name="pwm" />
       </joint>
-
     </ros2_control>
 
     <ros2_control name="${name}_odom_sensor" type="sensor">
