@@ -31,14 +31,14 @@ Docker as described in the [installation instructions](/installation).
 1. Launch the demo Dependencies in simulation by running the following command:
 
    ```bash
-   ros2 launch blue_demos bluerov2_demo.launch.yaml use_sim:=true
+   ros2 launch blue_demos bluerov2_heavy_demo.launch.yaml use_sim:=true
    ```
 
 2. Once Gazebo, ArduSub, and MAVROS have fully loaded, open a new terminal and
    launch the demo control framework:
 
    ```bash
-   ros2 launch blue_demos bluerov2_controllers.launch.py use_sim:=true
+   ros2 launch blue_demos bluerov2_heavy_controllers.launch.py use_sim:=true
    ```
 
 3. Open a new terminal and launch the `teleop_twist_keyboard` node:
@@ -114,14 +114,14 @@ installed on your local machine **outside** of the container.
 1. Launch the demo BlueROV2 in simulation by running the following command:
 
    ```bash
-   ros2 launch blue_demos bluerov2_demo.launch.yaml use_sim:=true
+   ros2 launch blue_demos bluerov2_heavy_demo.launch.yaml use_sim:=true
    ```
 
 2. Once Gazebo, ArduSub, and MAVROS have fully loaded, open a new terminal and
    launch the demo control framework:
 
    ```bash
-   ros2 launch blue_demos bluerov2_controllers.launch.py use_sim:=true
+   ros2 launch blue_demos bluerov2_heavy_controllers.launch.py use_sim:=true
    ```
 
 3. Open a new terminal and launch the ROS 2 joystick driver using the provided
