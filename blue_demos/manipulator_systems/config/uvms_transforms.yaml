@@ -1,0 +1,12 @@
+/manipulator_systems/message_transforms:
+  ros__parameters:
+
+    incoming_topics:
+      - /model/bluerov2_heavy_reach/odometry
+
+    transforms:
+      /model/bluerov2_heavy_reach/odometry:
+        outgoing_topic: /model/bluerov2_heavy_reach/odometry_fsd
+        message_type: nav_msgs/msg/Odometry
+        frame_id: map_fsd
+        child_frame_id: base_link_fsd

@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- the approximate buoyancy model in gazebo doesn't capture all added buoyancy needed to compensate for the manipulator,
+  so add some additional "buoyancy" to the vehicle to address this -->
+
+  <xacro:macro name="uvms_ballast" params="prefix parent *origin">
+    <link name="${prefix}ballast_link">
+      <!-- Front left -->
+      <collision>
+        <geometry>
+          <box size="0.2285 0.2875 0.015" />
+        </geometry>
+        <origin rpy="0 0 0" xyz="0.11425 0.14375 0.08" />
+      </collision>
+
+      <!-- Front right -->
+      <collision>
+        <geometry>
+          <box size="0.2285 0.2875 0.035" />
+        </geometry>
+        <origin rpy="0 0 0" xyz="0.11425 -0.14375 0.08" />
+      </collision>
+
+      <!-- Back right -->
+      <collision>
+        <geometry>
+          <box size="0.2285 0.2875 0.005" />
+        </geometry>
+        <origin rpy="0 0 0" xyz="-0.11425 -0.14375 0.08" />
+      </collision>
+    </link>
+
+    <joint name="${prefix}ballast_joint" type="fixed">
+      <xacro:insert_block name="origin" />
+      <parent link="${parent}" />
+      <child link="${prefix}ballast_link" />
+    </joint>
+  </xacro:macro>
+
+</robot>
