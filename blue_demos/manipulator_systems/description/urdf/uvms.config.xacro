@@ -3,14 +3,12 @@
 
   <xacro:include filename="$(find blue_description)/description/bluerov2_heavy_reach/urdf.xacro" />
   <xacro:include filename="$(find blue_demos)/control_integration/description/ros2_control/bluerov2_heavy.ros2_control.xacro" />
-  <xacro:include filename="$(find blue_description)/description/bluerov2_heavy_reach/gazebo.xacro" />
   <xacro:include filename="$(find blue_demos)/manipulator_systems/description/ros2_control/uvms.model.xacro" />
   <xacro:include filename="$(find blue_demos)/manipulator_systems/description/urdf/ballast.urdf.xacro" />
 
   <xacro:include filename="$(find reach_description)/description/alpha_5/urdf.xacro" />
   <xacro:include filename="$(find reach_description)/description/alpha_5/ros2_control.xacro" />
   <xacro:include filename="$(find reach_description)/description/alpha_5/standard_jaws/standard_jaws.urdf.xacro" />
-  <xacro:include filename="$(find reach_description)/description/alpha_5/gz.xacro" />
 
   <xacro:arg name="prefix" default="" />
   <xacro:arg name="use_sim" default="false" />
@@ -30,9 +28,6 @@
 
   <!-- BlueROV2 -->
   <xacro:bluerov2_heavy_reach_urdf prefix="$(arg prefix)" />
-  <xacro:if value="$(arg use_sim)">
-    <xacro:bluerov2_heavy_reach_gazebo prefix="$(arg prefix)" />
-  </xacro:if>
   <xacro:uvms_ballast prefix="${prefix}" parent="${prefix}base_link">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:uvms_ballast>
@@ -41,9 +36,6 @@
   <xacro:alpha_5_urdf parent="${prefix}mount_link" prefix="${prefix}alpha_">
     <origin xyz="0 0 0" rpy="0 0 0" />
   </xacro:alpha_5_urdf>
-  <xacro:if value="$(arg use_sim)">
-    <xacro:alpha_5_gazebo prefix="${prefix}" controllers_file="$(arg controllers_file)" />
-  </xacro:if>
   <xacro:standard_jaws parent="${prefix}rs1_124_link" prefix="${prefix}alpha_" mimic_joint="${prefix}axis_a" />
 
   <!-- ros2_control -->

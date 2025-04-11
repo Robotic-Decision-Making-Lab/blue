@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="angler_gazebo" params="prefix controllers_file">
+
+    <xacro:include filename="$(find blue_description)/description/bluerov2_heavy_reach/gazebo.xacro" />
+    <xacro:include filename="$(find reach_description)/description/alpha_5/gz.xacro" />
+
+    <xacro:bluerov2_heavy_reach_gazebo prefix="${prefix}" />
+    <xacro:alpha_5_gazebo prefix="${prefix}" controllers_file="${controllers_file}" />
+
+  </xacro:macro>
+</robot>

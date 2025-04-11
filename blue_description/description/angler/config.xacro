@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<robot name="angler" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find blue_description)/description/angler/urdf.xacro" />
+  <xacro:include filename="$(find blue_description)/description/angler/gazebo.xacro" />
+
+  <xacro:arg name="prefix" default="" />
+  <xacro:arg name="use_sim" default="false" />
+  <xacro:arg name="controllers_file" default="$(find reach_description)/config/alpha_5/controllers.yaml" />
+
+  <xacro:angler_urdf prefix="$(arg prefix)" />
+  <xacro:if value="$(arg use_sim)">
+    <xacro:angler_gazebo prefix="$(arg prefix)" controllers_file="$(arg controllers_file)" />
+  </xacro:if>
+
+</robot>
