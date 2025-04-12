@@ -1,0 +1,7 @@
+# Default initial positions for the alpha ros2_control system
+initial_positions:
+  axis_a: 0
+  axis_b: 0
+  axis_c: 0
+  axis_d: 1.5746
+  axis_e: 0

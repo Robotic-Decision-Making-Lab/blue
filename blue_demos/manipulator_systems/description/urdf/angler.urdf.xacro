@@ -15,7 +15,6 @@
     </joint>
 
     <!-- add some additional floats to the vehicle to compensate for the manipulator -->
-    <!-- gazebo doesn't detect any added floats that we integrate in hardware -->
     <link name="${prefix}float_link">
       <!-- Front left -->
       <collision>
