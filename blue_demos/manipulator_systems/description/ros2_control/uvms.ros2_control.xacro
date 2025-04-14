@@ -73,9 +73,9 @@
       </hardware>
     </ros2_control>
 
-    <!-- <xacro:include filename="$(find reach_description)/description/alpha_5/ros2_control.xacro" /> -->
-    <!-- <xacro:alpha_5_system prefix="${prefix}" initial_positions_file="$(arg initial_positions_file)" use_sim="true"
-      use_mock_hardware="false" serial_port="" /> -->
+    <xacro:include filename="$(find reach_description)/description/alpha_5/ros2_control.xacro" />
+    <xacro:alpha_5_system prefix="${prefix}alpha_" initial_positions_file="$(arg initial_positions_file)" use_sim="true"
+      use_mock_hardware="false" serial_port="" />
 
   </xacro:macro>
 

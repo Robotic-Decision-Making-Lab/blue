@@ -6,7 +6,7 @@
     <xacro:include filename="$(find reach_description)/description/alpha_5/gz.xacro" />
 
     <xacro:bluerov2_heavy_reach_gazebo prefix="${prefix}" />
-    <!-- <xacro:alpha_5_gazebo prefix="${prefix}" controllers_file="${controllers_file}" /> -->
+    <xacro:alpha_5_gazebo prefix="${prefix}" controllers_file="${controllers_file}" />
 
   </xacro:macro>
 </robot>
