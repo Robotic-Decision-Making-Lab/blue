@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="angler_system" params="prefix name init_positions_file max_set_param_attempts:=^3">
+  <xacro:macro name="angler_system" params="prefix name initial_positions_file max_set_param_attempts:=^3">
     <ros2_control name="${name}_vehicle" type="system">
       <hardware>
         <plugin>thruster_hardware/ThrusterHardware</plugin>
@@ -73,9 +73,9 @@
       </hardware>
     </ros2_control>
 
-    <xacro:include filename="$(find reach_description)/description/alpha_5/ros2_control.xacro" />
-    <xacro:alpha_5_system prefix="${prefix}" initial_positions_file="$(arg init_positions_file)" use_sim="true"
-      use_mock_hardware="false" />
+    <!-- <xacro:include filename="$(find reach_description)/description/alpha_5/ros2_control.xacro" /> -->
+    <!-- <xacro:alpha_5_system prefix="${prefix}" initial_positions_file="$(arg initial_positions_file)" use_sim="true"
+      use_mock_hardware="false" serial_port="" /> -->
 
   </xacro:macro>
 

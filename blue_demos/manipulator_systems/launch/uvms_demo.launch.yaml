@@ -13,7 +13,7 @@ launch:
       value: $(command 'xacro $(var description_file) use_sim:=$(var use_sim)')
 
   - include:
-      file: $(find-pkg-share blue_bringup)/launch/bluerov2_heavy/bluerov2_heavy.launch.yaml
+      file: $(find-pkg-share blue_bringup)/launch/bluerov2_heavy_reach/bluerov2_heavy_reach.launch.yaml
       arg:
         - name: robot_description
           value: $(var robot_description)

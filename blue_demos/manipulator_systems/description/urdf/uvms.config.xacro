@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<robot name="angler" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find blue_demos)/manipulator_systems/description/urdf/uvms.urdf.xacro" />
+  <xacro:include filename="$(find blue_demos)/manipulator_systems/description/urdf/uvms.gazebo.xacro" />
+  <xacro:include filename="$(find blue_demos)/manipulator_systems/description/ros2_control/uvms.ros2_control.xacro" />
+  <xacro:include filename="$(find blue_demos)/manipulator_systems/description/ros2_control/uvms.model.xacro" />
+
+  <xacro:arg name="prefix" default="" />
+  <xacro:arg name="initial_positions_file" default="$(find blue_demos)/manipulator_systems/config/initial_positions.yaml" />
+  <xacro:arg name="controllers_file" default="$(find blue_demos)/manipulator_systems/config/uvms_controllers.yaml" />
+
+  <xacro:angler_urdf prefix="$(arg prefix)" />
+  <xacro:angler_gazebo prefix="$(arg prefix)" controllers_file="$(arg controllers_file)" />
+
+  <xacro:angler_model />
+  <xacro:angler_system prefix="$(arg prefix)" name="angler_system" initial_positions_file="$(arg initial_positions_file)" />
+
+</robot>

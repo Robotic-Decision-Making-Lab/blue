@@ -9,7 +9,7 @@
     <!-- create a mount for the manipulator -->
     <link name="${prefix}mount_link" />
     <joint name="${prefix}mount_joint" type="fixed">
-      <origin rpy="0 0 0" xyz="0.24 -0.099 0.029" />
+      <origin rpy="0 0 0" xyz="0.13 -0.109 0.029" />
       <parent link="${prefix}base_link" />
       <child link="${prefix}mount_link" />
     </joint>
@@ -40,8 +40,8 @@
     </link>
 
     <joint name="${prefix}float_joint" type="fixed">
-      <xacro:insert_block name="origin" />
-      <parent link="${parent}" />
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <parent link="${prefix}base_link" />
       <child link="${prefix}float_link" />
     </joint>
 
@@ -49,10 +49,10 @@
     <xacro:bluerov2_heavy_reach_urdf prefix="${prefix}" />
 
     <!-- Alpha 5 -->
-    <xacro:alpha_5_urdf parent="${prefix}mount_link" prefix="${prefix}alpha_">
-      <origin xyz="0 0 0" rpy="0 0 0" />
+    <xacro:alpha_5_urdf parent="${prefix}mount_link" prefix="${prefix}alpha_" mount_rotation="3.14159">
+      <origin rpy="0 0 0" xyz="0 0 0" />
     </xacro:alpha_5_urdf>
-    <xacro:standard_jaws parent="${prefix}rs1_124_link" prefix="${prefix}alpha_" mimic_joint="${prefix}axis_a" />
+    <xacro:standard_jaws parent="${prefix}alpha_rs1_124_link" prefix="${prefix}alpha_" mimic_joint="${prefix}alpha_axis_a" />
 
   </xacro:macro>
 </robot>
