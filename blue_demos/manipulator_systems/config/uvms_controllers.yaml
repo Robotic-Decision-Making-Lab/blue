@@ -32,6 +32,15 @@ controller_manager:
     thruster8_controller:
       type: thruster_controllers/RotationRateController
 
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+    arm_velocity_controller:
+      type: forward_command_controller/ForwardCommandController
+
+    tcp_position_controller:
+      type: forward_command_controller/ForwardCommandController
+
 adaptive_integral_terminal_sliding_mode_controller:
   ros__parameters:
     reference_controller: thruster_allocation_matrix_controller
@@ -175,3 +184,18 @@ thruster8_controller:
     thrust_coefficient: 0.02
     propeller_diameter: 0.1
     fluid_density: 998.0
+
+arm_velocity_controller:
+  ros__parameters:
+    joints:
+      - alpha_axis_b
+      - alpha_axis_c
+      - alpha_axis_d
+      - alpha_axis_e
+    interface_name: velocity
+
+tcp_position_controller:
+  ros__parameters:
+    joints:
+      - alpha_axis_a
+    interface_name: position

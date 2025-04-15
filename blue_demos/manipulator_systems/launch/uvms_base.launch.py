@@ -50,7 +50,7 @@ def generate_launch_description() -> LaunchDescription:
         parameters=[
             {
                 "robot_description": LaunchConfiguration("robot_description"),
-                "use_sim_time": "true",
+                "use_sim_time": True,
             }
         ],
     )
@@ -115,53 +115,57 @@ def generate_launch_description() -> LaunchDescription:
     #     }.items(),
     # )
 
-    # extend the controller launch timeouts
-    # gazebo can take a while to get started, so we need some extra time for that
-    controller_timeout = ["--controller-manager-timeout", "120"]
-    switch_timeout = ["--switch-timeout", "100"]
+    # TODO(evan-palmer): check if we need --controller-manager
+    def make_controller_args(name):
+        cm = ["--controller-manager", ["", "controller_manager"]]
+        controller_timeout = ["--controller-manager-timeout", "120"]
+        switch_timeout = ["--switch-timeout", "100"]
+        return [name, *cm, *controller_timeout, *switch_timeout]
 
     velocity_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[
-            "adaptive_integral_terminal_sliding_mode_controller",
-            "--controller-manager",
-            ["", "controller_manager"],
-            *controller_timeout,
-            *switch_timeout,
-        ],
+        arguments=make_controller_args(
+            "adaptive_integral_terminal_sliding_mode_controller"
+        ),
     )
 
     tam_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[
-            "thruster_allocation_matrix_controller",
-            "--controller-manager",
-            ["", "controller_manager"],
-            *controller_timeout,
-            *switch_timeout,
-        ],
+        arguments=make_controller_args("thruster_allocation_matrix_controller"),
     )
 
-    thruster_spawners = [
+    thruster_controller_spawners = [
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=[
-                f"thruster{i + 1}_controller",
-                "--controller-manager",
-                ["", "controller_manager"],
-                *controller_timeout,
-                *switch_timeout,
-            ],
+            arguments=make_controller_args(f"thruster{i + 1}_controller"),
         )
         for i in range(8)
     ]
 
+    joint_state_broadcaster_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=make_controller_args("joint_state_broadcaster"),
+    )
+
+    arm_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=make_controller_args("arm_velocity_controller"),
+    )
+
+    tcp_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=make_controller_args("tcp_position_controller"),
+    )
+
     # launch the thrusters sequentially
     delay_thruster_controller_spawners = []
-    for i, thruster_spawner in enumerate(thruster_spawners):
+    for i, thruster_spawner in enumerate(thruster_controller_spawners):
         if not len(delay_thruster_controller_spawners):
             delay_thruster_controller_spawners.append(
                 RegisterEventHandler(
@@ -174,7 +178,7 @@ def generate_launch_description() -> LaunchDescription:
             delay_thruster_controller_spawners.append(
                 RegisterEventHandler(
                     event_handler=OnExecutionComplete(
-                        target_action=thruster_spawners[i - 1],
+                        target_action=thruster_controller_spawners[i - 1],
                         on_completion=[thruster_spawner],
                     )
                 )
@@ -184,7 +188,7 @@ def generate_launch_description() -> LaunchDescription:
     delay_tam_controller_spawner_after_thruster_controller_spawners = (
         RegisterEventHandler(
             event_handler=OnExecutionComplete(
-                target_action=thruster_spawners[-1],
+                target_action=thruster_controller_spawners[-1],
                 on_completion=[tam_controller_spawner],
             )
         )
@@ -200,6 +204,26 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    delay_jsb_spawner_after_gz_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(
+            target_action=gz_spawner, on_exit=[joint_state_broadcaster_spawner]
+        )
+    )
+
+    delay_arm_controller_spawner_after_jsb_spawner = RegisterEventHandler(
+        event_handler=OnExecutionComplete(
+            target_action=joint_state_broadcaster_spawner,
+            on_completion=[arm_controller_spawner],
+        )
+    )
+
+    delay_tcp_controller_spawner_after_jsb_spawner = RegisterEventHandler(
+        event_handler=OnExecutionComplete(
+            target_action=joint_state_broadcaster_spawner,
+            on_completion=[tcp_controller_spawner],
+        )
+    )
+
     return LaunchDescription(
         [
             *args,
@@ -210,5 +234,8 @@ def generate_launch_description() -> LaunchDescription:
             *delay_thruster_controller_spawners,
             delay_tam_controller_spawner_after_thruster_controller_spawners,
             delay_velocity_controller_spawner_after_tam_controller_spawner,
+            delay_jsb_spawner_after_gz_spawner,
+            delay_arm_controller_spawner_after_jsb_spawner,
+            delay_tcp_controller_spawner_after_jsb_spawner,
         ]
     )
