@@ -27,7 +27,6 @@ from launch.actions import (
     IncludeLaunchDescription,
     RegisterEventHandler,
 )
-from launch.conditions import IfCondition
 from launch.event_handlers import OnExecutionComplete, OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
@@ -37,25 +36,23 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description() -> LaunchDescription:
-    """Generate a launch description for the BlueROV2.
-    This should be launched after MAVROS has fully loaded.
-    """
     args = [
-        DeclareLaunchArgument("controllers_file"),
-        DeclareLaunchArgument("robot_description"),
         DeclareLaunchArgument("gz_model_name"),
         DeclareLaunchArgument("gz_world_file"),
-        DeclareLaunchArgument("use_sim"),
+        DeclareLaunchArgument("controllers_file"),
+        DeclareLaunchArgument("robot_description"),
     ]
-
-    use_sim = LaunchConfiguration("use_sim")
-    robot_description = LaunchConfiguration("robot_description")
 
     robot_state_publisher = Node(
         package="robot_state_publisher",
         executable="robot_state_publisher",
         output="both",
-        parameters=[{"robot_description": robot_description, "use_sim_time": use_sim}],
+        parameters=[
+            {
+                "robot_description": LaunchConfiguration("robot_description"),
+                "use_sim_time": "true",
+            }
+        ],
     )
 
     # Gazebo launch
@@ -69,7 +66,6 @@ def generate_launch_description() -> LaunchDescription:
             "robot_description",
         ],
         output="screen",
-        condition=IfCondition(use_sim),
     )
 
     gz_launch = IncludeLaunchDescription(
@@ -86,13 +82,13 @@ def generate_launch_description() -> LaunchDescription:
             (
                 "gz_args",
                 [
+                    # we need this physics engine for mimic joints
                     "-v 4 --physics-engine gz-physics-bullet-featherstone-plugin -r",
                     " ",
                     LaunchConfiguration("gz_world_file"),
                 ],
             )
         ],
-        condition=IfCondition(use_sim),
     )
 
     # the velocity controller expects state information to be provided in the FSD frame
@@ -119,6 +115,11 @@ def generate_launch_description() -> LaunchDescription:
     #     }.items(),
     # )
 
+    # extend the controller launch timeouts
+    # gazebo can take a while to get started, so we need some extra time for that
+    controller_timeout = ["--controller-manager-timeout", "120"]
+    switch_timeout = ["--switch-timeout", "100"]
+
     velocity_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
@@ -126,10 +127,8 @@ def generate_launch_description() -> LaunchDescription:
             "adaptive_integral_terminal_sliding_mode_controller",
             "--controller-manager",
             ["", "controller_manager"],
-            "--controller-manager-timeout",
-            "120",
-            "--switch-timeout",
-            "100",
+            *controller_timeout,
+            *switch_timeout,
         ],
     )
 
@@ -140,10 +139,8 @@ def generate_launch_description() -> LaunchDescription:
             "thruster_allocation_matrix_controller",
             "--controller-manager",
             ["", "controller_manager"],
-            "--controller-manager-timeout",
-            "120",
-            "--switch-timeout",
-            "100",
+            *controller_timeout,
+            *switch_timeout,
         ],
     )
 
@@ -155,15 +152,14 @@ def generate_launch_description() -> LaunchDescription:
                 f"thruster{i + 1}_controller",
                 "--controller-manager",
                 ["", "controller_manager"],
-                "--controller-manager-timeout",
-                "120",
-                "--switch-timeout",
-                "100",
+                *controller_timeout,
+                *switch_timeout,
             ],
         )
         for i in range(8)
     ]
 
+    # launch the thrusters sequentially
     delay_thruster_controller_spawners = []
     for i, thruster_spawner in enumerate(thruster_spawners):
         if not len(delay_thruster_controller_spawners):
@@ -184,6 +180,7 @@ def generate_launch_description() -> LaunchDescription:
                 )
             )
 
+    # launch the TAM controller after the thruster controllers
     delay_tam_controller_spawner_after_thruster_controller_spawners = (
         RegisterEventHandler(
             event_handler=OnExecutionComplete(
@@ -193,6 +190,7 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    # launch the velocity controller after the TAM controller
     delay_velocity_controller_spawner_after_tam_controller_spawner = (
         RegisterEventHandler(
             event_handler=OnExecutionComplete(

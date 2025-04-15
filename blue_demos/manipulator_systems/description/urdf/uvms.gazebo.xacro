@@ -47,8 +47,5 @@
       </plugin>
     </gazebo>
 
-    <xacro:include filename="$(find blue_description)/description/camera/gazebo.xacro" />
-    <xacro:camera_gazebo reference="${prefix}camera_mount_link" />
-
   </xacro:macro>
 </robot>

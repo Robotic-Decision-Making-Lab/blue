@@ -6,7 +6,7 @@
     <xacro:property name="initial_positions_file" default="$(arg initial_positions_file)" />
     <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_positions']}" />
 
-    <ros2_control name="UVMS" type="system">
+    <ros2_control name="UVMSControlSystem" type="system">
       <hardware>
         <plugin>gz_ros2_control/GazeboSimSystem</plugin>
       </hardware>
