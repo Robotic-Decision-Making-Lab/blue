@@ -1,12 +1,11 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="angler_urdf" params="prefix">
+  <xacro:macro name="uvms_urdf" params="prefix">
 
     <xacro:include filename="$(find blue_description)/description/bluerov2_heavy_reach/urdf.xacro" />
     <xacro:include filename="$(find reach_description)/description/alpha_5/urdf.xacro" />
     <xacro:include filename="$(find reach_description)/description/alpha_5/standard_jaws/standard_jaws.urdf.xacro" />
 
-    <!-- create a mount for the manipulator -->
     <link name="${prefix}mount_link" />
     <joint name="${prefix}mount_joint" type="fixed">
       <origin rpy="0 0 0" xyz="0.13 -0.109 0.029" />
@@ -45,10 +44,8 @@
       <child link="${prefix}float_link" />
     </joint>
 
-    <!-- BlueROV2 -->
     <xacro:bluerov2_heavy_reach_urdf prefix="${prefix}" />
 
-    <!-- Alpha 5 -->
     <xacro:alpha_5_urdf parent="${prefix}mount_link" prefix="${prefix}alpha_" mount_rotation="3.14159">
       <origin rpy="0 0 0" xyz="0 0 0" />
     </xacro:alpha_5_urdf>

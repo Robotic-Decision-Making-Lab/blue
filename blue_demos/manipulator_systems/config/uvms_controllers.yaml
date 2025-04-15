@@ -2,9 +2,6 @@ controller_manager:
   ros__parameters:
     update_rate: 100 # Hz
 
-    odom_sensor:
-      type: topic_sensors/OdomSensor
-
     adaptive_integral_terminal_sliding_mode_controller:
       type: velocity_controllers/AdaptiveIntegralTerminalSlidingModeController
 
@@ -12,32 +9,28 @@ controller_manager:
       type: thruster_allocation_matrix_controller/ThrusterAllocationMatrixController
 
     thruster1_controller:
-      type: thruster_controllers/PolynomialThrustCurveController
+      type: thruster_controllers/RotationRateController
 
     thruster2_controller:
-      type: thruster_controllers/PolynomialThrustCurveController
+      type: thruster_controllers/RotationRateController
 
     thruster3_controller:
-      type: thruster_controllers/PolynomialThrustCurveController
+      type: thruster_controllers/RotationRateController
 
     thruster4_controller:
-      type: thruster_controllers/PolynomialThrustCurveController
+      type: thruster_controllers/RotationRateController
 
     thruster5_controller:
-      type: thruster_controllers/PolynomialThrustCurveController
+      type: thruster_controllers/RotationRateController
 
     thruster6_controller:
-      type: thruster_controllers/PolynomialThrustCurveController
+      type: thruster_controllers/RotationRateController
 
     thruster7_controller:
-      type: thruster_controllers/PolynomialThrustCurveController
+      type: thruster_controllers/RotationRateController
 
     thruster8_controller:
-      type: thruster_controllers/PolynomialThrustCurveController
-
-odom_sensor:
-  ros__parameters:
-    topic: "/model/bluerov2_heavy_reach/odometry_fsd"
+      type: thruster_controllers/RotationRateController
 
 adaptive_integral_terminal_sliding_mode_controller:
   ros__parameters:
@@ -116,77 +109,69 @@ thruster1_controller:
     thruster: thruster1_joint
     min_thrust: -40.0
     max_thrust: 60.0
-    min_deadband: 1470
-    max_deadband: 1530
-    neutral_pwm: 1500
-    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+    thrust_coefficient: 0.02
+    propeller_diameter: 0.1
+    fluid_density: 998.0
 
 thruster2_controller:
   ros__parameters:
     thruster: thruster2_joint
     min_thrust: -40.0
     max_thrust: 60.0
-    min_deadband: 1470
-    max_deadband: 1530
-    neutral_pwm: 1500
-    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+    thrust_coefficient: 0.02
+    propeller_diameter: 0.1
+    fluid_density: 998.0
 
 thruster3_controller:
   ros__parameters:
     thruster: thruster3_joint
     min_thrust: -40.0
     max_thrust: 60.0
-    min_deadband: 1470
-    max_deadband: 1530
-    neutral_pwm: 1500
-    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+    thrust_coefficient: -0.02
+    propeller_diameter: 0.1
+    fluid_density: 998.0
 
 thruster4_controller:
   ros__parameters:
     thruster: thruster4_joint
     min_thrust: -40.0
     max_thrust: 60.0
-    min_deadband: 1470
-    max_deadband: 1530
-    neutral_pwm: 1500
-    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+    thrust_coefficient: -0.02
+    propeller_diameter: 0.1
+    fluid_density: 998.0
 
 thruster5_controller:
   ros__parameters:
     thruster: thruster5_joint
     min_thrust: -40.0
     max_thrust: 60.0
-    min_deadband: 1470
-    max_deadband: 1530
-    neutral_pwm: 1500
-    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+    thrust_coefficient: 0.02
+    propeller_diameter: 0.1
+    fluid_density: 998.0
 
 thruster6_controller:
   ros__parameters:
     thruster: thruster6_joint
     min_thrust: -40.0
     max_thrust: 60.0
-    min_deadband: 1470
-    max_deadband: 1530
-    neutral_pwm: 1500
-    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+    thrust_coefficient: -0.02
+    propeller_diameter: 0.1
+    fluid_density: 998.0
 
 thruster7_controller:
   ros__parameters:
     thruster: thruster7_joint
     min_thrust: -40.0
     max_thrust: 60.0
-    min_deadband: 1470
-    max_deadband: 1530
-    neutral_pwm: 1500
-    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+    thrust_coefficient: -0.02
+    propeller_diameter: 0.1
+    fluid_density: 998.0
 
 thruster8_controller:
   ros__parameters:
     thruster: thruster8_joint
     min_thrust: -40.0
     max_thrust: 60.0
-    min_deadband: 1470
-    max_deadband: 1530
-    neutral_pwm: 1500
-    thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
+    thrust_coefficient: 0.02
+    propeller_diameter: 0.1
+    fluid_density: 998.0

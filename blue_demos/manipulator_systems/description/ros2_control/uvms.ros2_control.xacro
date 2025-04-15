@@ -1,81 +1,159 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="angler_system" params="prefix name initial_positions_file max_set_param_attempts:=^3">
-    <ros2_control name="${name}_vehicle" type="system">
+  <xacro:macro name="uvms_system" params="prefix alpha_prefix name initial_positions_file max_set_param_attempts:=^3">
+
+    <xacro:property name="initial_positions_file" default="$(arg initial_positions_file)" />
+    <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_positions']}" />
+
+    <ros2_control name="UVMS" type="system">
       <hardware>
-        <plugin>thruster_hardware/ThrusterHardware</plugin>
-        <param name="max_set_param_attempts">${max_set_param_attempts}</param>
+        <plugin>gz_ros2_control/GazeboSimSystem</plugin>
       </hardware>
 
       <joint name="${prefix}thruster1_joint">
-        <param name="param_name">SERVO1_FUNCTION</param>
-        <param name="default_param_value">33</param>
-        <param name="channel">1</param>
-        <command_interface name="pwm" />
+        <command_interface name="velocity" />
       </joint>
 
       <joint name="${prefix}thruster2_joint">
-        <param name="param_name">SERVO2_FUNCTION</param>
-        <param name="default_param_value">34</param>
-        <param name="channel">2</param>
-        <command_interface name="pwm" />
+        <command_interface name="velocity" />
       </joint>
 
       <joint name="${prefix}thruster3_joint">
-        <param name="param_name">SERVO3_FUNCTION</param>
-        <param name="default_param_value">35</param>
-        <param name="channel">3</param>
-        <command_interface name="pwm" />
+        <command_interface name="velocity" />
       </joint>
 
       <joint name="${prefix}thruster4_joint">
-        <param name="param_name">SERVO4_FUNCTION</param>
-        <param name="default_param_value">36</param>
-        <param name="channel">4</param>
-        <command_interface name="pwm" />
+        <command_interface name="velocity" />
       </joint>
 
       <joint name="${prefix}thruster5_joint">
-        <param name="param_name">SERVO5_FUNCTION</param>
-        <param name="default_param_value">37</param>
-        <param name="channel">5</param>
-        <command_interface name="pwm" />
+        <command_interface name="velocity" />
       </joint>
 
       <joint name="${prefix}thruster6_joint">
-        <param name="param_name">SERVO6_FUNCTION</param>
-        <param name="default_param_value">38</param>
-        <param name="channel">6</param>
-        <command_interface name="pwm" />
+        <command_interface name="velocity" />
       </joint>
 
       <joint name="${prefix}thruster7_joint">
-        <param name="param_name">SERVO7_FUNCTION</param>
-        <param name="default_param_value">39</param>
-        <param name="channel">7</param>
-        <command_interface name="pwm" />
+        <command_interface name="velocity" />
       </joint>
 
       <joint name="${prefix}thruster8_joint">
-        <param name="param_name">SERVO8_FUNCTION</param>
-        <param name="default_param_value">40</param>
-        <param name="channel">8</param>
-        <command_interface name="pwm" />
+        <command_interface name="velocity" />
       </joint>
-    </ros2_control>
 
-    <ros2_control name="${name}_odom_sensor" type="sensor">
-      <hardware>
-        <plugin>topic_sensors/OdomSensor</plugin>
-        <param name="topic">/model/angler/odometry_fsd</param>
-        <param name="prefix">${prefix}</param>
-      </hardware>
-    </ros2_control>
+      <joint name="${prefix}${alpha_prefix}axis_a">
+        <param name="device_id">1</param>
+        <command_interface name="position">
+          <param name="min">0</param>
+          <param name="max">0.015</param>
+        </command_interface>
+        <command_interface name="velocity">
+          <param name="min">-0.003</param>
+          <param name="max">0.003</param>
+        </command_interface>
+        <command_interface name="effort" />
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['axis_a']}</param>
+        </state_interface>
+        <state_interface name="velocity">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="effort">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+      </joint>
 
-    <xacro:include filename="$(find reach_description)/description/alpha_5/ros2_control.xacro" />
-    <xacro:alpha_5_system prefix="${prefix}alpha_" initial_positions_file="$(arg initial_positions_file)" use_sim="true"
-      use_mock_hardware="false" serial_port="" />
+      <joint name="${prefix}${alpha_prefix}axis_b">
+        <param name="device_id">2</param>
+        <command_interface name="position">
+          <param name="min">0</param>
+          <param name="max">3.22</param>
+        </command_interface>
+        <command_interface name="velocity">
+          <param name="min">-0.8726646</param>
+          <param name="max">0.8726646</param>
+        </command_interface>
+        <command_interface name="effort" />
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['axis_b']}</param>
+        </state_interface>
+        <state_interface name="velocity">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="effort">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+      </joint>
+
+      <joint name="${prefix}${alpha_prefix}axis_c">
+        <param name="device_id">3</param>
+        <command_interface name="position">
+          <param name="min">0</param>
+          <param name="max">3.22</param>
+        </command_interface>
+        <command_interface name="velocity">
+          <param name="min">-0.5235988</param>
+          <param name="max">0.5235988</param>
+        </command_interface>
+        <command_interface name="effort" />
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['axis_c']}</param>
+        </state_interface>
+        <state_interface name="velocity">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="effort">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+      </joint>
+
+      <joint name="${prefix}${alpha_prefix}axis_d">
+        <param name="device_id">4</param>
+        <command_interface name="position">
+          <param name="min">0</param>
+          <param name="max">3.49</param>
+        </command_interface>
+        <command_interface name="velocity">
+          <param name="min">-0.5235988</param>
+          <param name="max">0.5235988</param>
+        </command_interface>
+        <command_interface name="effort" />
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['axis_d']}</param>
+        </state_interface>
+        <state_interface name="velocity">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="effort">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+      </joint>
+
+      <joint name="${prefix}${alpha_prefix}axis_e">
+        <param name="device_id">5</param>
+        <command_interface name="position">
+          <param name="min">0</param>
+          <param name="max">6.14</param>
+        </command_interface>
+        <command_interface name="velocity">
+          <param name="min">-0.5235988</param>
+          <param name="max">0.5235988</param>
+        </command_interface>
+        <command_interface name="effort" />
+        <state_interface name="position">
+          <param name="initial_value">${initial_positions['axis_e']}</param>
+        </state_interface>
+        <state_interface name="velocity">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+        <state_interface name="effort">
+          <param name="initial_value">0.0</param>
+        </state_interface>
+      </joint>
+
+    </ros2_control>
 
   </xacro:macro>
 

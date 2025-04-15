@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="angler_model">
+  <xacro:macro name="uvms_model">
     <hydrodynamics>
       <inertial>
         <mass value="16.61" />

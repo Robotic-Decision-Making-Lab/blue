@@ -63,7 +63,7 @@ def generate_launch_description() -> LaunchDescription:
                     FindPackageShare("blue_demos"),
                     "manipulator_systems",
                     "config",
-                    "bluerov2_heavy_transforms.yaml",
+                    "uvms_transforms.yaml",
                 ]
             ),
             "ns": TextSubstitution(text="manipulator_systems"),
