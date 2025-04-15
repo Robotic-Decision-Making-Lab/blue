@@ -9,7 +9,46 @@
       </plugin>
     </gazebo>
 
-    <!-- TODO(evan-palmer): port bluerov2 gazebo stuff to here -->
+    <gazebo>
+      <plugin filename="gz-sim-hydrodynamics-system" name="gz::sim::systems::Hydrodynamics">
+        <link_name>${prefix}base_footprint</link_name>
+        <!-- Added mass -->
+        <xDotU>0</xDotU>
+        <yDotV>0</yDotV>
+        <zDotW>0</zDotW>
+        <kDotP>0</kDotP>
+        <mDotQ>0</mDotQ>
+        <nDotR>0</nDotR>
+        <!-- First order stability derivative -->
+        <xU>0</xU>
+        <yV>0</yV>
+        <zW>0</zW>
+        <kP>0</kP>
+        <mQ>0</mQ>
+        <nR>0</nR>
+        <!-- Second order stability derivative -->
+        <xUabsU>-58.42</xUabsU>
+        <yVabsV>-55.137</yVabsV>
+        <zWabsW>-124.818</zWabsW>
+        <kPabsP>-4.0</kPabsP>
+        <mQabsQ>-4.0</mQabsQ>
+        <nRabsR>-4.0</nRabsR>
+      </plugin>
+    </gazebo>
+
+    <gazebo>
+      <plugin
+        filename="gz-sim-odometry-publisher-system"
+        name="gz::sim::systems::OdometryPublisher">
+        <odom_frame>map</odom_frame>
+        <robot_base_frame>${prefix}base_link</robot_base_frame>
+        <dimensions>3</dimensions>
+        <odom_publish_frequency>100</odom_publish_frequency>
+      </plugin>
+    </gazebo>
+
+    <xacro:include filename="$(find blue_description)/description/camera/gazebo.xacro" />
+    <xacro:camera_gazebo reference="${prefix}camera_mount_link" />
 
   </xacro:macro>
 </robot>

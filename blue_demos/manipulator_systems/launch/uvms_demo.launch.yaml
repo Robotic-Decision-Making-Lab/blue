@@ -1,8 +1,20 @@
 launch:
 
   - arg:
+      name: gz_world_file
+      default: $(find-pkg-share blue_description)/gazebo/worlds/underwater.world
+
+  - let:
+      name: model_name
+      value: "uvms"
+
+  - let:
       name: use_sim
-      default: "false"
+      value: "true"
+
+  - let:
+      name: uvms_controllers_file
+      value: $(find-pkg-share blue_demos)/manipulator_systems/config/uvms_controllers.yaml
 
   - let:
       name: description_file
@@ -10,10 +22,33 @@ launch:
 
   - let:
       name: robot_description
-      value: $(command 'xacro $(var description_file) use_sim:=$(var use_sim)')
+      value: $(command 'xacro $(var description_file) controllers_file:=$(var uvms_controllers_file)')
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /model/$(var model_name)/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry
 
   - include:
-      file: $(find-pkg-share blue_bringup)/launch/bluerov2_heavy_reach/bluerov2_heavy_reach.launch.yaml
+      file: $(find-pkg-share blue_demos)/manipulator_systems/launch/uvms_base.launch.py
       arg:
         - name: robot_description
           value: $(var robot_description)
+        - name: use_sim
+          value: $(var use_sim)
+        - name: controllers_file
+          value: $(var uvms_controllers_file)
+        - name: gz_model_name
+          value: $(var model_name)
+        - name: gz_world_file
+          value: $(var gz_world_file)
