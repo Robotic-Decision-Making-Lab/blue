@@ -9,28 +9,28 @@ controller_manager:
       type: thruster_allocation_matrix_controller/ThrusterAllocationMatrixController
 
     thruster1_controller:
-      type: thruster_controllers/RotationRateController
+      type: thruster_controllers/GazeboPassthroughController
 
     thruster2_controller:
-      type: thruster_controllers/RotationRateController
+      type: thruster_controllers/GazeboPassthroughController
 
     thruster3_controller:
-      type: thruster_controllers/RotationRateController
+      type: thruster_controllers/GazeboPassthroughController
 
     thruster4_controller:
-      type: thruster_controllers/RotationRateController
+      type: thruster_controllers/GazeboPassthroughController
 
     thruster5_controller:
-      type: thruster_controllers/RotationRateController
+      type: thruster_controllers/GazeboPassthroughController
 
     thruster6_controller:
-      type: thruster_controllers/RotationRateController
+      type: thruster_controllers/GazeboPassthroughController
 
     thruster7_controller:
-      type: thruster_controllers/RotationRateController
+      type: thruster_controllers/GazeboPassthroughController
 
     thruster8_controller:
-      type: thruster_controllers/RotationRateController
+      type: thruster_controllers/GazeboPassthroughController
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
@@ -46,6 +46,7 @@ adaptive_integral_terminal_sliding_mode_controller:
     reference_controller: thruster_allocation_matrix_controller
     vehicle_frame_id: "base_link_fsd"
     odom_frame_id: "map_ned"
+    use_external_measured_states: true
     gains:
       lambda: 200.0
       x:
@@ -116,74 +117,42 @@ thruster_allocation_matrix_controller:
 thruster1_controller:
   ros__parameters:
     thruster: thruster1_joint
-    min_thrust: -40.0
-    max_thrust: 60.0
-    thrust_coefficient: 0.02
-    propeller_diameter: 0.1
-    fluid_density: 998.0
+    topic: /model/uvms/joint/thruster1_joint/cmd_thrust
 
 thruster2_controller:
   ros__parameters:
     thruster: thruster2_joint
-    min_thrust: -40.0
-    max_thrust: 60.0
-    thrust_coefficient: 0.02
-    propeller_diameter: 0.1
-    fluid_density: 998.0
+    topic: /model/uvms/joint/thruster2_joint/cmd_thrust
 
 thruster3_controller:
   ros__parameters:
     thruster: thruster3_joint
-    min_thrust: -40.0
-    max_thrust: 60.0
-    thrust_coefficient: -0.02
-    propeller_diameter: 0.1
-    fluid_density: 998.0
+    topic: /model/uvms/joint/thruster3_joint/cmd_thrust
 
 thruster4_controller:
   ros__parameters:
     thruster: thruster4_joint
-    min_thrust: -40.0
-    max_thrust: 60.0
-    thrust_coefficient: -0.02
-    propeller_diameter: 0.1
-    fluid_density: 998.0
+    topic: /model/uvms/joint/thruster4_joint/cmd_thrust
 
 thruster5_controller:
   ros__parameters:
     thruster: thruster5_joint
-    min_thrust: -40.0
-    max_thrust: 60.0
-    thrust_coefficient: 0.02
-    propeller_diameter: 0.1
-    fluid_density: 998.0
+    topic: /model/uvms/joint/thruster5_joint/cmd_thrust
 
 thruster6_controller:
   ros__parameters:
     thruster: thruster6_joint
-    min_thrust: -40.0
-    max_thrust: 60.0
-    thrust_coefficient: -0.02
-    propeller_diameter: 0.1
-    fluid_density: 998.0
+    topic: /model/uvms/joint/thruster6_joint/cmd_thrust
 
 thruster7_controller:
   ros__parameters:
     thruster: thruster7_joint
-    min_thrust: -40.0
-    max_thrust: 60.0
-    thrust_coefficient: -0.02
-    propeller_diameter: 0.1
-    fluid_density: 998.0
+    topic: /model/uvms/joint/thruster7_joint/cmd_thrust
 
 thruster8_controller:
   ros__parameters:
     thruster: thruster8_joint
-    min_thrust: -40.0
-    max_thrust: 60.0
-    thrust_coefficient: 0.02
-    propeller_diameter: 0.1
-    fluid_density: 998.0
+    topic: /model/uvms/joint/thruster8_joint/cmd_thrust
 
 arm_velocity_controller:
   ros__parameters:

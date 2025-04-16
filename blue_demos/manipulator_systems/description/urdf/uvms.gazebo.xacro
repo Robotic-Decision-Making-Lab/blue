@@ -47,5 +47,15 @@
       </plugin>
     </gazebo>
 
+    <xacro:include filename="$(find blue_description)/description/t200/gazebo.xacro" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="1" ccw="true" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="2" ccw="true" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="3" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="4" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="5" ccw="true" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="6" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="7" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="8" ccw="true" />
+
   </xacro:macro>
 </robot>

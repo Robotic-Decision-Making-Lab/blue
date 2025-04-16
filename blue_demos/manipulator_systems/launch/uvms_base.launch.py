@@ -31,6 +31,7 @@ from launch.event_handlers import OnExecutionComplete, OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
     LaunchConfiguration,
+    TextSubstitution,
 )
 from launch_ros.actions import Node
 
@@ -81,39 +82,30 @@ def generate_launch_description() -> LaunchDescription:
         launch_arguments=[
             (
                 "gz_args",
-                [
-                    # we need this physics engine for mimic joints
-                    "-v 4 --physics-engine gz-physics-bullet-featherstone-plugin -r",
-                    " ",
-                    LaunchConfiguration("gz_world_file"),
-                ],
+                ["-v 4 -r", " ", LaunchConfiguration("gz_world_file")],
             )
         ],
     )
 
     # the velocity controller expects state information to be provided in the FSD frame
-    # message_transformer = IncludeLaunchDescription(
-    #     PythonLaunchDescriptionSource(
-    #         PathJoinSubstitution(
-    #             [
-    #                 FindPackageShare("message_transforms"),
-    #                 "launch",
-    #                 "message_transforms.launch.py",
-    #             ]
-    #         )
-    #     ),
-    #     launch_arguments={
-    #         "parameters_file": PathJoinSubstitution(
-    #             [
-    #                 FindPackageShare("blue_demos"),
-    #                 "manipulator_systems",
-    #                 "config",
-    #                 "uvms_transforms.yaml",
-    #             ]
-    #         ),
-    #         "ns": TextSubstitution(text="manipulator_systems"),
-    #     }.items(),
-    # )
+    message_transformer = IncludeLaunchDescription(
+        PythonLaunchDescriptionSource(
+            os.path.join(
+                get_package_share_directory("message_transforms"),
+                "launch",
+                "message_transforms.launch.py",
+            )
+        ),
+        launch_arguments={
+            "parameters_file": os.path.join(
+                get_package_share_directory("blue_demos"),
+                "manipulator_systems",
+                "config",
+                "uvms_transforms.yaml",
+            ),
+            "ns": TextSubstitution(text="manipulator_systems"),
+        }.items(),
+    )
 
     # TODO(evan-palmer): check if we need --controller-manager
     def make_controller_args(name):
@@ -227,7 +219,7 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
             *args,
-            # message_transformer,
+            message_transformer,
             robot_state_publisher,
             gz_spawner,
             gz_launch,
