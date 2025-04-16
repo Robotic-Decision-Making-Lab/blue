@@ -1,0 +1,55 @@
+launch:
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /camera/image_raw@sensor_msgs/msg/Image[gz.msgs.Image
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /model/$(var gz_model_name)/odometry@nav_msgs/msg/Odometry[gz.msgs.Odometry
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /model/uvms/joint/thruster1_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /model/uvms/joint/thruster2_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /model/uvms/joint/thruster3_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /model/uvms/joint/thruster4_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /model/uvms/joint/thruster5_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /model/uvms/joint/thruster6_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /model/uvms/joint/thruster7_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /model/uvms/joint/thruster8_joint/cmd_thrust@std_msgs/msg/Float64]gz.msgs.Double
