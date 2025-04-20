@@ -35,11 +35,54 @@ controller_manager:
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
 
-    arm_velocity_controller:
-      type: forward_command_controller/ForwardCommandController
-
     tcp_position_controller:
       type: forward_command_controller/ForwardCommandController
+
+    whole_body_controller:
+      type: whole_body_controllers/IKController
+
+
+whole_body_controller:
+  ros__parameters:
+    ik_solver: task_priority_ik_solver
+    vehicle_reference_controller: adaptive_integral_terminal_sliding_mode_controller
+    use_external_measured_vehicle_states: true
+    manipulator_joints:
+      # - alpha_axis_a # we don't need the end effector joint to be controlled
+      - alpha_axis_b
+      - alpha_axis_c
+      - alpha_axis_d
+      - alpha_axis_e
+    locked_joints:
+      - alpha_rs1_130_joint
+      - alpha_rs1_139_joint
+      - alpha_axis_a
+      - thruster1_joint
+      - thruster2_joint
+      - thruster3_joint
+      - thruster4_joint
+      - thruster5_joint
+      - thruster6_joint
+      - thruster7_joint
+      - thruster8_joint
+
+task_priority_ik_solver:
+  ros__parameters:
+    end_effector_frame_id: alpha_tcp
+    constrained_joints:
+      - alpha_axis_d
+      - alpha_axis_e
+    end_effector_pose_task:
+      gain: 0.3
+    joint_limit_task:
+      alpha_axis_d:
+        safety_tolerance: 0.78539816
+        activation_threshold: 0.087
+        gain: 0.2
+      alpha_axis_e:
+        safety_tolerance: 0.78539816
+        activation_threshold: 0.087
+        gain: 0.2
 
 adaptive_integral_terminal_sliding_mode_controller:
   ros__parameters:
@@ -48,43 +91,43 @@ adaptive_integral_terminal_sliding_mode_controller:
     odom_frame_id: "map_ned"
     use_external_measured_states: true
     gains:
-      lambda: 200.0
+      lambda: 0.3
       x:
-        alpha: 10.0
-        k1_min: 0.1
-        k2: 10.0
-        k_theta: 10.0
-        mu: 1.0
-      y:
-        alpha: 10.0
-        k1_min: 0.1
-        k2: 10.0
-        k_theta: 10.0
-        mu: 1.0
-      z:
         alpha: 12.0
         k1_min: 0.1
-        k2: 15.0
-        k_theta: 10.0
-        mu: 1.0
+        k2: 0.4
+        k_theta: 2.0
+        mu: 0.01
+      y:
+        alpha: 12.0
+        k1_min: 0.1
+        k2: 0.4
+        k_theta: 2.0
+        mu: 0.01
+      z:
+        alpha: 16.0
+        k1_min: 0.1
+        k2: 0.4
+        k_theta: 2.0
+        mu: 0.01
       rx:
         alpha: 0.5
         k1_min: 0.1
-        k2: 0.5
+        k2: 0.4
         k_theta: 2.0
-        mu: 1.0
+        mu: 0.01
       ry:
-        alpha: 6.0
+        alpha: 20.0
         k1_min: 0.1
-        k2: 10.0
-        k_theta: 10.0
-        mu: 1.0
+        k2: 1.0
+        k_theta: 2.0
+        mu: 0.01
       rz:
-        alpha: 10.0
+        alpha: 14.0
         k1_min: 0.1
-        k2: 10.0
-        k_theta: 10.0
-        mu: 1.0
+        k2: 0.4
+        k_theta: 2.0
+        mu: 0.01
 
 thruster_allocation_matrix_controller:
   ros__parameters:
@@ -153,15 +196,6 @@ thruster8_controller:
   ros__parameters:
     thruster: thruster8_joint
     topic: /model/uvms/joint/thruster8_joint/cmd_thrust
-
-arm_velocity_controller:
-  ros__parameters:
-    joints:
-      - alpha_axis_b
-      - alpha_axis_c
-      - alpha_axis_d
-      - alpha_axis_e
-    interface_name: velocity
 
 tcp_position_controller:
   ros__parameters:

@@ -143,16 +143,16 @@ def generate_launch_description() -> LaunchDescription:
         arguments=make_controller_args("joint_state_broadcaster"),
     )
 
-    arm_controller_spawner = Node(
-        package="controller_manager",
-        executable="spawner",
-        arguments=make_controller_args("arm_velocity_controller"),
-    )
-
     tcp_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
         arguments=make_controller_args("tcp_position_controller"),
+    )
+
+    whole_body_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=make_controller_args("whole_body_controller"),
     )
 
     # launch the thrusters sequentially
@@ -202,17 +202,17 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
-    delay_arm_controller_spawner_after_jsb_spawner = RegisterEventHandler(
-        event_handler=OnExecutionComplete(
-            target_action=joint_state_broadcaster_spawner,
-            on_completion=[arm_controller_spawner],
-        )
-    )
-
     delay_tcp_controller_spawner_after_jsb_spawner = RegisterEventHandler(
         event_handler=OnExecutionComplete(
             target_action=joint_state_broadcaster_spawner,
             on_completion=[tcp_controller_spawner],
+        )
+    )
+
+    delay_wbc_spawner_after_velocity_controller_spawner = RegisterEventHandler(
+        event_handler=OnExecutionComplete(
+            target_action=velocity_controller_spawner,
+            on_completion=[whole_body_controller_spawner],
         )
     )
 
@@ -227,7 +227,7 @@ def generate_launch_description() -> LaunchDescription:
             delay_tam_controller_spawner_after_thruster_controller_spawners,
             delay_velocity_controller_spawner_after_tam_controller_spawner,
             delay_jsb_spawner_after_gz_spawner,
-            delay_arm_controller_spawner_after_jsb_spawner,
             delay_tcp_controller_spawner_after_jsb_spawner,
+            # delay_wbc_spawner_after_velocity_controller_spawner,
         ]
     )
