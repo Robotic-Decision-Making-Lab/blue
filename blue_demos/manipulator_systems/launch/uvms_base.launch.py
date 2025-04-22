@@ -228,6 +228,6 @@ def generate_launch_description() -> LaunchDescription:
             delay_velocity_controller_spawner_after_tam_controller_spawner,
             delay_jsb_spawner_after_gz_spawner,
             delay_tcp_controller_spawner_after_jsb_spawner,
-            # delay_wbc_spawner_after_velocity_controller_spawner,
+            delay_wbc_spawner_after_velocity_controller_spawner,
         ]
     )

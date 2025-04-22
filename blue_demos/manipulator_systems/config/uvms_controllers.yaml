@@ -44,7 +44,7 @@ controller_manager:
 
 whole_body_controller:
   ros__parameters:
-    ik_solver: task_priority_ik_solver
+    ik_solver: task_priority_solver
     vehicle_reference_controller: adaptive_integral_terminal_sliding_mode_controller
     use_external_measured_vehicle_states: true
     manipulator_joints:
@@ -66,7 +66,7 @@ whole_body_controller:
       - thruster7_joint
       - thruster8_joint
 
-task_priority_ik_solver:
+task_priority_solver:
   ros__parameters:
     end_effector_frame_id: alpha_tcp
     constrained_joints:

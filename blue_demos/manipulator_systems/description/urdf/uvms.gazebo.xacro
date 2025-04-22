@@ -3,9 +3,14 @@
   <xacro:macro name="uvms_gazebo" params="prefix controllers_file">
 
     <gazebo>
-      <plugin filename="gz_ros2_control-system"
-        name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+      <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
         <parameters>${controllers_file}</parameters>
+
+        <!-- we need to remap the controller system states here - these are forwarded to the controller manager -->
+        <ros>
+          <remapping>/adaptive_integral_terminal_sliding_mode_controller/system_state:=/model/uvms/odometry_ned</remapping>
+          <remapping>/whole_body_controller/vehicle_state:=/model/uvms/odometry_ned</remapping>
+        </ros>
       </plugin>
     </gazebo>
 
