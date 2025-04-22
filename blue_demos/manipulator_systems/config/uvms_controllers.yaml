@@ -65,24 +65,22 @@ whole_body_controller:
       - thruster6_joint
       - thruster7_joint
       - thruster8_joint
-
-task_priority_solver:
-  ros__parameters:
-    end_effector_frame_id: alpha_tcp
-    constrained_joints:
-      - alpha_axis_d
-      - alpha_axis_e
-    end_effector_pose_task:
-      gain: 0.3
-    joint_limit_task:
-      alpha_axis_d:
-        safety_tolerance: 0.78539816
-        activation_threshold: 0.087
-        gain: 0.2
-      alpha_axis_e:
-        safety_tolerance: 0.78539816
-        activation_threshold: 0.087
-        gain: 0.2
+    task_priority_solver:
+      end_effector_frame_id: alpha_tcp
+      constrained_joints:
+        - alpha_axis_d
+        - alpha_axis_e
+      end_effector_pose_task:
+        gain: 0.3
+      joint_limit_task:
+        alpha_axis_d:
+          safety_tolerance: 0.78539816
+          activation_threshold: 0.087
+          gain: 0.2
+        alpha_axis_e:
+          safety_tolerance: 0.78539816
+          activation_threshold: 0.087
+          gain: 0.2
 
 adaptive_integral_terminal_sliding_mode_controller:
   ros__parameters:
