@@ -10,6 +10,7 @@
         <ros>
           <remapping>/adaptive_integral_terminal_sliding_mode_controller/system_state:=/model/uvms/odometry_ned</remapping>
           <remapping>/whole_body_controller/vehicle_state:=/model/uvms/odometry_ned</remapping>
+          <remapping>/whole_body_controller/reference:=/model/marker/pose_ned</remapping>
         </ros>
       </plugin>
     </gazebo>

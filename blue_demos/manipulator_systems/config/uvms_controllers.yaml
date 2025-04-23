@@ -67,9 +67,9 @@ whole_body_controller:
       - thruster8_joint
     task_priority_solver:
       end_effector_frame_id: alpha_tcp
-      constrained_joints:
-        - alpha_axis_d
-        - alpha_axis_e
+      # constrained_joints:
+      #   - alpha_axis_d
+      #   - alpha_axis_e
       end_effector_pose_task:
         gain: 0.3
       joint_limit_task:
