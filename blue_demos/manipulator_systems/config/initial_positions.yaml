@@ -3,5 +3,5 @@ initial_positions:
   axis_a: 0
   axis_b: 0
   axis_c: 1.57080
-  axis_d: 0
+  axis_d: 0.01
   axis_e: 3.14159

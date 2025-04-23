@@ -53,9 +53,9 @@
       <link name="marker_link">
         <visual name="marker_visual">
           <geometry>
-            <box>
-              <size>0.05 0.05 0.05</size>
-            </box>
+            <sphere>
+              <radius>0.03</radius>
+            </sphere>
           </geometry>
           <material>
             <ambient>0.3 0.0 0.0 1</ambient>
