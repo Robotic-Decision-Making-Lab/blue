@@ -45,26 +45,17 @@ controller_manager:
 whole_body_controller:
   ros__parameters:
     ik_solver: task_priority_solver
-    vehicle_reference_controller: adaptive_integral_terminal_sliding_mode_controller
-    use_external_measured_vehicle_states: true
-    manipulator_joints:
+    command_interfaces:
+      - velocity
+    state_interfaces:
+      - position
+    controlled_joints:
       - alpha_axis_e
       - alpha_axis_d
       - alpha_axis_c
       - alpha_axis_b
-      # - alpha_axis_a # we don't need the end effector joint to be controlled
-    locked_joints:
-      - alpha_rs1_130_joint
-      - alpha_rs1_139_joint
-      - alpha_axis_a
-      - thruster1_joint
-      - thruster2_joint
-      - thruster3_joint
-      - thruster4_joint
-      - thruster5_joint
-      - thruster6_joint
-      - thruster7_joint
-      - thruster8_joint
+    use_external_measured_vehicle_states: true
+    vehicle_reference_controller: adaptive_integral_terminal_sliding_mode_controller
     task_priority_solver:
       end_effector_frame_id: alpha_tcp
       # constrained_joints:
