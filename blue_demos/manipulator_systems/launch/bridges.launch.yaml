@@ -18,7 +18,7 @@ launch:
   - node:
       pkg: ros_gz_bridge
       exec: parameter_bridge
-      args: /model/marker/pose@geometry_msgs/msg/Pose[gz.msgs.Pose
+      args: /model/target/pose@geometry_msgs/msg/Pose[gz.msgs.Pose
 
   - node:
       pkg: ros_gz_bridge

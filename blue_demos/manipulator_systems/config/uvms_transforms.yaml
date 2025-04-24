@@ -3,7 +3,7 @@
 
     incoming_topics:
       - /model/uvms/odometry
-      - /model/marker/pose
+      - /model/target/pose
 
     transforms:
       /model/uvms/odometry:
@@ -12,6 +12,6 @@
         frame_id: map_fsd
         child_frame_id: base_link_fsd
 
-      /model/marker/pose:
-        outgoing_topic: /model/marker/pose_ned
+      /model/target/pose:
+        outgoing_topic: /model/target/pose_ned
         message_type: geometry_msgs/msg/Pose

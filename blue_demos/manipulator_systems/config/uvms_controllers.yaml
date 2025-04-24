@@ -58,9 +58,9 @@ whole_body_controller:
     vehicle_reference_controller: adaptive_integral_terminal_sliding_mode_controller
     task_priority_solver:
       end_effector_frame_id: alpha_tcp
-      # constrained_joints:
-      #   - alpha_axis_c
-      #   - alpha_axis_e
+      constrained_joints:
+        - alpha_axis_c
+        - alpha_axis_e
       end_effector_pose_task:
         gain: 0.3
       joint_limit_task:
@@ -69,8 +69,8 @@ whole_body_controller:
           activation_threshold: 0.087
           gain: 0.2
         alpha_axis_e:
-          safety_tolerance: 0.78539816
-          activation_threshold: 0.087
+          safety_tolerance: 1.74532925
+          activation_threshold: 0.17453292
           gain: 0.2
 
 adaptive_integral_terminal_sliding_mode_controller:

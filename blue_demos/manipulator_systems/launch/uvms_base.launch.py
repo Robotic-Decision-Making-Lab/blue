@@ -24,6 +24,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
+    ExecuteProcess,
     IncludeLaunchDescription,
     RegisterEventHandler,
 )
@@ -105,6 +106,37 @@ def generate_launch_description() -> LaunchDescription:
             ),
             "ns": TextSubstitution(text="manipulator_systems"),
         }.items(),
+    )
+
+    # spawn a target pose for the whole body controller
+    spawn_pose = ExecuteProcess(
+        cmd=[
+            "ros2",
+            "run",
+            "ros_gz_sim",
+            "create",
+            "-file",
+            os.path.join(
+                get_package_share_directory("blue_demos"),
+                "manipulator_systems",
+                "description",
+                "sdf",
+                "target.sdf",
+            ),
+            "-name",
+            "target",
+            "-x",
+            "1",
+            "-y",
+            "0",
+            "-z",
+            "-1",
+        ],
+        output="screen",
+    )
+
+    delay_target_spawner_after_gz_spawner = RegisterEventHandler(
+        event_handler=OnProcessExit(target_action=gz_spawner, on_exit=[spawn_pose])
     )
 
     # TODO(evan-palmer): check if we need --controller-manager
@@ -223,6 +255,7 @@ def generate_launch_description() -> LaunchDescription:
             robot_state_publisher,
             gz_spawner,
             gz_launch,
+            delay_target_spawner_after_gz_spawner,
             *delay_thruster_controller_spawners,
             delay_tam_controller_spawner_after_thruster_controller_spawners,
             delay_velocity_controller_spawner_after_tam_controller_spawner,
