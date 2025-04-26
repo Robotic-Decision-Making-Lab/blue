@@ -3,6 +3,25 @@ sidebar_position: 4
 title: Manipulator Systems
 ---
 
+import UVMS from '@site/static/gif/uvms.gif';
+
+This tutorial demonstrates how to use [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
+to control an underwater vehicle manipulator system (i.e., the BlueROV2 Heavy
+with a Reach Alpha 5) in simulation. The files used for this tutorial are available
+in the `blue_demos/manipulator_systems` directory.
+
+<img src={UVMS} alt="UVMS demo gif" style={{ width: '100%', maxWidth: 600 }} />
+
+## Dependencies
+
+The following ROS 2 dependencies are required for this tutorial:
+
+* Gazebo Harmonic or newer
+* [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
+* [reach](https://github.com/Robotic-Decision-Making-Lab/reach)
+
+These dependencies will be met by default if you have installed Blue with
+Docker as described in the [installation instructions](/installation).
 
 ### Tutorial steps
 
@@ -12,34 +31,6 @@ title: Manipulator Systems
    ros2 launch blue_demos uvms_demo.launch.yaml
    ```
 
-2. Once Gazebo, ArduSub, and MAVROS have fully loaded, open a new terminal and
-   launch the demo control framework:
-
-   ```bash
-   ros2 launch blue_demos uvms_controllers.launch.py
-   ```
-
-3. Open a new terminal and launch the `teleop_twist_keyboard` node:
-
-   ```bash
-   ros2 run teleop_twist_keyboard teleop_twist_keyboard
-   ```
-
-4. The `teleop_twist_keyboard` node will publish velocity commands according to
-   [REP-105](https://ros.org/reps/rep-0105.html); however, the launched AITSMC
-   adheres to the maritime conventions recorded in [REP-156](https://github.com/ros-infrastructure/rep/pull/398).
-   To convert the velocity commands to the appropriate convention, run the
-   `message_transforms` node in a new terminal:
-
-   ```bash
-   ros2 launch message_transforms message_transforms.launch.py parameters_file:=<path/to/transforms.yaml>
-   ```
-
-   where `<path/to/transforms.yaml>` should be replaced with the path to the
-   `transforms.yaml` file in the `blue_demos` package, e.g.,
-
-   ```bash
-   ros2 launch message_transforms message_transforms.launch.py parameters_file:=./blue_demos/teleoperation/config/transforms.yaml
-   ```
-
-5. You should now be able to teleoperate the BlueROV2 using your keyboard.
+2. Once Gazebo and the controllers have fully loaded, you should see the UVMS
+   Gazebo with a red spherical object that represents the target end effector
+   pose. You can translate and rotate the object to change the target end effector pose.

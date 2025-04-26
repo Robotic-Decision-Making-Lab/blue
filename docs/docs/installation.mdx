@@ -22,7 +22,7 @@ Once you have successfully installed Docker and logged into the GitHub Container
 Registry, you can install Blue by pulling one of the provided [Docker
 images](https://github.com/Robotic-Decision-Making-Lab/blue/pkgs/container/blue).
 A complete list of the provided images is documented below (where `*` should be
-replaced with the desired ROS distribution, e.g., `humble-robot`):
+replaced with the desired ROS distribution, e.g., `jazzy-robot`):
 
 | Supported ROS Versions | Image Tag | Build Architectures | Description |
 | ---------------------- | --------- | ------------------- | ----------- |
@@ -36,7 +36,7 @@ to install and run Blue. For instance, to pull and run the `jazzy-desktop` image
 first run the command:
 
 ```bash
-wget https://raw.githubusercontent.com/Robotic-Decision-Making-Lab/blue/main/.docker/compose/nouveau-desktop.yaml && \
+wget https://raw.githubusercontent.com/Robotic-Decision-Making-Lab/blue/jazzy/.docker/compose/nouveau-desktop.yaml && \
 docker compose -f nouveau-desktop.yaml up
 ```
 
