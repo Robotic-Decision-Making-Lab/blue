@@ -50,14 +50,6 @@
         <command_interface name="pwm" />
       </joint>
     </ros2_control>
-
-    <ros2_control name="${name}_odom_sensor" type="sensor">
-      <hardware>
-        <plugin>topic_sensors/OdomSensor</plugin>
-        <param name="topic">/model/bluerov2/odometry_fsd</param>
-        <param name="prefix">${prefix}</param>
-      </hardware>
-    </ros2_control>
   </xacro:macro>
 
 </robot>

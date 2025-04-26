@@ -19,7 +19,7 @@
       <collision>
         <origin rpy="0 0 0" xyz="0.11425 0.14375 0.08" />
         <geometry>
-          <box size="0.2285 0.2875 0.015" />
+          <box size="0.2285 0.2875 0.018" />
         </geometry>
       </collision>
       <!-- Front right -->

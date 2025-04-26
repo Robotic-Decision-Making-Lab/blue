@@ -2,9 +2,6 @@ controller_manager:
   ros__parameters:
     update_rate: 100 # Hz
 
-    odom_sensor:
-      type: topic_sensors/OdomSensor
-
     adaptive_integral_terminal_sliding_mode_controller:
       type: velocity_controllers/AdaptiveIntegralTerminalSlidingModeController
 
@@ -29,53 +26,48 @@ controller_manager:
     thruster6_controller:
       type: thruster_controllers/PolynomialThrustCurveController
 
-odom_sensor:
-  ros__parameters:
-    topic: "/model/bluerov2/odometry_fsd"
-
 adaptive_integral_terminal_sliding_mode_controller:
   ros__parameters:
     reference_controller: thruster_allocation_matrix_controller
-    vehicle_frame_id: "base_link_fsd"
-    odom_frame_id: "map_ned"
+    use_external_measured_states: true
     gains:
-      lambda: 200.0
+      lambda: 0.9
       x:
-        alpha: 10.0
-        k1_min: 0.1
-        k2: 10.0
-        k_theta: 10.0
-        mu: 1.0
-      y:
-        alpha: 10.0
-        k1_min: 0.1
-        k2: 10.0
-        k_theta: 10.0
-        mu: 1.0
-      z:
         alpha: 12.0
         k1_min: 0.1
-        k2: 15.0
-        k_theta: 10.0
-        mu: 1.0
+        k2: 0.4
+        k_theta: 2.0
+        mu: 0.01
+      y:
+        alpha: 12.0
+        k1_min: 0.1
+        k2: 0.4
+        k_theta: 2.0
+        mu: 0.01
+      z:
+        alpha: 12.0
+        k1_min: 0.4
+        k2: 0.8
+        k_theta: 2.0
+        mu: 0.01
       rx:
         alpha: 0.5
         k1_min: 0.1
-        k2: 0.5
+        k2: 0.4
         k_theta: 2.0
-        mu: 1.0
+        mu: 0.01
       ry:
-        alpha: 6.0
+        alpha: 12.0
         k1_min: 0.1
-        k2: 10.0
-        k_theta: 10.0
-        mu: 1.0
+        k2: 1.0
+        k_theta: 2.0
+        mu: 0.01
       rz:
-        alpha: 10.0
+        alpha: 12.0
         k1_min: 0.1
-        k2: 10.0
-        k_theta: 10.0
-        mu: 1.0
+        k2: 0.4
+        k_theta: 2.0
+        mu: 0.01
 
 thruster_allocation_matrix_controller:
   ros__parameters:

@@ -4,7 +4,7 @@
   <xacro:include filename="$(find blue_description)/description/bluerov2_heavy/urdf.xacro" />
   <xacro:include filename="$(find blue_description)/description/bluerov2_heavy/gazebo.xacro" />
   <xacro:include filename="$(find blue_demos)/control_integration/description/ros2_control/bluerov2_heavy.ros2_control.xacro" />
-  <xacro:include filename="$(find blue_demos)/control_integration/description/ros2_control/bluerov2.model.xacro" />
+  <xacro:include filename="$(find blue_demos)/control_integration/description/ros2_control/bluerov2_heavy.model.xacro" />
 
   <xacro:arg name="prefix" default="" />
   <xacro:arg name="use_sim" default="false" />

@@ -139,7 +139,6 @@ def generate_launch_description() -> LaunchDescription:
         event_handler=OnProcessExit(target_action=gz_spawner, on_exit=[spawn_pose])
     )
 
-    # TODO(evan-palmer): check if we need --controller-manager
     def make_controller_args(name):
         cm = ["--controller-manager", ["", "controller_manager"]]
         controller_timeout = ["--controller-manager-timeout", "120"]

@@ -6,7 +6,7 @@
 
     transforms:
       /model/bluerov2_heavy/odometry:
-        outgoing_topic: /model/bluerov2_heavy/odometry_fsd
+        outgoing_topic: /adaptive_integral_terminal_sliding_mode_controller/system_state
         message_type: nav_msgs/msg/Odometry
         frame_id: map_fsd
         child_frame_id: base_link_fsd
