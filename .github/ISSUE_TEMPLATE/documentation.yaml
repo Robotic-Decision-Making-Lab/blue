@@ -1,7 +1,8 @@
 name: Documentation Improvement
 description: Report an issue related to the Blue documentation.
-title: "[DOC]: <Please write a descriptive title after the '[DOC]: ' prefix>"
-labels: [documentation, needs triage]
+title: "<Please write a descriptive title>"
+labels: [needs triage]
+type: Documentation
 
 body:
   - type: markdown

@@ -8,7 +8,7 @@ repositories:
   auv_controllers:
     type: git
     url: https://github.com/Robotic-Decision-Making-Lab/auv_controllers.git
-    version: dev-wbc
+    version: main
 
   ardusub_driver:
     type: git
