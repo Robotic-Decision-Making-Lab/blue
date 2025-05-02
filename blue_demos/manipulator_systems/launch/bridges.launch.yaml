@@ -17,6 +17,14 @@ launch:
   - node:
       pkg: ros_gz_bridge
       exec: parameter_bridge
+      args: /model/$(var gz_model_name)/pose@tf2_msgs/msg/TFMessage[gz.msgs.Pose_V
+      remap:
+        - from: /model/$(var gz_model_name)/pose
+          to: /tf
+
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
       args: /model/target/pose@geometry_msgs/msg/Pose[gz.msgs.Pose
 
   - node:

@@ -58,14 +58,14 @@ Docker as described in the [installation instructions](/installation).
    `message_transforms` node in a new terminal:
 
    ```bash
-   ros2 launch message_transforms message_transforms.launch.py parameters_file:=<path/to/transforms.yaml>
+   ros2 launch message_transforms message_transforms.launch.yaml parameters_file:=<path/to/transforms.yaml>
    ```
 
    where `<path/to/transforms.yaml>` should be replaced with the path to the
    `transforms.yaml` file in the `blue_demos` package, e.g.,
 
    ```bash
-   ros2 launch message_transforms message_transforms.launch.py parameters_file:=./blue_demos/teleoperation/config/transforms.yaml
+   ros2 launch message_transforms message_transforms.launch.yaml parameters_file:=./blue_demos/teleoperation/config/transforms.yaml
    ```
 
 5. You should now be able to teleoperate the BlueROV2 using your keyboard.

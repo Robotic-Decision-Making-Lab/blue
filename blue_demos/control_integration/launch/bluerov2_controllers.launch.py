@@ -25,7 +25,7 @@ from launch.actions import (
     RegisterEventHandler,
 )
 from launch.event_handlers import OnProcessExit
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.launch_description_sources import FrontendLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution, TextSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -54,12 +54,12 @@ def generate_launch_description() -> LaunchDescription:
 
     # The velocity controller expects state information to be provided in the FSD frame
     message_transformer = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
+        FrontendLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
                     FindPackageShare("message_transforms"),
                     "launch",
-                    "message_transforms.launch.py",
+                    "message_transforms.launch.yaml",
                 ]
             )
         ),

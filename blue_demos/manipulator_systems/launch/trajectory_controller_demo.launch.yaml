@@ -23,6 +23,9 @@ launch:
       file: $(find-pkg-share blue_demos)/manipulator_systems/launch/bridges.launch.yaml
 
   - include:
+      file: $(find-pkg-share message_transforms)/launch/tf.launch.yaml
+
+  - include:
       file: $(find-pkg-share blue_demos)/manipulator_systems/launch/uvms_base.launch.py
       arg:
         - name: gz_model_name
@@ -33,3 +36,7 @@ launch:
           value: $(var robot_description)
         - name: controllers_file
           value: $(var controllers_file)
+        - name: use_trajectory_control
+          value: "true"
+        - name: use_target
+          value: "false"

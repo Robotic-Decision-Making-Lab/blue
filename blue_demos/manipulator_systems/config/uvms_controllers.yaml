@@ -2,6 +2,9 @@ controller_manager:
   ros__parameters:
     update_rate: 100 # Hz
 
+    end_effector_trajectory_controller:
+      type: end_effector_trajectory_controller/EndEffectorTrajectoryController
+
     adaptive_integral_terminal_sliding_mode_controller:
       type: velocity_controllers/AdaptiveIntegralTerminalSlidingModeController
 
@@ -41,6 +44,14 @@ controller_manager:
     whole_body_controller:
       type: whole_body_controllers/IKController
 
+end_effector_trajectory_controller:
+  ros__parameters:
+    path_tolerance: 0.0
+    goal_tolerance: 0.0
+    lookup_end_effector_transform: true
+    reference_controller: whole_body_controller
+    odom_frame_id: map_ned
+    end_effector_frame_id: alpha_tcp
 
 whole_body_controller:
   ros__parameters:
@@ -60,12 +71,17 @@ whole_body_controller:
       end_effector_frame_id: alpha_tcp
       constrained_joints:
         - alpha_axis_c
+        - alpha_axis_d
         - alpha_axis_e
       end_effector_pose_task:
-        gain: 0.3
+        gain: 0.38
       joint_limit_task:
-        alpha_axis_d:
+        alpha_axis_c:
           safety_tolerance: 0.78539816
+          activation_threshold: 0.087
+          gain: 0.2
+        alpha_axis_d:
+          safety_tolerance: 1.57079633
           activation_threshold: 0.087
           gain: 0.2
         alpha_axis_e:

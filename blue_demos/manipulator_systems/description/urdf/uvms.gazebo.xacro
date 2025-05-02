@@ -53,6 +53,19 @@
       </plugin>
     </gazebo>
 
+    <gazebo>
+      <plugin
+        filename="gz-sim-pose-publisher-system"
+        name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>false</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <publish_collision_pose>false</publish_collision_pose>
+        <publish_visual_pose>false</publish_visual_pose>
+        <publish_nested_model_pose>false</publish_nested_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+      </plugin>
+    </gazebo>
+
     <xacro:include filename="$(find blue_description)/description/t200/gazebo.xacro" />
     <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="1" ccw="true" />
     <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="2" ccw="true" />

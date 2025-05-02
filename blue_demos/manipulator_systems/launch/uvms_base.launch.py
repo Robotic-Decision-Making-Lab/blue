@@ -28,8 +28,12 @@ from launch.actions import (
     IncludeLaunchDescription,
     RegisterEventHandler,
 )
+from launch.conditions import IfCondition
 from launch.event_handlers import OnExecutionComplete, OnProcessExit
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.launch_description_sources import (
+    FrontendLaunchDescriptionSource,
+    PythonLaunchDescriptionSource,
+)
 from launch.substitutions import (
     LaunchConfiguration,
     TextSubstitution,
@@ -43,6 +47,8 @@ def generate_launch_description() -> LaunchDescription:
         DeclareLaunchArgument("gz_world_file"),
         DeclareLaunchArgument("controllers_file"),
         DeclareLaunchArgument("robot_description"),
+        DeclareLaunchArgument("use_trajectory_control"),
+        DeclareLaunchArgument("use_target"),
     ]
 
     robot_state_publisher = Node(
@@ -90,11 +96,11 @@ def generate_launch_description() -> LaunchDescription:
 
     # the velocity controller expects state information to be provided in the FSD frame
     message_transformer = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
+        FrontendLaunchDescriptionSource(
             os.path.join(
                 get_package_share_directory("message_transforms"),
                 "launch",
-                "message_transforms.launch.py",
+                "message_transforms.launch.yaml",
             )
         ),
         launch_arguments={
@@ -133,6 +139,7 @@ def generate_launch_description() -> LaunchDescription:
             "-1",
         ],
         output="screen",
+        condition=IfCondition(LaunchConfiguration("use_target")),
     )
 
     delay_target_spawner_after_gz_spawner = RegisterEventHandler(
@@ -184,6 +191,13 @@ def generate_launch_description() -> LaunchDescription:
         package="controller_manager",
         executable="spawner",
         arguments=make_controller_args("whole_body_controller"),
+    )
+
+    trajectory_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=make_controller_args("end_effector_trajectory_controller"),
+        condition=IfCondition(LaunchConfiguration("use_trajectory_control")),
     )
 
     # launch the thrusters sequentially
@@ -247,6 +261,13 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    delay_trajectory_controller_spawner_after_wbc_spawner = RegisterEventHandler(
+        event_handler=OnExecutionComplete(
+            target_action=whole_body_controller_spawner,
+            on_completion=[trajectory_controller_spawner],
+        ),
+    )
+
     return LaunchDescription(
         [
             *args,
@@ -261,5 +282,6 @@ def generate_launch_description() -> LaunchDescription:
             delay_jsb_spawner_after_gz_spawner,
             delay_tcp_controller_spawner_after_jsb_spawner,
             delay_wbc_spawner_after_velocity_controller_spawner,
+            delay_trajectory_controller_spawner_after_wbc_spawner,
         ]
     )
