@@ -47,7 +47,7 @@ controller_manager:
 end_effector_trajectory_controller:
   ros__parameters:
     path_tolerance: 0.0
-    goal_tolerance: 0.0
+    goal_tolerance: 0.05
     lookup_end_effector_transform: true
     reference_controller: whole_body_controller
     odom_frame_id: map_ned

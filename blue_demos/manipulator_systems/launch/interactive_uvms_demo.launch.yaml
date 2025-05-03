@@ -23,6 +23,9 @@ launch:
       file: $(find-pkg-share blue_demos)/manipulator_systems/launch/bridges.launch.yaml
 
   - include:
+      file: $(find-pkg-share blue_bringup)/launch/bluerov2_heavy_reach/thrusters.launch.yaml
+
+  - include:
       file: $(find-pkg-share blue_demos)/manipulator_systems/launch/uvms_base.launch.py
       arg:
         - name: gz_model_name
