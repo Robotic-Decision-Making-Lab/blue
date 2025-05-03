@@ -5,8 +5,8 @@ sidebar_position: 3
 # Installation
 
 Blue is currently supported on Linux and is available for the ROS distributions
-Humble and Jazzy (recommended). Blue can be installed from source or using one of
-the provided Docker images. If you plan to use Blue for simulation and have
+Humble and Jazzy (recommended). Blue can be installed from source or using one
+of the provided Docker images. If you plan to use Blue for simulation and have
 a system with limited compute power, we recommend installing Blue from source.
 For all other cases, we recommend installing Blue using Docker.
 
@@ -26,9 +26,9 @@ replaced with the desired ROS distribution, e.g., `jazzy-robot`):
 
 | Supported ROS Versions | Image Tag | Build Architectures | Description |
 | ---------------------- | --------- | ------------------- | ----------- |
-| Humble, Jazzy | *-robot   | `amd64`, `arm64` | A bare-bones image that includes all dependencies without simulation or visualization features. This can be used to deploy Blue to hardware. |
-| Humble, Jazzy | *-desktop | `amd64` | Image that includes all dependencies, including simulation and visualization features. This can be used for development, testing, and top-side deployment. |
-| Humble, Jazzy | *-desktop-nvidia | `amd64` | Extension of the `*-desktop` image that provides support for NVIDIA GPU drivers. This image is *strongly* recommended for systems that have an NVIDIA GPU, and requires the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). |
+| Jazzy, Humble | *-robot   | `amd64`, `arm64` | A bare-bones image that includes all dependencies without simulation or visualization features. This can be used to deploy Blue to hardware. |
+| Jazzy, Humble | *-desktop | `amd64` | Image that includes all dependencies, including simulation and visualization features. This can be used for development, testing, and top-side deployment. |
+| Jazzy, Humble | *-desktop-nvidia | `amd64` | Extension of the `*-desktop` image that provides support for NVIDIA GPU drivers. This image is *strongly* recommended for systems that have an NVIDIA GPU, and requires the [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html). |
 
 If you plan to use either the `*-desktop` or `*-desktop-nvidia` images, you may
 use the provided [Docker Compose scripts](https://github.com/Robotic-Decision-Making-Lab/blue/tree/main/.docker/compose)
@@ -58,10 +58,11 @@ and `*-desktop-nvidia` images as base images. To use the development containers,
 first verify that you can run Visual Studio Code inside a Docker container by
 following the tutorial provided [here](https://code.visualstudio.com/docs/devcontainers/tutorial).
 Once you have successfully verified that you can run Visual Studio Code inside a
-Docker container, open the Blue repository in Visual Studio Code and select the option
-to reopen the folder inside a container when prompted. This will automatically
-build the development container and install all necessary dependencies. Once the
-container is built, you can start developing your own packages!
+Docker container, open the Blue repository in Visual Studio Code and select the
+option to reopen the folder inside a container when prompted. This will
+automatically build the development container and install all necessary
+dependencies. Once the container is built, you can start developing your own
+packages!
 
 ## Source installation
 
