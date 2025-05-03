@@ -13,9 +13,9 @@ for this tutorial are available in the `blue_demos/manipulator_systems`
 directory.
 
 This tutorial includes two demonstrations. In the first demonstration, we show
-how to use implement reactive whole-body control using closed-loop task
-priority inverse kinematics control. The second demonstration extends the first
-by showing how to perform end effector trajectory tracking.
+how to integrate reactive whole-body control using closed-loop task priority
+inverse kinematics control. The second demonstration extends the first by
+showing how to perform end effector trajectory tracking.
 
 <img src={UVMS} alt="UVMS demo gif" style={{ width: '100%', maxWidth: 700 }} />
 
@@ -56,10 +56,6 @@ The second demonstration extends the [Interactive whole-body control](#interacti
 demonstration by integrating the auv_controllers
 `end_effector_trajectory_controller`. This controller is used to interpolate
 end effector motion plans using linear and spherical linear interpolation.
-Similar to the ros2_controllers `joint_trajectory_controller`, the
-`end_effector_trajectory_controller` supports sending trajectory messages using
-the topic interface or the action interface. For this demonstration, we will
-use the topic interface.
 
 #### Tutorial steps
 
@@ -70,7 +66,8 @@ use the topic interface.
    ```
 
 2. Once Gazebo and the controllers have fully loaded, you can send a reference
-   trajectory to the controller by running the following command in a new terminal:
+   trajectory to the controller by running the following command in a new
+   terminal:
 
    ```bash
    ros2 topic pub /end_effector_trajectory_controller/trajectory auv_control_msgs/msg/EndEffectorTrajectory '{<insert trajectory here>}'
@@ -81,4 +78,28 @@ use the topic interface.
 
    ```bash
    ros2 launch blue_demos publish_trajectory.launch.yaml
+   ```
+
+   :::tip
+
+   The `end_effector_trajectory_controller` uses the default system QoS policy,
+   which does not guarantee message reception. So if the vehicle does not
+   immediately respond to the command, try resending the message.
+
+   :::
+
+3. Similar to the ros2_controllers `joint_trajectory_controller`, the
+   `end_effector_trajectory_controller` supports sending trajectory messages
+   using messages (as done in the previous step) or actions. To send a
+   trajectory as an action goal, run the following command:
+
+   ```bash
+   ros2 action send_goal /end_effector_trajectory_controller/follow_trajectory auv_control_msgs/action/FollowEndEffectorTrajectory '{<insert action goal here>}'
+   ```
+
+   A pre-configured action goal is available, and can be sent to the controller
+   by running
+
+   ```bash
+   ros2 launch blue_demos send_trajectory_action.launch.yaml
    ```
