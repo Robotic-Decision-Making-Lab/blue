@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="uvms_urdf" params="prefix arm_prefix">
+
+    <xacro:include filename="$(find blue_description)/description/bluerov2_heavy_reach/urdf.xacro" />
+    <xacro:include filename="$(find reach_description)/description/alpha_5/urdf.xacro" />
+    <xacro:include filename="$(find reach_description)/description/alpha_5/standard_jaws/standard_jaws.urdf.xacro" />
+
+    <link name="${prefix}mount_link" />
+    <joint name="${prefix}mount_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0.13 -0.109 0.029" />
+      <parent link="${prefix}base_link" />
+      <child link="${prefix}mount_link" />
+    </joint>
+
+    <!-- add some additional floats to the vehicle to compensate for the manipulator -->
+    <link name="${prefix}float_link">
+      <!-- Front left -->
+      <collision>
+        <origin rpy="0 0 0" xyz="0.11425 0.14375 0.08" />
+        <geometry>
+          <box size="0.2285 0.2875 0.018" />
+        </geometry>
+      </collision>
+      <!-- Front right -->
+      <collision>
+        <origin rpy="0 0 0" xyz="0.11425 -0.14375 0.08" />
+        <geometry>
+          <box size="0.2285 0.2875 0.035" />
+        </geometry>
+      </collision>
+      <!-- Back right -->
+      <collision>
+        <origin rpy="0 0 0" xyz="-0.11425 -0.14375 0.08" />
+        <geometry>
+          <box size="0.2285 0.2875 0.005" />
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="${prefix}float_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0 0 0" />
+      <parent link="${prefix}base_link" />
+      <child link="${prefix}float_link" />
+    </joint>
+
+    <xacro:bluerov2_heavy_reach_urdf prefix="${prefix}" />
+
+    <xacro:alpha_5_urdf parent="${prefix}mount_link" prefix="${prefix}${arm_prefix}" mount_rotation="3.14159">
+      <origin rpy="0 0 0" xyz="0 0 0" />
+    </xacro:alpha_5_urdf>
+    <xacro:standard_jaws parent="${prefix}${arm_prefix}rs1_124_link" prefix="${prefix}${arm_prefix}"
+      mimic_joint="${prefix}${arm_prefix}axis_a" />
+
+  </xacro:macro>
+</robot>

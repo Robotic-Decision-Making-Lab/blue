@@ -1,7 +1,8 @@
 name: Feature Request
 description: Suggest a new idea for the project.
-title: "[FEATURE]: <Please write a descriptive title after the '[FEATURE]: ' prefix>"
-labels: [enhancement, needs triage]
+title: "<Please write a descriptive title>"
+labels: [needs triage]
+type: Feature
 
 body:
   - type: markdown

@@ -6,5 +6,5 @@ message_transforms:
 
     transforms:
       /cmd_vel:
-        outgoing_topic: /integral_sliding_mode_controller/reference
+        outgoing_topic: /adaptive_integral_terminal_sliding_mode_controller/reference
         message_type: geometry_msgs/msg/Twist

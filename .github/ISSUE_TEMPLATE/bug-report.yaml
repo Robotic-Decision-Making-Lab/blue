@@ -1,7 +1,8 @@
 name: Bug Report
 description: Report a bug.
-title: "[BUG]: <Please write a descriptive title after the '[BUG]: ' prefix>"
-labels: [bug, needs triage]
+title: "<Please write a descriptive title>"
+labels: [needs triage]
+type: Bug
 
 body:
   - type: markdown

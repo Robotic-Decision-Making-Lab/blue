@@ -1,0 +1,17 @@
+/manipulator_systems/message_transforms:
+  ros__parameters:
+
+    incoming_topics:
+      - /model/uvms/odometry
+      - /model/target/pose
+
+    transforms:
+      /model/uvms/odometry:
+        outgoing_topic: /model/uvms/odometry_ned
+        message_type: nav_msgs/msg/Odometry
+        frame_id: map_fsd
+        child_frame_id: base_link_fsd
+
+      /model/target/pose:
+        outgoing_topic: /model/target/pose_ned
+        message_type: geometry_msgs/msg/Pose

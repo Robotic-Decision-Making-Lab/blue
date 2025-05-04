@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <xacro:macro name="bluerov2_model">
+    <hydrodynamics>
+      <inertial>
+        <mass value="10.0" />
+        <inertia ixx="0.16" iyy="0.16" izz="0.16" />
+        <center_of_gravity x="0.0" y="0.0" z="0.0" />
+        <added_mass Xdu="-5.50" Ydv="-12.70" Zdw="-14.60" Kdp="-0.12" Mdq="-0.12" Ndr="-0.12" />
+      </inertial>
+
+      <damping>
+        <linear Xu="-4.03" Yv="-6.22" Zw="-5.18" Kp="-0.07" Mq="-0.07" Nr="-0.07" />
+        <quadratic Xuu="-18.18" Yvv="-21.66" Zww="-36.99" Kpp="-1.55" Mqq="-1.55" Nrr="-1.55" />
+      </damping>
+
+      <hydrostatics>
+        <buoyancy value="100.06" />
+        <center_of_buoyancy x="0.0" y="0.0" z="0.0" />
+      </hydrostatics>
+    </hydrodynamics>
+  </xacro:macro>
+
+</robot>

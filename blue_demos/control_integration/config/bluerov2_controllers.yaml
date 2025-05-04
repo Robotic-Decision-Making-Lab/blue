@@ -2,8 +2,8 @@ controller_manager:
   ros__parameters:
     update_rate: 100 # Hz
 
-    integral_sliding_mode_controller:
-      type: velocity_controllers/IntegralSlidingModeController
+    adaptive_integral_terminal_sliding_mode_controller:
+      type: velocity_controllers/AdaptiveIntegralTerminalSlidingModeController
 
     thruster_allocation_matrix_controller:
       type: thruster_allocation_matrix_controller/ThrusterAllocationMatrixController
@@ -26,27 +26,48 @@ controller_manager:
     thruster6_controller:
       type: thruster_controllers/PolynomialThrustCurveController
 
-integral_sliding_mode_controller:
+adaptive_integral_terminal_sliding_mode_controller:
   ros__parameters:
-    use_external_measured_states: true
     reference_controller: thruster_allocation_matrix_controller
+    use_external_measured_states: true
     gains:
-      rho: 15.0
-      lambda: 100.0
-      Kp: [5.0, 5.0, 5.0, 5.0, 5.0, 10.0]
-    tf:
-      base_frame: "base_link_fsd"
-      odom_frame: "map_ned"
-    hydrodynamics:
-      mass: 10.0
-      weight: 98.1
-      buoyancy: 100.06
-      moments_of_inertia: [0.16, 0.16, 0.16]
-      added_mass: [-5.50, -12.70, -14.60, -0.12, -0.12, -0.12]
-      center_of_buoyancy: [0.0, 0.0, 0.0]
-      center_of_gravity: [0.0, 0.0, 0.0]
-      linear_damping: [-4.03, -6.22, -5.18, -0.07, -0.07, -0.07]
-      quadratic_damping: [-18.18, -21.66, -36.99, -1.55, -1.55, -1.55]
+      lambda: 0.9
+      x:
+        alpha: 12.0
+        k1_min: 0.1
+        k2: 0.4
+        k_theta: 2.0
+        mu: 0.01
+      y:
+        alpha: 12.0
+        k1_min: 0.1
+        k2: 0.4
+        k_theta: 2.0
+        mu: 0.01
+      z:
+        alpha: 12.0
+        k1_min: 0.4
+        k2: 0.8
+        k_theta: 2.0
+        mu: 0.01
+      rx:
+        alpha: 0.5
+        k1_min: 0.1
+        k2: 0.4
+        k_theta: 2.0
+        mu: 0.01
+      ry:
+        alpha: 12.0
+        k1_min: 0.1
+        k2: 1.0
+        k_theta: 2.0
+        mu: 0.01
+      rz:
+        alpha: 12.0
+        k1_min: 0.1
+        k2: 0.4
+        k_theta: 2.0
+        mu: 0.01
 
 thruster_allocation_matrix_controller:
   ros__parameters:

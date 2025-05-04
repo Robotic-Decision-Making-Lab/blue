@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<robot name="uvms" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:include filename="$(find blue_demos)/manipulator_systems/description/urdf/uvms.urdf.xacro" />
+  <xacro:include filename="$(find blue_demos)/manipulator_systems/description/urdf/uvms.gazebo.xacro" />
+  <xacro:include filename="$(find blue_demos)/manipulator_systems/description/ros2_control/uvms.ros2_control.xacro" />
+  <xacro:include filename="$(find blue_demos)/manipulator_systems/description/ros2_control/uvms.model.xacro" />
+
+  <xacro:arg name="prefix" default="" />
+  <xacro:arg name="arm_prefix" default="alpha_" />
+  <xacro:arg name="initial_positions_file" default="$(find blue_demos)/manipulator_systems/config/initial_positions.yaml" />
+  <xacro:arg name="controllers_file" default="$(find blue_demos)/manipulator_systems/config/uvms_controllers.yaml" />
+
+  <xacro:uvms_urdf prefix="$(arg prefix)" arm_prefix="$(arg arm_prefix)" />
+  <xacro:uvms_gazebo prefix="$(arg prefix)" controllers_file="$(arg controllers_file)" />
+
+  <xacro:uvms_system prefix="$(arg prefix)" arm_prefix="$(arg arm_prefix)" name="uvms_system"
+    initial_positions_file="$(arg initial_positions_file)" />
+  <xacro:uvms_model />
+
+</robot>
