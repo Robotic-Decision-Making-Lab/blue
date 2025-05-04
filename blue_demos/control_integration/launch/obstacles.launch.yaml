@@ -1,0 +1,18 @@
+launch:
+
+  # Arguments
+  - arg:
+      name: gazebo_world_file
+
+  # Nodes
+  - node:
+      pkg: ros_gz_bridge
+      exec: parameter_bridge
+      args: /clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock
+
+  # Includes
+  - include:
+      file: $(find-pkg-share ros_gz_sim)/launch/gz_sim.launch.py
+      arg:
+        - name: gz_args
+          value: -v 4 -r $(var gazebo_world_file)

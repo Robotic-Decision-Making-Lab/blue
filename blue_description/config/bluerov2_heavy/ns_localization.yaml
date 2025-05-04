@@ -1,0 +1,38 @@
+rob_1:
+  camera:
+    ros__parameters:
+      port: 5600
+      distortion_model: "plumb_bob"
+      frame:
+        height: 1080
+        width: 1920
+      camera_matrix:
+        [1078.17559,        0.0, 1010.57086,
+                0.0, 1076.46176,  463.06243,
+                0.0,        0.0,        1.0]
+      distortion_coefficients:
+        [0.019645, 0.007271, -0.004324, -0.001628, 0.000000]
+      projection_matrix:
+        [1108.25366,        0.0, 1003.75555, 0.0,
+                0.0, 1108.39001,  456.92861, 0.0,
+                0.0,        0.0,        1.0, 0.0]
+
+  qualisys_mocap:
+    ros__parameters:
+      ip: "192.168.254.1"
+      port: 22223
+      version: "1.22"
+      body: "bluerov"
+      prefix: "rob_1/"
+
+  qualisys_localizer:
+    ros__parameters:
+      update_rate: 30.0
+      body: "bluerov" # This should be the same as the body parameter setting for the qualisys_mocap node
+      prefix: "rob_1/"
+
+  gazebo_localizer:
+    ros__parameters:
+      update_rate: 30.0
+      gazebo_odom_topic: "/model/rob_1/bluerov2_heavy/odometry"
+      prefix: "rob_1/"

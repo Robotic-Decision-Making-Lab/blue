@@ -1,6 +1,6 @@
 services:
   blue:
-    image: ghcr.io/robotic-decision-making-lab/blue:rolling-desktop-nvidia
+    image: ghcr.io/robotic-decision-making-lab/blue:iron-desktop-nvidia
     environment:
       - DISPLAY=${DISPLAY}
       - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}

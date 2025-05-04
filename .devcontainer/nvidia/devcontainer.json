@@ -14,6 +14,7 @@
     "--privileged",
     "--volume=/tmp/.X11-unix:/tmp/.X11-unix",
     "--volume=/mnt/wslg:/mnt/wslg",
+    "--volume=/home/akshaya/Research/doc_vol/learn_ros2:/home/blue/ws_blue/src/learn_ros2",
     "--gpus=all"
   ],
   "containerEnv": {
