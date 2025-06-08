@@ -1,4 +1,7 @@
-FROM ghcr.io/jbvakshaya/blue:iron-nvidia-ompl
+# FROM ghcr.io/jbvakshaya/blue:iron-nvidia-ompl
+FROM ghcr.io/jbvakshaya/blue:iron-nvidia-multi-robots-mp_no_pinocchio
+# With above image we probably don't need to install any other dependencies
+
 # FROM ghcr.io/robotic-decision-making-lab/blue:iron-desktop-nvidia
 
 # Install ROS dependencies
@@ -9,19 +12,19 @@ ENV USER_WORKSPACE=/home/$USERNAME/ws_blue
 WORKDIR $USER_WORKSPACE
 
 COPY --chown=$USER_UID:$USER_GID . src/blue
-RUN sudo apt-get -q update \
-    && sudo apt-get -q -y upgrade \
-    && rosdep update \
-    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9 gz-plugin2" \
-    && sudo apt-get autoremove -y \
-    && sudo apt-get clean -y \
-    && sudo rm -rf /var/lib/apt/lists/*
+# RUN sudo apt-get -q update \
+#     && sudo apt-get -q -y upgrade \
+#     && rosdep update \
+#     && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9 gz-plugin2" \
+#     && sudo apt-get autoremove -y \
+#     && sudo apt-get clean -y \
+#     && sudo rm -rf /var/lib/apt/lists/*
 
-# Install OMPL with ROS2
-RUN curl http://repo.ros2.org/repos.key | sudo apt-key add -\
-    && sudo apt-get update \
-    && sudo apt-get install -y nano \
-    && sudo apt-get install -y ros-iron-ompl
+# # Install OMPL with ROS2
+# RUN curl http://repo.ros2.org/repos.key | sudo apt-key add -\
+#     && sudo apt-get update \
+#     && sudo apt-get install -y nano \
+#     && sudo apt-get install -y ros-iron-ompl
 
 # RUN cd ${USER_WORKSPACE}/src/learn_ros2 \
 #     && echo "Check me" \

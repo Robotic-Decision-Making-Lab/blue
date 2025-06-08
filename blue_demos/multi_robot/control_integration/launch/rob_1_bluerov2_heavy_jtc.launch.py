@@ -17,6 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
@@ -95,12 +96,44 @@ def generate_launch_description() -> LaunchDescription:
                     "multi_robot",
                     "control_integration",
                     "config",
-                    "rob_1_bluerov2_heavy_controllers.yaml",
+                    "rob_1_bluerov2_heavy_jtc.yaml",
                 ]
             ),
         ],
         remappings=[
             ("controller_manager/robot_description", "robot_description"),
+        ],
+    )
+
+    # obstacles_config_file = PathJoinSubstitution(
+    #     [
+    #         FindPackageShare("blue_demos"),
+    #         "multi_robot",
+    #         "motion_planning",
+    #         "config",
+    #         "obstacles.yaml",
+    #     ]
+    # )
+    # gz_ros_obstacles_bridge = Node(
+    #     package="ros_gz_bridge",
+    #     executable="parameter_bridge",
+    #     arguments=[
+    #         "--ros-args",
+    #         "-p",
+    #         "config_file:=$(find blue_demos)/multi_robot/motion_planning/config/ros_gz_obstacles.yaml",
+    #     ],
+    #     output="screen",
+    # )
+
+    jt_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "jt_controller",
+            "--controller-manager",
+            ["", "controller_manager"],
+            "--namespace",
+            "rob_1",
         ],
     )
 
@@ -177,13 +210,24 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    delay_jt_controller_spawner_after_velocity_controller_spawner = (
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=velocity_controller_spawner,
+                on_exit=[jt_controller_spawner],
+            )
+        )
+    )
+
     return LaunchDescription(
         [
             *args,
             message_transformer_with_ns,
+            # gz_ros_obstacles_bridge,
             controller_manager,
             *delay_thruster_spawners,
             delay_tam_controller_spawner_after_thruster_controller_spawners,
             delay_velocity_controller_spawner_after_tam_controller_spawner,
+            delay_jt_controller_spawner_after_velocity_controller_spawner,
         ]
     )

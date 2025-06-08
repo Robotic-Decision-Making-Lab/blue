@@ -1,0 +1,99 @@
+launch:
+
+  - let:
+      name: use_sim
+      value: "true"
+
+  - let:
+      name: description_file
+      value: $(find-pkg-share blue_demos)/control_integration/description/urdf/bluerov2_heavy.config.xacro
+
+  - group:
+    - let:
+        name: namespace
+        value: "rob_1"
+
+    - let:
+        name: prefix
+        value: "rob_1/"
+
+    - push-ros-namespace:
+        namespace: "$(var namespace)"
+
+    - let:
+        name: fdm_port_in
+        value: "9002"
+
+    - let:
+        name: fdm_port_out
+        value: "9003"
+
+    - let:
+        name: use_mavros_odom
+        value: "true"
+
+    - let:
+        name: mavros_odom_topic
+        value: /rob_1/local_position/odom
+
+    - let:
+        name: robot_description
+        value: $(command 'xacro $(var description_file) prefix:=$(var prefix) use_sim:=$(var use_sim) fdm_port_in:=$(var fdm_port_in) fdm_port_out:=$(var fdm_port_out) use_mavros_odom:=$(var use_mavros_odom) mavros_odom_topic:=$(var mavros_odom_topic)')
+
+
+    # # Nodes
+    - node:
+        pkg: robot_state_publisher
+        exec: robot_state_publisher
+        param:
+          - name: robot_description
+            value: $(var robot_description)
+          - name: use_sim_time
+            value: $(var use_sim)
+          - name: tf_prefix
+            value: $(var prefix)
+
+  - group:
+    - let:
+        name: namespace
+        value: "rob_3"
+
+    - let:
+        name: prefix
+        value: "rob_3/"
+
+    - push-ros-namespace:
+        namespace: "$(var namespace)"
+
+    - let:
+        name: fdm_port_in
+        value: "9012"
+
+    - let:
+        name: fdm_port_out
+        value: "9013"
+
+    - let:
+        name: use_mavros_odom
+        value: "true"
+
+    - let:
+        name: mavros_odom_topic
+        value: /rob_3/local_position/odom
+
+    - let:
+        name: robot_description
+        value: $(command 'xacro $(var description_file) prefix:=$(var prefix) use_sim:=$(var use_sim) fdm_port_in:=$(var fdm_port_in) fdm_port_out:=$(var fdm_port_out) use_mavros_odom:=$(var use_mavros_odom) mavros_odom_topic:=$(var mavros_odom_topic)')
+
+
+    # # Nodes
+    - node:
+        pkg: robot_state_publisher
+        exec: robot_state_publisher
+        param:
+          - name: robot_description
+            value: $(var robot_description)
+          - name: use_sim_time
+            value: $(var use_sim)
+          - name: tf_prefix
+            value: $(var prefix)
