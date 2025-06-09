@@ -1,5 +1,5 @@
 # FROM ghcr.io/jbvakshaya/blue:iron-nvidia-ompl
-FROM ghcr.io/jbvakshaya/blue:iron-nvidia-multi-robots-mp_no_pinocchio
+FROM ghcr.io/jbvakshaya/blue:iron-nvidia-multi-robots-recent
 # With above image we probably don't need to install any other dependencies
 
 # FROM ghcr.io/robotic-decision-making-lab/blue:iron-desktop-nvidia
