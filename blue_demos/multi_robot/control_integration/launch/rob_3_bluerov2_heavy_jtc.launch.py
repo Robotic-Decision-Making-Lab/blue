@@ -17,6 +17,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
@@ -38,7 +39,7 @@ def generate_launch_description() -> LaunchDescription:
     args = [
         DeclareLaunchArgument(
             "prefix",
-            default_value="rob_1/",
+            default_value="rob_3/",
             description=(
                 "The prefix of the model. This is useful for multi-robot setups."
                 " Expected format '<prefix>/'."
@@ -69,7 +70,7 @@ def generate_launch_description() -> LaunchDescription:
                     "multi_robot",
                     "control_integration",
                     "config",
-                    "rob_1_transforms.yaml",
+                    "rob_3_transforms.yaml",
                 ]
             ),
             "ns": TextSubstitution(text="control_integration"),
@@ -78,7 +79,7 @@ def generate_launch_description() -> LaunchDescription:
 
     message_transformer_with_ns = GroupAction(
         actions=[
-            PushROSNamespace("rob_1"),
+            PushROSNamespace("rob_3"),
             message_transformer,
         ]
     )
@@ -87,7 +88,7 @@ def generate_launch_description() -> LaunchDescription:
         package="controller_manager",
         executable="ros2_control_node",
         output="both",
-        namespace="rob_1",
+        namespace="rob_3",
         parameters=[
             PathJoinSubstitution(
                 [
@@ -95,12 +96,24 @@ def generate_launch_description() -> LaunchDescription:
                     "multi_robot",
                     "control_integration",
                     "config",
-                    "rob_1_bluerov2_heavy_controllers.yaml",
+                    "rob_3_bluerov2_heavy_jtc.yaml",
                 ]
             ),
         ],
         remappings=[
             ("controller_manager/robot_description", "robot_description"),
+        ],
+    )
+
+    jt_controller_spawner = Node(
+        package="controller_manager",
+        executable="spawner",
+        arguments=[
+            "jt_controller",
+            "--controller-manager",
+            ["", "controller_manager"],
+            "--namespace",
+            "rob_3",
         ],
     )
 
@@ -112,7 +125,7 @@ def generate_launch_description() -> LaunchDescription:
             "--controller-manager",
             ["", "controller_manager"],
             "--namespace",
-            "rob_1",
+            "rob_3",
         ],
     )
 
@@ -125,7 +138,7 @@ def generate_launch_description() -> LaunchDescription:
                 "--controller-manager",
                 ["", "controller_manager"],
                 "--namespace",
-                "rob_1",
+                "rob_3",
             ],
         )
         for i in range(8)  # BlueROV2 Heavy has 8 thrusters
@@ -155,7 +168,7 @@ def generate_launch_description() -> LaunchDescription:
             "--controller-manager",
             ["", "controller_manager"],
             "--namespace",
-            "rob_1",
+            "rob_3",
         ],
     )
 
@@ -177,6 +190,15 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    delay_jt_controller_spawner_after_velocity_controller_spawner = (
+        RegisterEventHandler(
+            event_handler=OnProcessExit(
+                target_action=velocity_controller_spawner,
+                on_exit=[jt_controller_spawner],
+            )
+        )
+    )
+
     return LaunchDescription(
         [
             *args,
@@ -185,5 +207,6 @@ def generate_launch_description() -> LaunchDescription:
             *delay_thruster_spawners,
             delay_tam_controller_spawner_after_thruster_controller_spawners,
             delay_velocity_controller_spawner_after_tam_controller_spawner,
+            delay_jt_controller_spawner_after_velocity_controller_spawner,
         ]
     )

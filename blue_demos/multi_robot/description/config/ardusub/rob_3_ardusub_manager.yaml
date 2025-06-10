@@ -5,5 +5,5 @@ rob_3:
         ids: [31, 32]
         rates: [50.0, 50.0]
       set_ekf_origin: true
-      publish_tf: false
+      publish_tf: true
       prefix: "rob_3/"

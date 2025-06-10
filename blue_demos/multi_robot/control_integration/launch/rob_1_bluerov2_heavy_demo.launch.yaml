@@ -9,6 +9,9 @@ launch:
         default: $(find-pkg-share blue_demos)/multi_robot/description/gazebo/worlds/underwater_with_obstacles.world
 
   - arg:
+        name: gz_ros_bridge_obstacle_file
+        default: $(find-pkg-share blue_demos)/multi_robot/motion_planning/config/ros_gz_obstacles.yaml
+  - arg:
         name: use_sim
         default: "false"
 
@@ -41,15 +44,15 @@ launch:
       value: "1"
 
   - let:
-      name: rob_x
-      value: "0.0"
+      name: init_rob_x
+      value: "-3.0"
 
   - let:
-      name: rob_y
-      value: "4.0"
+      name: init_rob_y
+      value: "-3.0"
 
   - let:
-      name: rob_z
+      name: init_rob_z
       value: "0.0"
 
   - let:
@@ -103,16 +106,19 @@ launch:
             value: $(var sysid_thismav)
           - name: localization_file
             value: $(var localization_file)
-          - name: rob_x
-            value: $(var rob_x)
-          - name: rob_y
-            value: $(var rob_y)
-          - name: rob_z
-            value: $(var rob_z)
+          - name: init_rob_x
+            value: $(var init_rob_x)
+          - name: init_rob_y
+            value: $(var init_rob_y)
+          - name: init_rob_z
+            value: $(var init_rob_z)
 
-    #Spawn obstacles
+    #Spawn obstacles and bridge them to ROS
     - include:
-        file: $(find-pkg-share blue_demos)/control_integration/launch/obstacles.launch.yaml
+        file: $(find-pkg-share blue_demos)/multi_robot/control_integration/launch/obstacles.launch.yaml
         arg:
           - name: gazebo_world_file
             value: $(var gazebo_world_file)
+          - name: gz_ros_bridge_obstacle_file
+            value: $(var gz_ros_bridge_obstacle_file)
+

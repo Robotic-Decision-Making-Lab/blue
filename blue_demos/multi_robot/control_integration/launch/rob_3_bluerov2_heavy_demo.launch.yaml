@@ -22,15 +22,15 @@ launch:
 
   - arg:
       name: mavros_file
-      default: $(find-pkg-share blue_description)/config/ardusub/rob_3_mavros.yaml
+      default: $(find-pkg-share blue_demos)/multi_robot/description/config/ardusub/rob_3_mavros.yaml
 
   - let:
       name: manager_file
-      value: $(find-pkg-share blue_description)/config/ardusub/ROB_3_ardusub_manager.yaml
+      value: $(find-pkg-share blue_demos)/multi_robot/description/config/ardusub/rob_3_ardusub_manager.yaml
 
   - let:
       name: localization_file
-      value: $(find-pkg-share blue_description)/config/bluerov2_heavy/ROB_3_localization.yaml
+      value: $(find-pkg-share blue_demos)/multi_robot/description/config/bluerov2_heavy/rob_3_localization.yaml
 
   - let:
       name: ardusub_instance
@@ -41,15 +41,15 @@ launch:
       value: "2"
 
   - let:
-      name: rob_x
+      name: init_rob_x
       value: "0.0"
 
   - let:
-      name: rob_y
+      name: init_rob_y
       value: "0.0"
 
   - let:
-      name: rob_z
+      name: init_rob_z
       value: "0.0"
 
   - let:
@@ -64,6 +64,14 @@ launch:
       name: fdm_port_out
       value: "9013"
 
+  - let:
+      name: use_mavros_odom
+      value: "true"
+
+  - let:
+      name: mavros_odom_topic
+      value: /rob_3/local_position/odom
+
   - group:
     - push-ros-namespace:
         namespace: "$(var namespace)"
@@ -74,7 +82,7 @@ launch:
 
     - let:
         name: robot_description
-        value: $(command 'xacro $(var description_file) prefix:=$(var prefix) use_sim:=$(var use_sim) fdm_port_in:=$(var fdm_port_in) fdm_port_out:=$(var fdm_port_out)')
+        value: $(command 'xacro $(var description_file) prefix:=$(var prefix) use_sim:=$(var use_sim) fdm_port_in:=$(var fdm_port_in) fdm_port_out:=$(var fdm_port_out) use_mavros_odom:=$(var use_mavros_odom) mavros_odom_topic:=$(var mavros_odom_topic)')
 
     - include:
         file: $(find-pkg-share blue_bringup)/launch/bluerov2_heavy/ns_bluerov2_heavy.launch.yaml
@@ -95,14 +103,14 @@ launch:
             value: $(var sysid_thismav)
           - name: localization_file
             value: $(var localization_file)
-          - name: rob_x
-            value: $(var rob_x)
-          - name: rob_y
-            value: $(var rob_y)
-          - name: rob_z
-            value: $(var rob_z)
+          - name: init_rob_x
+            value: $(var init_rob_x)
+          - name: init_rob_y
+            value: $(var init_rob_y)
+          - name: init_rob_z
+            value: $(var init_rob_z)
 
-    #Spawn obstacles
+    # Spawn obstacles
     # - include:
     #     file: $(find-pkg-share blue_demos)/control_integration/launch/obstacles.launch.yaml
     #     arg:

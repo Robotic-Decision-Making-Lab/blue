@@ -79,15 +79,15 @@ launch:
       default: "1"
 
   - arg:
-      name: rob_x
+      name: init_rob_x
       default: "0.0"
 
   - arg:
-      name: rob_y
+      name: init_rob_y
       default: "0.0"
 
   - arg:
-      name: rob_z
+      name: init_rob_z
       default: "0.0"
 
   # Nodes
@@ -134,12 +134,12 @@ launch:
           value: $(var ardusub_instance)
         - name: sysid_thismav
           value: $(var sysid_thismav)
-        - name: rob_x
-          value: $(var rob_x)
-        - name: rob_y
-          value: $(var rob_y)
-        - name: rob_z
-          value: $(var rob_z)
+        - name: init_rob_x
+          value: $(var init_rob_x)
+        - name: init_rob_y
+          value: $(var init_rob_y)
+        - name: init_rob_z
+          value: $(var init_rob_z)
 
   - include:
       file: $(find-pkg-share blue_localization)/localization.launch.py

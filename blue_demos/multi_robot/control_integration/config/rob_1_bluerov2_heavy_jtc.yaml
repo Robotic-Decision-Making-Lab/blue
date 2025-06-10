@@ -1,4 +1,4 @@
-controller_manager:
+rob_1/controller_manager:
   ros__parameters:
     update_rate: 100 # Hz
 
@@ -35,7 +35,7 @@ controller_manager:
     thruster8_controller:
       type: thruster_controllers/PolynomialThrustCurveController
 
-jt_controller:
+rob_1/jt_controller:
   ros__parameters:
     action_monitor_rate: 20.0
     allow_integration_in_goal_trajectories: false
@@ -73,7 +73,7 @@ jt_controller:
         trajectory: 0.05
         goal: 0.03
 
-integral_sliding_mode_controller:
+rob_1/integral_sliding_mode_controller:
   ros__parameters:
     use_external_measured_states: true
     reference_controller: thruster_allocation_matrix_controller
@@ -82,7 +82,7 @@ integral_sliding_mode_controller:
       lambda: 200.0
       Kp: [10.0, 10.0, 6.0, 3.0, 6.0, 10.0]
     tf:
-      base_frame: "base_link_fsd"
+      base_frame: "rob_1/base_link_fsd"
       odom_frame: "map_ned"
     hydrodynamics:
       mass: 13.5
@@ -95,17 +95,17 @@ integral_sliding_mode_controller:
       linear_damping: [-4.03, -6.22, -5.18, -0.07, -0.07, -0.07]
       quadratic_damping: [-18.18, -21.66, -36.99, -1.55, -1.55, -1.55]
 
-thruster_allocation_matrix_controller:
+rob_1/thruster_allocation_matrix_controller:
   ros__parameters:
     thrusters:
-      - thruster1_joint
-      - thruster2_joint
-      - thruster3_joint
-      - thruster4_joint
-      - thruster5_joint
-      - thruster6_joint
-      - thruster7_joint
-      - thruster8_joint
+      - rob_1/thruster1_joint
+      - rob_1/thruster2_joint
+      - rob_1/thruster3_joint
+      - rob_1/thruster4_joint
+      - rob_1/thruster5_joint
+      - rob_1/thruster6_joint
+      - rob_1/thruster7_joint
+      - rob_1/thruster8_joint
     reference_controllers:
       - thruster1_controller
       - thruster2_controller
@@ -123,9 +123,9 @@ thruster_allocation_matrix_controller:
       ry: [    0.0,     0.0,     0.0,    0.0,    -0.12,   -0.12,     0.12,    0.12]
       rz: [0.1888,  -0.1888, -0.1888, 0.1888,      0.0,     0.0,      0.0,     0.0]
 
-thruster1_controller:
+rob_1/thruster1_controller:
   ros__parameters:
-    thruster: thruster1_joint
+    thruster: rob_1/thruster1_joint
     min_thrust: -40.0
     max_thrust: 60.0
     min_deadband: 1470
@@ -133,9 +133,9 @@ thruster1_controller:
     neutral_pwm: 1500
     thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
 
-thruster2_controller:
+rob_1/thruster2_controller:
   ros__parameters:
-    thruster: thruster2_joint
+    thruster: rob_1/thruster2_joint
     min_thrust: -40.0
     max_thrust: 60.0
     min_deadband: 1470
@@ -143,9 +143,9 @@ thruster2_controller:
     neutral_pwm: 1500
     thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
 
-thruster3_controller:
+rob_1/thruster3_controller:
   ros__parameters:
-    thruster: thruster3_joint
+    thruster: rob_1/thruster3_joint
     min_thrust: -40.0
     max_thrust: 60.0
     min_deadband: 1470
@@ -153,9 +153,9 @@ thruster3_controller:
     neutral_pwm: 1500
     thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
 
-thruster4_controller:
+rob_1/thruster4_controller:
   ros__parameters:
-    thruster: thruster4_joint
+    thruster: rob_1/thruster4_joint
     min_thrust: -40.0
     max_thrust: 60.0
     min_deadband: 1470
@@ -163,9 +163,9 @@ thruster4_controller:
     neutral_pwm: 1500
     thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
 
-thruster5_controller:
+rob_1/thruster5_controller:
   ros__parameters:
-    thruster: thruster5_joint
+    thruster: rob_1/thruster5_joint
     min_thrust: -40.0
     max_thrust: 60.0
     min_deadband: 1470
@@ -173,9 +173,9 @@ thruster5_controller:
     neutral_pwm: 1500
     thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
 
-thruster6_controller:
+rob_1/thruster6_controller:
   ros__parameters:
-    thruster: thruster6_joint
+    thruster: rob_1/thruster6_joint
     min_thrust: -40.0
     max_thrust: 60.0
     min_deadband: 1470
@@ -183,9 +183,9 @@ thruster6_controller:
     neutral_pwm: 1500
     thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
 
-thruster7_controller:
+rob_1/thruster7_controller:
   ros__parameters:
-    thruster: thruster7_joint
+    thruster: rob_1/thruster7_joint
     min_thrust: -40.0
     max_thrust: 60.0
     min_deadband: 1470
@@ -193,9 +193,9 @@ thruster7_controller:
     neutral_pwm: 1500
     thrust_curve_coefficients: [1498.0, 12.01, -0.04731, -0.002098, 0.00002251]
 
-thruster8_controller:
+rob_1/thruster8_controller:
   ros__parameters:
-    thruster: thruster8_joint
+    thruster: rob_1/thruster8_joint
     min_thrust: -40.0
     max_thrust: 60.0
     min_deadband: 1470
