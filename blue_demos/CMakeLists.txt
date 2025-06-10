@@ -20,7 +20,6 @@ install(
   DIRECTORY multi_robot/control_integration
             multi_robot/teleoperation
             multi_robot/description
-            multi_robot/motion_planning
   DESTINATION share/blue_demos/multi_robot
 )
 
