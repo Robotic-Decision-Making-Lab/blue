@@ -22,15 +22,15 @@ launch:
 
   - arg:
       name: mavros_file
-      default: $(find-pkg-share blue_description)/config/ardusub/rob_3_mavros.yaml
+      default: $(find-pkg-share blue_demos)/multi_robot/description/config/ardusub/rob_3_mavros.yaml
 
   - let:
       name: manager_file
-      value: $(find-pkg-share blue_description)/config/ardusub/ROB_3_ardusub_manager.yaml
+      value: $(find-pkg-share blue_demos)/multi_robot/description/config/ardusub/rob_3_ardusub_manager.yaml
 
   - let:
       name: localization_file
-      value: $(find-pkg-share blue_description)/config/bluerov2_heavy/ROB_3_localization.yaml
+      value: $(find-pkg-share blue_demos)/multi_robot/description/config/bluerov2_heavy/rob_3_localization.yaml
 
   - let:
       name: ardusub_instance
@@ -41,15 +41,15 @@ launch:
       value: "2"
 
   - let:
-      name: rob_x
+      name: init_rob_x
       value: "0.0"
 
   - let:
-      name: rob_y
+      name: init_rob_y
       value: "0.0"
 
   - let:
-      name: rob_z
+      name: init_rob_z
       value: "0.0"
 
   - let:
@@ -95,16 +95,9 @@ launch:
             value: $(var sysid_thismav)
           - name: localization_file
             value: $(var localization_file)
-          - name: rob_x
-            value: $(var rob_x)
-          - name: rob_y
-            value: $(var rob_y)
-          - name: rob_z
-            value: $(var rob_z)
-
-    #Spawn obstacles
-    # - include:
-    #     file: $(find-pkg-share blue_demos)/control_integration/launch/obstacles.launch.yaml
-    #     arg:
-    #       - name: gazebo_world_file
-    #         value: $(var gazebo_world_file)
+          - name: init_rob_x
+            value: $(var init_rob_x)
+          - name: init_rob_y
+            value: $(var init_rob_y)
+          - name: init_rob_z
+            value: $(var init_rob_z)

@@ -65,9 +65,6 @@ jt_controller:
       - position
       - velocity
 
-    action_monitor_rate: 20.0
-
-    allow_partial_joints_goal: true
     open_loop_control: true
     constraints:
       stopped_velocity_tolerance: 0.01
