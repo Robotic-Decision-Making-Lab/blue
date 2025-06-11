@@ -4,9 +4,6 @@ launch:
   - arg:
       name: gazebo_world_file
 
-  - arg:
-      name: gz_ros_bridge_obstacle_file
-
   # Nodes
   - node:
       pkg: ros_gz_bridge
@@ -19,13 +16,3 @@ launch:
       arg:
         - name: gz_args
           value: -v 4 -r $(var gazebo_world_file)
-
-  - node:
-        pkg: ros_gz_bridge
-        exec: parameter_bridge
-        output: screen
-        param:
-          - name: config_file
-            value: $(var gz_ros_bridge_obstacle_file)
-
-

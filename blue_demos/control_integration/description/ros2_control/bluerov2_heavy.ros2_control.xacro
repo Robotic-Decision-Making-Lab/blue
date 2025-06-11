@@ -68,16 +68,6 @@
       </joint>
 
     </ros2_control>
-    <xacro:if value="${use_mavros_odom}">
-      <ros2_control name="MavrosOdomSensor" type="sensor">
-        <hardware>
-          <plugin>mavros_odom_sensor/MavrosOdomSensor</plugin>
-          <param name="max_set_param_attempts">${max_set_param_attempts}</param>
-          <param name="mavros_odom_topic">${mavros_odom_topic}</param>
-          <param name="namespace">${prefix}</param>
-        </hardware>
-      </ros2_control>
-    </xacro:if>
 
   </xacro:macro>
 
