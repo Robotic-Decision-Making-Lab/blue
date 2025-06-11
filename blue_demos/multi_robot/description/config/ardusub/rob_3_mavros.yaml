@@ -1,0 +1,48 @@
+rob_3:
+  mavros:
+    ros__parameters:
+      system_id: 255
+      base_link_frame_id: rob_3/base_link
+      plugin_allowlist:
+        - sys_status
+        - command
+        - imu
+        - rc_io
+        - param
+        - vision*
+        - local*
+        - global_position
+
+  mavros_node:
+    ros__parameters:
+      base_link_frame: "rob_3/base_link"
+      map_frame: "map"
+      odom_frame: "odom"
+      fcu_url: "tcp://localhost:5770"
+      gcs_url: "udp://@localhost:14550"
+      tgt_system: 2
+
+  local_position:
+    ros__parameters:
+      frame_id: "map"
+      tf:
+        child_frame_id: "rob_3/base_link"
+        send: false
+
+  imu:
+    ros__parameters:
+      frame_id: "rob_3/base_link"
+
+  global_position:
+    ros__parameters:
+      child_frame_id: "rob_3/base_link"
+      frame_id: "map"
+      tf:
+        child_frame_id: "rob_3/base_link"
+        global_frame_id: "earth"
+        send: false
+
+  vision_pose:
+    ros__parameters:
+      tf/child_frame_id: "rob_3/vision_estimate"
+      tf/frame_id: map

@@ -1,10 +1,15 @@
 ARG ROS_DISTRO=rolling
 FROM ros:$ROS_DISTRO-ros-base AS ci
 
+FROM ros:$ROS_DISTRO-ros-base AS ci
+ARG USERNAME
+ARG USER_UID
+ARG USER_GID
 ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /root/ws_blue
 COPY . src/blue
+RUN echo 'ompl' > ompl.txt
 
 # Install apt packages needed for CI
 RUN apt-get -q update \
@@ -53,7 +58,7 @@ FROM ci AS robot
 # jazzy and rolling images, now includes a user "ubuntu" at UID 1000
 ARG USERNAME=ubuntu
 ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USER_GID=1000
 
 RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
@@ -88,6 +93,8 @@ COPY --chown=$USER_UID:$USER_GID . src/blue
 
 # Install the Python requirements that aren't available as rosdeps
 RUN python3 -m pip install -r $(pwd)/src/blue/requirements-build.txt
+
+RUN sudo apt-get -q update && sudo apt-get install nano
 
 # Install gstreamer
 RUN sudo apt-get -q update \
@@ -206,7 +213,7 @@ RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && vcs import src < src/blue/sim.repos \
     && rosdep update \
-    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
+    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} --skip-keys="gz-transport12 gz-sim7 gz-math7 gz-msgs9 gz-plugin2" \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
@@ -216,6 +223,12 @@ RUN sudo apt-get -q update \
 # This will limit the amount of RAM that colcon is allowed to use
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
     && colcon build
+
+# Install OMPL with ROS2
+RUN curl http://repo.ros2.org/repos.key | sudo apt-key add -\
+    && sudo apt-get update \
+    && sudo apt-get install -y nano \
+    && sudo apt-get install -y ros-iron-ompl
 
 # Setup the simulation environment variables
 RUN  <<EOT cat >> /home/$USERNAME/.bashrc
@@ -235,6 +248,17 @@ EOT
 
 FROM desktop AS desktop-nvidia
 
+# Add ardupilot_gazebo plugin
+export GZ_SIM_SYSTEM_PLUGIN_PATH=\$HOME/ardupilot_gazebo/build:\$GZ_SIM_SYSTEM_PLUGIN_PATH
+
+# Add ardupilot_gazebo models and worlds
+export GZ_SIM_RESOURCE_PATH=\$HOME/ardupilot_gazebo/models:\$HOME/ardupilot_gazebo/worlds:\$GZ_SIM_RESOURCE_PATH
+EOT
+
+FROM desktop AS desktop-nvidia
+ARG USERNAME
+ARG USER_UID
+ARG USER_GID
 # Install NVIDIA software
 RUN sudo apt-get update \
     && sudo apt-get -q -y upgrade \
@@ -248,6 +272,10 @@ RUN sudo apt-get update \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
+
+#Install nano
+RUN sudo apt-get update \
+    && sudo apt-get install -y nano
 
 # Env vars for the nvidia-container-runtime.
 ENV NVIDIA_VISIBLE_DEVICES=all

@@ -1,12 +1,14 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="ardusub_thruster_system" params="prefix name max_set_param_attempts:=^3">
+  <xacro:macro name="ardusub_thruster_system"
+    params="prefix name use_mavros_odom mavros_odom_topic max_set_param_attempts:=^3">
     <ros2_control name="${name}" type="system">
 
       <hardware>
         <plugin>thruster_hardware/ThrusterHardware</plugin>
         <param name="max_set_param_attempts">${max_set_param_attempts}</param>
+        <param name="namespace">${prefix}</param>
       </hardware>
 
       <joint name="${prefix}thruster1_joint">
@@ -66,6 +68,7 @@
       </joint>
 
     </ros2_control>
+
   </xacro:macro>
 
 </robot>

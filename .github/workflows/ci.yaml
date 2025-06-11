@@ -3,7 +3,7 @@ name: Check Implementation
 on:
   push:
     branches:
-      - main
+      - iron
   pull_request:
   workflow_dispatch:
 
@@ -19,8 +19,8 @@ jobs:
       fail-fast: false
       matrix:
         env:
-          - IMAGE: rolling-ci
-            ROS_DISTRO: rolling
+          - IMAGE: iron-ci
+            ROS_DISTRO: iron
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

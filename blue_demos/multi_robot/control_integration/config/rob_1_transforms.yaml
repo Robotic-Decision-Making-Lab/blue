@@ -1,0 +1,11 @@
+rob_1/control_integration/message_transforms:
+  ros__parameters:
+
+    incoming_topics:
+      - /rob_1/local_position/velocity_body
+
+    transforms:
+      /rob_1/local_position/velocity_body:
+        outgoing_topic: /rob_1/integral_sliding_mode_controller/system_state
+        message_type: geometry_msgs/msg/TwistStamped
+        frame_id: rob_1/base_link_fsd

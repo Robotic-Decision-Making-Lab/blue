@@ -26,7 +26,7 @@
         </geometry>
         <origin rpy="0 0 0" xyz="0 0 0" />
       </visual>
-      <collision name="base_link_collision">
+      <collision name="${prefix}base_link_collision">
         <geometry>
           <box size="0.457 0.575 0.05" />
         </geometry>
