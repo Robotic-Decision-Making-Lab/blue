@@ -1,0 +1,20 @@
+services:
+  blue:
+    #save the image in the container registry
+    image: ghcr.io/patpat98/bubble_blue:jazzy-desktop
+    environment:
+      - DISPLAY=${DISPLAY}
+      - XDG_RUNTIME_DIR=${XDG_RUNTIME_DIR}
+      - WAYLAND_DISPLAY=${WAYLAND_DISPLAY}
+      - PULSE_SERVER=${PULSE_SERVER}
+    network_mode: host
+    privileged: true
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    volumes:
+      - /dev:/dev
+      - /run/user/1000:/run/user/1000
+    command: tail -f /dev/null
