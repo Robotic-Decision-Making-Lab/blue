@@ -10,7 +10,7 @@
 #   docker buildx bake
 #
 variable "BLUE_ROS_DISTRO" { default = "jazzy" }
-variable "BLUE_GITHUB_REPO" { default = "radam1/bubble_blue" }
+variable "BLUE_GITHUB_REPO" { default = "patpat98/bubble_blue" }
 
 group "default" {
   targets = ["ci", "robot", "desktop"]
