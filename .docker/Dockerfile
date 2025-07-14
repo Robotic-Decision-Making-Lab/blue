@@ -1,4 +1,4 @@
-ARG ROS_DISTRO=rolling
+ARG ROS_DISTRO=jazzy
 FROM ros:$ROS_DISTRO-ros-base AS ci
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -53,7 +53,7 @@ FROM ci AS robot
 # jazzy and rolling images, now includes a user "ubuntu" at UID 1000
 ARG USERNAME=ubuntu
 ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USER_GID=1000
 
 RUN echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
@@ -127,7 +127,7 @@ RUN sudo apt-get -q update \
 
 # Actually build workspace
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
-    && colcon build
+    && colcon build --parallel-workers 2
 
 RUN echo "source ${USER_WORKSPACE}/install/setup.bash" >> /home/$USERNAME/.bashrc \
     && echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /home/$USERNAME/.bashrc \
@@ -215,7 +215,7 @@ RUN sudo apt-get -q update \
 # Modify the 'colcon build' line to be 'MAKEFLAGS="-j1 -l1" colcon build'
 # This will limit the amount of RAM that colcon is allowed to use
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
-    && colcon build
+    && MAKEFLAGS="-j1 -l1" colcon build
 
 # Setup the simulation environment variables
 RUN  <<EOT cat >> /home/$USERNAME/.bashrc
