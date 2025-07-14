@@ -15,14 +15,14 @@ on:
   workflow_dispatch:
 
 env:
-  PUSH: ${{ (github.event_name != 'pull_request') && (github.repository == 'Robotic-Decision-Making-Lab/blue') }}
+  PUSH: ${{ (github.event_name != 'pull_request') && (github.repository == 'patpat98/bubble_blue') }}
 
 jobs:
   docker_build:
     strategy:
       fail-fast: false
       matrix:
-        ROS_DISTRO: [rolling]
+        ROS_DISTRO: [jazzy]
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -93,15 +93,15 @@ jobs:
           tags: |
             type=raw,value=${{ matrix.ROS_DISTRO }}-desktop
 
-      - name: Set Docker metadata for "desktop-nvidia"
-        if: env.PUSH == 'true'
-        id: meta-desktop-nvidia
-        uses: docker/metadata-action@v5.7.0
-        with:
-          images: ghcr.io/${{ github.repository }}
-          bake-target: docker-metadata-action-desktop-nvidia
-          tags: |
-            type=raw,value=${{ matrix.ROS_DISTRO }}-desktop-nvidia
+      #- name: Set Docker metadata for "desktop-nvidia"
+      #  if: env.PUSH == 'true'
+      #  id: meta-desktop-nvidia
+      #  uses: docker/metadata-action@v5.7.0
+      #  with:
+      #    images: ghcr.io/${{ github.repository }}
+      #    bake-target: docker-metadata-action-desktop-nvidia
+      #    tags: |
+      #      type=raw,value=${{ matrix.ROS_DISTRO }}-desktop-nvidia
 
       - if: github.event_name == 'push'
         name: Build and push (non PR)
@@ -116,7 +116,6 @@ jobs:
             ${{ steps.meta-ci.outputs.bake-file }}
             ${{ steps.meta-robot.outputs.bake-file }}
             ${{ steps.meta-desktop.outputs.bake-file }}
-            ${{ steps.meta-desktop-nvidia.outputs.bake-file }}
           push: ${{ env.PUSH }}
           set: |
             *.cache-from=type=registry,ref=ghcr.io/${{ steps.lowercase-repo.outputs.repository }}:cache-${{ matrix.ROS_DISTRO }}
