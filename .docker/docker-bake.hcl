@@ -9,11 +9,11 @@
 #   export BLUE_ROS_DISTRO=iron
 #   docker buildx bake
 #
-variable "BLUE_ROS_DISTRO" { default = "rolling" }
-variable "BLUE_GITHUB_REPO" { default = "robotic-decision-making-lab/blue" }
+variable "BLUE_ROS_DISTRO" { default = "jazzy" }
+variable "BLUE_GITHUB_REPO" { default = "radam1/bubble_blue" }
 
 group "default" {
-  targets = ["ci", "robot", "desktop", "desktop-nvidia"]
+  targets = ["ci", "robot", "desktop"]
 }
 
 # These are populated by the metadata-action Github action for each target
@@ -35,7 +35,7 @@ target "ci" {
   inherits = ["docker-metadata-action-ci"]
   dockerfile = ".docker/Dockerfile"
   target = "ci"
-  context = ".."
+  context = "."
   args = {
     ROS_DISTRO = "${BLUE_ROS_DISTRO}"
   }
