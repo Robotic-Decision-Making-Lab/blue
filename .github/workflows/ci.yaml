@@ -37,7 +37,7 @@ jobs:
       - name: Run ROS Industrial CI
         uses: ros-industrial/industrial_ci@master
         env:
-          DOCKER_IMAGE: ghcr.io/robotic-decision-making-lab/blue:${{ matrix.env.IMAGE }}
+          DOCKER_IMAGE: ghcr.io/patpat98/bubble_blue:${{ matrix.env.IMAGE }}
           CXXFLAGS: >-
             -Wall -Wextra -Wpedantic -Wwrite-strings -Wunreachable-code -Wpointer-arith -Wredundant-decls
           CC: ${{ env.CLANG_TIDY && 'clang' }}

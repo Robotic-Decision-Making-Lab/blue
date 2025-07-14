@@ -102,6 +102,10 @@ jobs:
       #    bake-target: docker-metadata-action-desktop-nvidia
       #    tags: |
       #      type=raw,value=${{ matrix.ROS_DISTRO }}-desktop-nvidia
+      - name: Debug - List .docker directory contents
+        run: |
+          ls -la .docker/
+          cat .docker/docker-bake.hcl | head -10
 
       - if: github.event_name == 'push'
         name: Build and push (non PR)
@@ -110,9 +114,8 @@ jobs:
           BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
           BLUE_GITHUB_REPO: ${{ steps.lowercase-repo.outputs.repository }}
         with:
-          workdir: .docker
           files: |
-            ./docker-bake.hcl
+            .docker/docker-bake.hcl
             ${{ steps.meta-ci.outputs.bake-file }}
             ${{ steps.meta-robot.outputs.bake-file }}
             ${{ steps.meta-desktop.outputs.bake-file }}
@@ -129,9 +132,8 @@ jobs:
           BLUE_ROS_DISTRO: ${{ matrix.ROS_DISTRO }}
           BLUE_GITHUB_REPO: ${{ steps.lowercase-repo.outputs.repository }}
         with:
-          workdir: .docker
           files: |
-            ./docker-bake.hcl
+            .docker/docker-bake.hcl
           set: |
             *.platform=linux/amd64
             *.cache-from=type=registry,ref=ghcr.io/${{ steps.lowercase-repo.outputs.repository }}:cache-${{ matrix.ROS_DISTRO }}
