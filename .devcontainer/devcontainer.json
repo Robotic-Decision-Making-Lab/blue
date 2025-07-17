@@ -1,10 +1,7 @@
 {
   "name": "Bubble Blue Dev Container",
-  "dockerFile": "Dockerfile",
+  "dockerFile": "Dockerfile_Caching",
   "context": "..",
-  "cacheFrom": [
-    "ghcr.io/patpat98/bubble_blue:jazzy-desktop"
-  ],
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/ubuntu/ws_blue/src/blue,type=bind",
   "workspaceFolder": "/home/ubuntu/ws_blue/src/blue",
   "remoteUser": "ubuntu",
