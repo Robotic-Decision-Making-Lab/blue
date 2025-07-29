@@ -29,7 +29,7 @@ Docker as described in the [installation instructions](/installation).
 1. Launch the demo BlueROV2 in simulation by running the following command:
 
    ```bash
-   ros2 launch blue_demos bluerov2_demo.launch.yaml use_sim:=true
+   ros2 launch blue_demos bluerov2_heavy_demo.launch.yaml use_sim:=true
    ```
 
 2. Wait for Gazebo, ArduSub, and MAVROS to fully load. Typically, the `param`
@@ -43,13 +43,15 @@ Docker as described in the [installation instructions](/installation).
 3. Open a new terminal and launch the demo control framework:
 
    ```bash
-   ros2 launch blue_demos bluerov2_controllers.launch.py use_sim:=true
+   ros2 launch blue_demos bluerov2_heavy_controllers.launch.py use_sim:=true
    ```
 
    This should launch a set of cascading controllers, concluding with the
-   `integral_sliding_mode_controller` (ISMC) controller. The control framework
-   uses the `thruster_hardware/ThrusterHardware` system interface to enable
-   thruster-level control with ArduSub.
+   `adaptive_integral_terminal_sliding_mode_controller` (AITSMC) controller.
+   The control framework uses the `thruster_hardware/ThrusterHardware` system
+   interface to enable thruster-level control with ArduSub and the
+   `topic_sensors/OdomSensor` sensor interface convert ROS 2 messages into
+   a ros2_control compatible format.
 
    :::tip
 
@@ -67,7 +69,7 @@ Docker as described in the [installation instructions](/installation).
    The output should resemble:
 
    ```
-   integral_sliding_mode_controller[velocity_controllers/IntegralSlidingModeController] active
+   adaptive_integral_terminal_sliding_mode_controller[velocity_controllers/AdaptiveIntegralTerminalSlidingModeController] active
    thruster_allocation_matrix_controller[thruster_allocation_matrix_controller/ThrusterAllocationMatrixController] active
    thruster_1_controller[thruster_controllers/PolynomialThrustCurveController] active
    thruster_2_controller[thruster_controllers/PolynomialThrustCurveController] active
@@ -75,6 +77,8 @@ Docker as described in the [installation instructions](/installation).
    thruster_4_controller[thruster_controllers/PolynomialThrustCurveController] active
    thruster_5_controller[thruster_controllers/PolynomialThrustCurveController] active
    thruster_6_controller[thruster_controllers/PolynomialThrustCurveController] active
+   thruster_7_controller[thruster_controllers/PolynomialThrustCurveController] active
+   thruster_8_controller[thruster_controllers/PolynomialThrustCurveController] active
    ```
 
    :::tip
@@ -82,7 +86,7 @@ Docker as described in the [installation instructions](/installation).
    Many of the controllers implemented in `auv_controllers` support dynamically
    modifying controller parameters and gains. We encourage you to take
    advantage of this feature to tune the controllers to your specific vehicle.
-   This helps avoid the need to recompile and relauch the system for each
+   This helps avoid the need to recompile and relaunch the system for each
    change that you make.
 
    :::

@@ -1,0 +1,80 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
+  <xacro:macro name="uvms_gazebo" params="prefix controllers_file">
+
+    <gazebo>
+      <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
+        <parameters>${controllers_file}</parameters>
+
+        <!-- we need to remap the controller system states here - these are forwarded to the controller manager -->
+        <ros>
+          <remapping>/adaptive_integral_terminal_sliding_mode_controller/system_state:=/model/uvms/odometry_ned</remapping>
+          <remapping>/whole_body_controller/vehicle_state:=/model/uvms/odometry_ned</remapping>
+          <remapping>/whole_body_controller/reference:=/model/target/pose_ned</remapping>
+        </ros>
+      </plugin>
+    </gazebo>
+
+    <gazebo>
+      <plugin filename="gz-sim-hydrodynamics-system" name="gz::sim::systems::Hydrodynamics">
+        <link_name>${prefix}base_footprint</link_name>
+        <!-- Added mass -->
+        <xDotU>0</xDotU>
+        <yDotV>0</yDotV>
+        <zDotW>0</zDotW>
+        <kDotP>0</kDotP>
+        <mDotQ>0</mDotQ>
+        <nDotR>0</nDotR>
+        <!-- First order stability derivative -->
+        <xU>0</xU>
+        <yV>0</yV>
+        <zW>0</zW>
+        <kP>0</kP>
+        <mQ>0</mQ>
+        <nR>0</nR>
+        <!-- Second order stability derivative -->
+        <xUabsU>-58.42</xUabsU>
+        <yVabsV>-55.137</yVabsV>
+        <zWabsW>-124.818</zWabsW>
+        <kPabsP>-4.0</kPabsP>
+        <mQabsQ>-4.0</mQabsQ>
+        <nRabsR>-4.0</nRabsR>
+      </plugin>
+    </gazebo>
+
+    <gazebo>
+      <plugin
+        filename="gz-sim-odometry-publisher-system"
+        name="gz::sim::systems::OdometryPublisher">
+        <odom_frame>map</odom_frame>
+        <robot_base_frame>${prefix}base_link</robot_base_frame>
+        <dimensions>3</dimensions>
+        <odom_publish_frequency>100</odom_publish_frequency>
+      </plugin>
+    </gazebo>
+
+    <gazebo>
+      <plugin
+        filename="gz-sim-pose-publisher-system"
+        name="gz::sim::systems::PosePublisher">
+        <publish_link_pose>false</publish_link_pose>
+        <publish_model_pose>true</publish_model_pose>
+        <publish_collision_pose>false</publish_collision_pose>
+        <publish_visual_pose>false</publish_visual_pose>
+        <publish_nested_model_pose>false</publish_nested_model_pose>
+        <use_pose_vector_msg>true</use_pose_vector_msg>
+      </plugin>
+    </gazebo>
+
+    <xacro:include filename="$(find blue_description)/description/t200/gazebo.xacro" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="1" ccw="true" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="2" ccw="true" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="3" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="4" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="5" ccw="true" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="6" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="7" />
+    <xacro:t200_gazebo namespace="uvms" prefix="${prefix}" id="8" ccw="true" />
+
+  </xacro:macro>
+</robot>

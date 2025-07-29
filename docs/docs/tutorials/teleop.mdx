@@ -3,10 +3,14 @@ sidebar_position: 3
 title: Teleoperation
 ---
 
+import Teleop from '@site/static/gif/teleop.gif';
+
 This page provides a collection of tutorials that describe how to teleoperate
 a simulated or real vehicle. Prior to starting these tutorials, you should have
 completed the [Running Blue in Simulation](/tutorials/simulation) tutorial and
 the [Integrating Custom Controllers](/tutorials/control) tutorial.
+
+<img src={Teleop} alt="Teleoperation demo gif" style={{ width: '100%', maxWidth: 700 }} />
 
 ## Keyboard teleoperation
 
@@ -31,14 +35,14 @@ Docker as described in the [installation instructions](/installation).
 1. Launch the demo Dependencies in simulation by running the following command:
 
    ```bash
-   ros2 launch blue_demos bluerov2_demo.launch.yaml use_sim:=true
+   ros2 launch blue_demos bluerov2_heavy_demo.launch.yaml use_sim:=true
    ```
 
 2. Once Gazebo, ArduSub, and MAVROS have fully loaded, open a new terminal and
    launch the demo control framework:
 
    ```bash
-   ros2 launch blue_demos bluerov2_controllers.launch.py use_sim:=true
+   ros2 launch blue_demos bluerov2_heavy_controllers.launch.py use_sim:=true
    ```
 
 3. Open a new terminal and launch the `teleop_twist_keyboard` node:
@@ -48,20 +52,20 @@ Docker as described in the [installation instructions](/installation).
    ```
 
 4. The `teleop_twist_keyboard` node will publish velocity commands according to
-   [REP-105](https://ros.org/reps/rep-0105.html); however, the launched ISMC
+   [REP-105](https://ros.org/reps/rep-0105.html); however, the launched AITSMC
    adheres to the maritime conventions recorded in [REP-156](https://github.com/ros-infrastructure/rep/pull/398).
    To convert the velocity commands to the appropriate convention, run the
    `message_transforms` node in a new terminal:
 
    ```bash
-   ros2 launch message_transforms message_transforms.launch.py parameters_file:=<path/to/transforms.yaml>
+   ros2 launch message_transforms message_transforms.launch.yaml parameters_file:=<path/to/transforms.yaml>
    ```
 
    where `<path/to/transforms.yaml>` should be replaced with the path to the
    `transforms.yaml` file in the `blue_demos` package, e.g.,
 
    ```bash
-   ros2 launch message_transforms message_transforms.launch.py parameters_file:=./blue_demos/teleoperation/config/transforms.yaml
+   ros2 launch message_transforms message_transforms.launch.yaml parameters_file:=./blue_demos/teleoperation/config/transforms.yaml
    ```
 
 5. You should now be able to teleoperate the BlueROV2 using your keyboard.
@@ -114,14 +118,14 @@ installed on your local machine **outside** of the container.
 1. Launch the demo BlueROV2 in simulation by running the following command:
 
    ```bash
-   ros2 launch blue_demos bluerov2_demo.launch.yaml use_sim:=true
+   ros2 launch blue_demos bluerov2_heavy_demo.launch.yaml use_sim:=true
    ```
 
 2. Once Gazebo, ArduSub, and MAVROS have fully loaded, open a new terminal and
    launch the demo control framework:
 
    ```bash
-   ros2 launch blue_demos bluerov2_controllers.launch.py use_sim:=true
+   ros2 launch blue_demos bluerov2_heavy_controllers.launch.py use_sim:=true
    ```
 
 3. Open a new terminal and launch the ROS 2 joystick driver using the provided

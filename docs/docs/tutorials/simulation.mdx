@@ -3,6 +3,8 @@ sidebar_position: 1
 title: Running Blue in Simulation
 ---
 
+import Sim from '@site/static/gif/sim.gif';
+
 This tutorial describes how to launch an implemented vehicle in Gazebo with
 the Gazebo hydrodynamics plugins. Our tests have found that Gazebo provides
 a good representation of underwater vehicle dynamics. Alternative, *untested*
@@ -12,7 +14,11 @@ underwater simulation options that can be used with ROS 2 include:
 * [HoloOcean](https://holoocean.readthedocs.io/en/master/)
 
 We recommend exploring each simulation option to determine what best fits your
-project's needs.
+project's needs. You can find more information about recent underwater
+simulators in our ICRA 2025 workshop [AQ²UASIM: Advancing Quantitative and
+Qualitative Simulators for Marine Applications](https://sites.google.com/view/aq2uasim)
+
+<img src={Sim} alt="Simulation demo gif" style={{ width: '100%', maxWidth: 700 }} />
 
 ## Dependencies
 
@@ -38,7 +44,7 @@ where `<model-name>` should be replaced with the name of the desired vehicle.
 For instance, to launch Gazebo using the BlueROV2, run
 
 ```bash
-ros2 launch blue_bringup bluerov2.launch.yaml use_sim:=true
+ros2 launch blue_bringup bluerov2_heavy.launch.yaml use_sim:=true
 ```
 
 This should bringup Gazebo, [ArduSub](https://github.com/ArduPilot/ardupilot),

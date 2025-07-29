@@ -1,4 +1,4 @@
-ARG ROS_DISTRO=rolling
+ARG ROS_DISTRO=jazzy
 FROM ros:$ROS_DISTRO-ros-base AS ci
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -13,7 +13,7 @@ RUN apt-get -q update \
     git \
     sudo \
     clang \
-    clang-format-14 \
+    clang-format-18 \
     clang-tidy \
     clang-tools \
     python3-pip \
@@ -22,6 +22,22 @@ RUN apt-get -q update \
     lsb-release \
     wget \
     gnupg \
+    software-properties-common \
+    && apt-get autoremove -y \
+    && apt-get clean -y \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN apt-get -q update \
+    && apt-get -q -y upgrade \
+    && apt-get -q install --no-install-recommends -y \
+    git \
+    sudo \
+    clang \
+    wget \
+    python3-pip \
+    python3-dev \
+    python3-venv \
+    apt-utils \
     software-properties-common \
     && apt-get autoremove -y \
     && apt-get clean -y \
@@ -86,34 +102,33 @@ ENV USER_WORKSPACE=/home/$USERNAME/ws_blue
 WORKDIR $USER_WORKSPACE
 COPY --chown=$USER_UID:$USER_GID . src/blue
 
-# Install the Python requirements that aren't available as rosdeps
-RUN python3 -m pip install -r $(pwd)/src/blue/requirements-build.txt
-
-# Install gstreamer
+# Install GStreamer
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && sudo apt-get -q install --no-install-recommends -y \
-    python3-gi \
-    gstreamer1.0-tools \
     gir1.2-gstreamer-1.0 \
-    gir1.2-gst-plugins-base-1.0 \
-    gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-ugly \
-    gstreamer1.0-plugins-bad \
-    gstreamer1.0-libav \
     libgstreamer1.0-dev \
-    gstreamer1.0-gl \
     libgstreamer-plugins-base1.0-dev \
+    libgstreamer-plugins-bad1.0-dev \
+    gstreamer1.0-plugins-base \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-libav \
+    gstreamer1.0-tools \
+    gstreamer1.0-x \
+    gstreamer1.0-alsa \
+    gstreamer1.0-gl \
+    gstreamer1.0-gtk3 \
+    gstreamer1.0-qt5 \
+    gstreamer1.0-pulseaudio \
+    libcairo2-dev \
+    libgif-dev \
+    libjpeg-dev \
+    python3-pip \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
-
-# Manually install MAVROS from source in the ws_blue/ workspace
-WORKDIR $USER_WORKSPACE/src/
-ARG MAVROS_RELEASE=ros2
-ARG MAVLINK_RELEASE=release/rolling/mavlink
-RUN git clone --depth 1 -b ${MAVROS_RELEASE} https://github.com/mavlink/mavros.git
-RUN git clone --depth 1 --recursive -b ${MAVLINK_RELEASE} https://github.com/ros2-gbp/mavlink-gbp-release.git mavlink
 
 WORKDIR $USER_WORKSPACE
 RUN sudo apt-get -q update \
@@ -199,23 +214,6 @@ RUN [ "/bin/bash" , "-c" , " \
     && cd build \
     && cmake .. -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     && make -j4" ]
-
-# Install ros_gz and other project dependencies
-WORKDIR $USER_WORKSPACE
-RUN sudo apt-get -q update \
-    && sudo apt-get -q -y upgrade \
-    && vcs import src < src/blue/sim.repos \
-    && rosdep update \
-    && rosdep install -y --from-paths src --ignore-src --rosdistro ${ROS_DISTRO} \
-    && sudo apt-get autoremove -y \
-    && sudo apt-get clean -y \
-    && sudo rm -rf /var/lib/apt/lists/*
-
-# For users that build this on a laptop or system with limited RAM,
-# Modify the 'colcon build' line to be 'MAKEFLAGS="-j1 -l1" colcon build'
-# This will limit the amount of RAM that colcon is allowed to use
-RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
-    && colcon build
 
 # Setup the simulation environment variables
 RUN  <<EOT cat >> /home/$USERNAME/.bashrc

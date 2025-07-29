@@ -1,0 +1,105 @@
+---
+sidebar_position: 4
+title: Manipulator Systems
+---
+
+import UVMS from '@site/static/gif/uvms.gif';
+
+
+This tutorial shows how to use [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
+to control underwater vehicle manipulator systems (UVMS). The tutorial will use
+the BlueROV2 Heavy with an affixed Reach Alpha 5 manipulator. The files used
+for this tutorial are available in the `blue_demos/manipulator_systems`
+directory.
+
+This tutorial includes two demonstrations. In the first demonstration, we show
+how to integrate reactive whole-body control using closed-loop task priority
+inverse kinematics control. The second demonstration extends the first by
+showing how to perform end effector trajectory tracking.
+
+<img src={UVMS} alt="UVMS demo gif" style={{ width: '100%', maxWidth: 700 }} />
+
+## Dependencies
+
+The following ROS 2 dependencies are required for this tutorial:
+
+* Gazebo Harmonic or newer
+* [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
+* [reach](https://github.com/Robotic-Decision-Making-Lab/reach)
+
+These dependencies will be met by default if you have installed Blue with
+Docker as described in the [installation instructions](/installation).
+
+### Interactive whole-body control
+
+The first demonstration leverages the auv_controllers `ik_controller` with the
+`task_priority_solver`. The controller has been configured to dynamically track
+a target that has been placed in the world. The target can be translated or
+rotated to change the end effector pose.
+
+#### Tutorial steps
+
+1. Launch the demo in simulation by running the following command:
+
+   ```bash
+   ros2 launch blue_demos interactive_uvms_demo.launch.yaml
+   ```
+
+2. Once Gazebo and the controllers have fully loaded, you should see the UVMS
+   Gazebo with a red spherical object that represents the target end effector
+   pose. You can translate and rotate the object to change the target end
+   effector pose.
+
+### End effector trajectory tracking
+
+The second demonstration extends the [Interactive whole-body control](#interactive-whole-body-control)
+demonstration by integrating the auv_controllers
+`end_effector_trajectory_controller`. This controller is used to interpolate
+end effector motion plans using linear and spherical linear interpolation.
+
+#### Tutorial steps
+
+1. Launch the demo by running the following command:
+
+   ```bash
+   ros2 launch blue_demos trajectory_controller_demo.launch.yaml
+   ```
+
+2. Once Gazebo and the controllers have fully loaded, you can send a reference
+   trajectory to the controller by running the following command in a new
+   terminal:
+
+   ```bash
+   ros2 topic pub /end_effector_trajectory_controller/trajectory auv_control_msgs/msg/EndEffectorTrajectory '{<insert trajectory here>}'
+   ```
+
+   A pre-configured trajectory is available, and can be sent to the controller
+   by running
+
+   ```bash
+   ros2 launch blue_demos publish_trajectory.launch.yaml
+   ```
+
+   :::tip
+
+   The `end_effector_trajectory_controller` uses the default system QoS policy,
+   which does not guarantee message reception. So if the vehicle does not
+   immediately respond to the command, try resending the message.
+
+   :::
+
+3. Similar to the ros2_controllers `joint_trajectory_controller`, the
+   `end_effector_trajectory_controller` supports sending trajectory messages
+   using messages (as done in the previous step) or actions. To send a
+   trajectory as an action goal, run the following command:
+
+   ```bash
+   ros2 action send_goal /end_effector_trajectory_controller/follow_trajectory auv_control_msgs/action/FollowEndEffectorTrajectory '{<insert action goal here>}'
+   ```
+
+   A pre-configured action goal is available, and can be sent to the controller
+   by running
+
+   ```bash
+   ros2 launch blue_demos send_trajectory_action.launch.yaml
+   ```

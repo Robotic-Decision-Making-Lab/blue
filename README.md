@@ -9,12 +9,12 @@ the project [documentation](https://robotic-decision-making-lab.github.io/blue/)
 The main features of Blue include:
 
 - Support for custom controllers implemented using [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
-  and localization algorithms implemented using [marine_localization](https://github.com/Robotic-Decision-Making-Lab/marine_localization)
 - Vehicle models and configurations for simulation using Gazebo
 - CI/CD pipelines to help you deploy your software in the same environment
   that you performed development and testing in
 - A development environment that includes many of the tools that you need to
   develop software for underwater vehicles
+- First-party drivers for common underwater sensors
 
 ## Citation
 

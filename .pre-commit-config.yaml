@@ -10,6 +10,11 @@ repos:
     hooks:
       - id: codespell
 
+  - repo: https://github.com/BlankSpruce/gersemi
+    rev: 0.13.5
+    hooks:
+    - id: gersemi
+
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0
     hooks:
@@ -20,9 +25,7 @@ repos:
       - id: check-yaml
       - id: check-xml
       - id: check-merge-conflict
-      - id: check-symlinks
       - id: debug-statements
-      - id: destroyed-symlinks
       - id: detect-private-key
       - id: end-of-file-fixer
       - id: mixed-line-ending

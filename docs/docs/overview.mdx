@@ -26,17 +26,11 @@ following features:
    vehicles, such as ROS 2, Gazebo, linters, and formatters. This helps you
    avoid spending resources setting up your development environment and focus on
    writing your robotics algorithms 😀
-4. **Custom control and localization algorithms**: Blue supports custom
-controllers implemented using [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers)
-and localization algorithms implemented using [blue_localization](https://github.com/Robotic-Decision-Making-Lab/blue/tree/main/blue_localization).
-
-:::info
-
-The features implemented in `blue_localization` are currently being ported to
-[marine_localization](https://github.com/Robotic-Decision-Making-Lab/marine_localization).
-Keep an eye on that repository for the latest changes and updates.
-
-:::
+4. **Custom control algorithms**: Blue supports custom
+   controllers implemented using [auv_controllers](https://github.com/Robotic-Decision-Making-Lab/auv_controllers).
+5. **Localization**: We have implemented several drivers for common underwater
+   sensors, and integrate these sensors using the [robot_localization](https://docs.ros.org/en/noetic/api/robot_localization/html/configuring_robot_localization.html)
+   package. See [Localization](/sensors) for more information.
 
 ## Recommended workflow
 
@@ -64,13 +58,14 @@ Several vehicle models have been implemented and tested with Blue in
 
 <div className="vehicles">
    <Vehicle name="BlueROV2" img={BlueROV2}>
-      The BlueROV2 is a popular lightweight underwater vehicle made by [Blue Robotics](https://bluerobotics.com/)
-      that is used for hobby, research, and commercial applications.
+      The BlueROV2 is a popular lightweight underwater vehicle made by
+      [Blue Robotics](https://bluerobotics.com/) that is used for hobby,
+      research, and commercial applications.
    </Vehicle>
    <Vehicle name="BlueROV2 Heavy" img={BlueROV2Heavy}>
-      The BlueROV2 Heavy is an extension to the BlueROV2 made by [Blue Robotics](https://bluerobotics.com/)
-      that includes additional thrusters and a larger frame to improve the
-      vehicle's manueverability.
+      The BlueROV2 Heavy is an extension to the BlueROV2 made by
+      [Blue Robotics](https://bluerobotics.com/) that includes additional
+      thrusters and a larger frame to improve the vehicle's manueverability.
    </Vehicle>
    <Vehicle name="BlueROV2 Heavy Reach" img={BlueROV2HeavyReach}>
       The BlueROV2 Heavy Reach modifies the BlueROV2 Heavy by moving the
@@ -80,9 +75,12 @@ Several vehicle models have been implemented and tested with Blue in
    </Vehicle>
 </div>
 
-## Alternative projects
+## Related projects
 
-If you find that Blue does not meet your needs, we recommend exploring the following alternative projects:
+If you find that Blue does not meet your needs, we recommend exploring the
+following related projects:
 
 - [Orca4](https://github.com/clydemcqueen/orca4)
 - [Marine Vehicle Packages (MVP)](https://github.com/uri-ocean-robotics/mvp_readme)
+- [UVMS Simulator](https://github.com/edxmorgan/uvms-simulator)
+- [CentraleNantesROV bluerov2](https://github.com/CentraleNantesROV/bluerov2)
