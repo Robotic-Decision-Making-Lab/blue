@@ -23,7 +23,7 @@ launch:
         - from: $(var joy_file)
 
   - include:
-      file: $(find-pkg-share message_transforms)/launch/message_transforms.launch.py
+      file: $(find-pkg-share message_transforms)/launch/message_transforms.launch.yaml
       arg:
         - name: parameters_file
           value: $(var transforms_file)

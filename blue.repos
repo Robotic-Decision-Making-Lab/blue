@@ -19,3 +19,8 @@ repositories:
     type: git
     url: https://github.com/Robotic-Decision-Making-Lab/mobile_to_maritime.git
     version: main
+
+  reach:
+    type: git
+    url: https://github.com/Robotic-Decision-Making-Lab/reach.git
+    version: main

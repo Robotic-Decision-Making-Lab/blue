@@ -25,7 +25,7 @@ from launch.actions import (
     RegisterEventHandler,
 )
 from launch.event_handlers import OnProcessExit
-from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.launch_description_sources import FrontendLaunchDescriptionSource
 from launch.substitutions import PathJoinSubstitution, TextSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
@@ -52,14 +52,14 @@ def generate_launch_description() -> LaunchDescription:
         ),
     ]
 
-    # The ISMC expects state information to be provided in the FSD frame
+    # The velocity controller expects state information to be provided in the FSD frame
     message_transformer = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
+        FrontendLaunchDescriptionSource(
             PathJoinSubstitution(
                 [
                     FindPackageShare("message_transforms"),
                     "launch",
-                    "message_transforms.launch.py",
+                    "message_transforms.launch.yaml",
                 ]
             )
         ),
@@ -69,7 +69,7 @@ def generate_launch_description() -> LaunchDescription:
                     FindPackageShare("blue_demos"),
                     "control_integration",
                     "config",
-                    "transforms.yaml",
+                    "bluerov2_transforms.yaml",
                 ]
             ),
             "ns": TextSubstitution(text="control_integration"),
@@ -90,30 +90,28 @@ def generate_launch_description() -> LaunchDescription:
                 ]
             ),
         ],
-        remappings=[
-            ("/controller_manager/robot_description", "/robot_description"),
-        ],
     )
+
+    def make_controller_args(name):
+        cm = ["--controller-manager", ["", "controller_manager"]]
+        controller_timeout = ["--controller-manager-timeout", "120"]
+        switch_timeout = ["--switch-timeout", "100"]
+        inactive = "--inactive"
+        return [name, *cm, *controller_timeout, *switch_timeout, inactive]
 
     velocity_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[
-            "integral_sliding_mode_controller",
-            "--controller-manager",
-            ["", "controller_manager"],
-        ],
+        arguments=make_controller_args(
+            "adaptive_integral_terminal_sliding_mode_controller"
+        ),
     )
 
     thruster_spawners = [
         Node(
             package="controller_manager",
             executable="spawner",
-            arguments=[
-                f"thruster{i + 1}_controller",
-                "--controller-manager",
-                ["", "controller_manager"],
-            ],
+            arguments=make_controller_args(f"thruster{i + 1}_controller"),
         )
         for i in range(6)  # BlueROV2 has 6 thrusters
     ]
@@ -137,11 +135,7 @@ def generate_launch_description() -> LaunchDescription:
     tam_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[
-            "thruster_allocation_matrix_controller",
-            "--controller-manager",
-            ["", "controller_manager"],
-        ],
+        arguments=make_controller_args("thruster_allocation_matrix_controller"),
     )
 
     delay_tam_controller_spawner_after_thruster_controller_spawners = (
@@ -162,6 +156,22 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    controller_coordinator = Node(
+        package="controller_coordinator",
+        executable="controller_coordinator",
+        output="screen",
+        parameters=[
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("blue_demos"),
+                    "control_integration",
+                    "config",
+                    "bluerov2_coordinator.yaml",
+                ]
+            ),
+        ],
+    )
+
     return LaunchDescription(
         [
             *args,
@@ -170,5 +180,6 @@ def generate_launch_description() -> LaunchDescription:
             *delay_thruster_spawners,
             delay_tam_controller_spawner_after_thruster_controller_spawners,
             delay_velocity_controller_spawner_after_tam_controller_spawner,
+            controller_coordinator,
         ]
     )

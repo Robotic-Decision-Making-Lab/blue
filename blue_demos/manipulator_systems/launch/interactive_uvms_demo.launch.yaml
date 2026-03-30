@@ -1,0 +1,42 @@
+launch:
+  - let:
+      name: gz_model_name
+      value: "uvms"
+
+  - let:
+      name: gz_world_file
+      value: $(find-pkg-share blue_description)/gazebo/worlds/underwater.world
+
+  - let:
+      name: controllers_file
+      value: $(find-pkg-share blue_demos)/manipulator_systems/config/uvms_controllers.yaml
+
+  - let:
+      name: description_file
+      value: $(find-pkg-share blue_demos)/manipulator_systems/description/urdf/uvms.config.xacro
+
+  - let:
+      name: robot_description
+      value: $(command 'xacro $(var description_file) controllers_file:=$(var controllers_file)')
+
+  - include:
+      file: $(find-pkg-share blue_demos)/manipulator_systems/launch/bridges.launch.yaml
+
+  - include:
+      file: $(find-pkg-share blue_bringup)/launch/bluerov2_heavy_reach/thrusters.launch.yaml
+
+  - include:
+      file: $(find-pkg-share blue_demos)/manipulator_systems/launch/uvms_base.launch.py
+      arg:
+        - name: gz_model_name
+          value: $(var gz_model_name)
+        - name: gz_world_file
+          value: $(var gz_world_file)
+        - name: robot_description
+          value: $(var robot_description)
+        - name: controllers_file
+          value: $(var controllers_file)
+        - name: use_trajectory_control
+          value: "false"
+        - name: use_target
+          value: "true"

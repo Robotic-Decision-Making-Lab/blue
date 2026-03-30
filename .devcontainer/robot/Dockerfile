@@ -23,8 +23,7 @@ RUN sudo apt-get -q update \
 
 # Install debugging/linting Python packages
 RUN python3 -m pip install \
-    pre-commit \
-    mypy
+    pre-commit
 
 # Disable the setuputils installation warning
 # This prevents us from needing to pin the setuputils version (which doesn't always work)
