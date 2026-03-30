@@ -13,26 +13,6 @@ RUN apt-get -q update \
     git \
     sudo \
     clang \
-    clang-format-18 \
-    clang-tidy \
-    clang-tools \
-    python3-pip \
-    python3-dev \
-    python3-venv \
-    lsb-release \
-    wget \
-    gnupg \
-    software-properties-common \
-    && apt-get autoremove -y \
-    && apt-get clean -y \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get -q update \
-    && apt-get -q -y upgrade \
-    && apt-get -q install --no-install-recommends -y \
-    git \
-    sudo \
-    clang \
     wget \
     python3-pip \
     python3-dev \
@@ -92,12 +72,6 @@ ENV VIRTUAL_ENV=/home/$USERNAME/.venv/blue
 RUN python3 -m venv --system-site-packages --symlinks $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
-# Install MAVROS dependencies
-WORKDIR /home/$USERNAME
-RUN wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/install_geographiclib_datasets.sh \
-    && chmod +x install_geographiclib_datasets.sh \
-    && sudo ./install_geographiclib_datasets.sh
-
 ENV USER_WORKSPACE=/home/$USERNAME/ws_blue
 WORKDIR $USER_WORKSPACE
 COPY --chown=$USER_UID:$USER_GID . src/blue
@@ -106,26 +80,17 @@ COPY --chown=$USER_UID:$USER_GID . src/blue
 RUN sudo apt-get -q update \
     && sudo apt-get -q -y upgrade \
     && sudo apt-get -q install --no-install-recommends -y \
-    gir1.2-gstreamer-1.0 \
-    libgstreamer1.0-dev \
-    libgstreamer-plugins-base1.0-dev \
-    libgstreamer-plugins-bad1.0-dev \
-    gstreamer1.0-plugins-base \
-    gstreamer1.0-plugins-good \
-    gstreamer1.0-plugins-bad \
-    gstreamer1.0-plugins-ugly \
-    gstreamer1.0-libav \
+    python3-gi \
     gstreamer1.0-tools \
-    gstreamer1.0-x \
-    gstreamer1.0-alsa \
+    gir1.2-gstreamer-1.0 \
+    gir1.2-gst-plugins-base-1.0 \
+    gstreamer1.0-plugins-good \
+    gstreamer1.0-plugins-ugly \
+    gstreamer1.0-plugins-bad \
+    gstreamer1.0-libav \
+    libgstreamer1.0-dev \
     gstreamer1.0-gl \
-    gstreamer1.0-gtk3 \
-    gstreamer1.0-qt5 \
-    gstreamer1.0-pulseaudio \
-    libcairo2-dev \
-    libgif-dev \
-    libjpeg-dev \
-    python3-pip \
+    libgstreamer-plugins-base1.0-dev \
     && sudo apt-get autoremove -y \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
@@ -140,7 +105,14 @@ RUN sudo apt-get -q update \
     && sudo apt-get clean -y \
     && sudo rm -rf /var/lib/apt/lists/*
 
-# Actually build workspace
+# Install MAVROS dependencies
+WORKDIR /home/$USERNAME
+RUN wget https://raw.githubusercontent.com/mavlink/mavros/ros2/mavros/scripts/install_geographiclib_datasets.sh \
+    && chmod +x install_geographiclib_datasets.sh \
+    && sudo ./install_geographiclib_datasets.sh
+
+# Build the workspace
+WORKDIR $USER_WORKSPACE
 RUN . "/opt/ros/${ROS_DISTRO}/setup.sh" \
     && colcon build
 

@@ -50,13 +50,25 @@
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "xml.format.maxLineWidth": 125,
   "[xml]": {
     "editor.defaultFormatter": "redhat.vscode-xml"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.rulers": [100]
+  },
+  "[mdx]": {
+    "editor.rulers": [80]
+  },
+  "[markdown]": {
+    "editor.rulers": [80]
   },
   "search.exclude": {
     "**/build": true,
     "**/install": true,
     "**/log": true
   },
-  "python.analysis.typeCheckingMode": "basic"
+  "python.analysis.typeCheckingMode": "basic",
+  "editor.detectIndentation": false
 }

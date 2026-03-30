@@ -1,5 +1,6 @@
 {
   "name": "NVIDIA Dev Container",
+  // "dockerFile": "Dockerfile",
   "dockerFile": "../../.docker/Dockerfile",
   "context": "../..",
   "workspaceMount": "source=${localWorkspaceFolder},target=/home/ubuntu/ws_blue/src/blue,type=bind",
@@ -14,15 +15,21 @@
     "--privileged",
     "--volume=/tmp/.X11-unix:/tmp/.X11-unix",
     "--volume=/mnt/wslg:/mnt/wslg",
-    "--gpus=all"
+    "--gpus=all,capabilities=video",
+    "--runtime=nvidia"
   ],
   "containerEnv": {
     "DISPLAY": "${localEnv:DISPLAY}",
     "WAYLAND_DISPLAY": "${localEnv:WAYLAND_DISPLAY}",
     "XDG_RUNTIME_DIR": "${localEnv:XDG_RUNTIME_DIR}",
     "PULSE_SERVER": "${localEnv:PULSE_SERVER}",
-    "LIBGL_ALWAYS_SOFTWARE": "1",
-    "QT_X11_NO_MITSHM": "1"
+    // "LIBGL_ALWAYS_SOFTWARE": "1",
+    "QT_X11_NO_MITSHM": "1",
+    "NVIDIA_VISIBLE_DEVICES": "all",
+    "NVIDIA_DRIVER_CAPABILITIES": "all",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "__VK_LAYER_NV_optimus": "NVIDIA_only"
   },
   "customizations": {
     "vscode": {
