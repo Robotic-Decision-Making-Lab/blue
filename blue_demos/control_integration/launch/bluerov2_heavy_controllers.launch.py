@@ -101,9 +101,10 @@ def generate_launch_description() -> LaunchDescription:
     velocity_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=make_controller_args(
-            "adaptive_integral_terminal_sliding_mode_controller"
-        ),
+        # arguments=make_controller_args(
+        #     "adaptive_integral_terminal_sliding_mode_controller"
+        # ),
+        arguments=make_controller_args("impedance_controller"),
     )
 
     thruster_spawners = [
