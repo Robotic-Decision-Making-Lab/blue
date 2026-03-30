@@ -1,0 +1,13 @@
+controller_coordinator:
+  ros__parameters:
+    hardware_interfaces:
+      - bluerov2_thrusters
+    controller_sequence:
+      - thruster1_controller
+      - thruster2_controller
+      - thruster3_controller
+      - thruster4_controller
+      - thruster5_controller
+      - thruster6_controller
+      - thruster_allocation_matrix_controller
+      - adaptive_integral_terminal_sliding_mode_controller

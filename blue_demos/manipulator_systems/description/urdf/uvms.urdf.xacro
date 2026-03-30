@@ -1,16 +1,23 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://ros.org/wiki/xacro">
-  <xacro:macro name="uvms_urdf" params="prefix arm_prefix">
+  <xacro:macro name="uvms_urdf" params="prefix arm_prefix joint_limits_file">
 
-    <xacro:include filename="$(find blue_description)/description/bluerov2_heavy_reach/urdf.xacro" />
+    <xacro:include filename="$(find blue_description)/description/bluerov2_heavy_reach_payload/urdf.xacro" />
     <xacro:include filename="$(find reach_description)/description/alpha_5/urdf.xacro" />
     <xacro:include filename="$(find reach_description)/description/alpha_5/standard_jaws/standard_jaws.urdf.xacro" />
 
     <link name="${prefix}mount_link" />
     <joint name="${prefix}mount_joint" type="fixed">
-      <origin rpy="0 0 0" xyz="0.13 -0.109 0.029" />
+      <origin rpy="0 0 0" xyz="0.093805 -0.1095 0.092075" />
       <parent link="${prefix}base_link" />
       <child link="${prefix}mount_link" />
+    </joint>
+
+    <link name="${prefix}connector_link" />
+    <joint name="${prefix}connector_joint" type="fixed">
+      <origin rpy="0 0 0" xyz="0.0374 0 -0.0225" />
+      <parent link="${prefix}mount_link" />
+      <child link="${prefix}connector_link" />
     </joint>
 
     <!-- add some additional floats to the vehicle to compensate for the manipulator -->
@@ -44,9 +51,10 @@
       <child link="${prefix}float_link" />
     </joint>
 
-    <xacro:bluerov2_heavy_reach_urdf prefix="${prefix}" />
+    <xacro:bluerov2_heavy_reach_payload_urdf prefix="${prefix}" />
 
-    <xacro:alpha_5_urdf parent="${prefix}mount_link" prefix="${prefix}${arm_prefix}" mount_rotation="3.14159">
+    <xacro:alpha_5_urdf parent="${prefix}connector_link" prefix="${prefix}${arm_prefix}"
+      joint_limits_file="${joint_limits_file}" mount_rotation="3.14159">
       <origin rpy="0 0 0" xyz="0 0 0" />
     </xacro:alpha_5_urdf>
     <xacro:standard_jaws parent="${prefix}${arm_prefix}rs1_124_link" prefix="${prefix}${arm_prefix}"

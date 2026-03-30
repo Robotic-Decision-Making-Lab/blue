@@ -17,3 +17,6 @@ launch:
       arg:
         - name: robot_description
           value: $(var robot_description)
+
+  - include:
+      file: $(find-pkg-share blue_demos)/control_integration/launch/bluerov2_controllers.launch.py

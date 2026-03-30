@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<robot name="bluerov2_heavy_reach_payload" xmlns:xacro="http://ros.org/wiki/xacro">
+
+  <xacro:arg name="prefix" default="" />
+  <xacro:arg name="use_sim" default="false" />
+
+  <!-- Import BlueROV2 macro -->
+  <xacro:include filename="$(find blue_description)/description/bluerov2_heavy_reach_payload/urdf.xacro" />
+  <xacro:bluerov2_heavy_reach_payload_urdf prefix="$(arg prefix)" />
+
+  <!-- Import the Gazebo macro -->
+  <xacro:if value="$(arg use_sim)">
+    <xacro:include
+      filename="$(find blue_description)/description/bluerov2_heavy_reach_payload/gazebo.xacro" />
+    <xacro:bluerov2_heavy_reach_payload_gazebo prefix="$(arg prefix)" />
+  </xacro:if>
+
+</robot>

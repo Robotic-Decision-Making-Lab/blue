@@ -1,10 +1,13 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <xacro:macro name="uvms_system" params="prefix arm_prefix name initial_positions_file">
+  <xacro:macro name="uvms_system" params="prefix arm_prefix name initial_positions_file joint_limits_file">
 
     <xacro:property name="initial_positions_file" default="$(arg initial_positions_file)" />
     <xacro:property name="initial_positions" value="${xacro.load_yaml(initial_positions_file)['initial_positions']}" />
+
+    <xacro:property name="joint_limits_file" default="$(arg joint_limits_file)" />
+    <xacro:property name="joint_limits" value="${xacro.load_yaml(joint_limits_file)['joint_limits']}" />
 
     <ros2_control name="UVMSControlSystem" type="system">
       <hardware>
@@ -14,8 +17,8 @@
       <joint name="${prefix}${arm_prefix}axis_a">
         <param name="device_id">1</param>
         <command_interface name="position">
-          <param name="min">0</param>
-          <param name="max">0.015</param>
+          <param name="min">${joint_limits['axis_a']['min_position']}</param>
+          <param name="max">${joint_limits['axis_a']['max_position']}</param>
         </command_interface>
         <command_interface name="velocity">
           <param name="min">-0.003</param>
@@ -36,8 +39,8 @@
       <joint name="${prefix}${arm_prefix}axis_b">
         <param name="device_id">2</param>
         <command_interface name="position">
-          <param name="min">0</param>
-          <param name="max">3.22</param>
+          <param name="min">${joint_limits['axis_b']['min_position']}</param>
+          <param name="max">${joint_limits['axis_b']['max_position']}</param>
         </command_interface>
         <command_interface name="velocity">
           <param name="min">-0.8726646</param>
@@ -58,8 +61,8 @@
       <joint name="${prefix}${arm_prefix}axis_c">
         <param name="device_id">3</param>
         <command_interface name="position">
-          <param name="min">0</param>
-          <param name="max">3.22</param>
+          <param name="min">${joint_limits['axis_c']['min_position']}</param>
+          <param name="max">${joint_limits['axis_c']['max_position']}</param>
         </command_interface>
         <command_interface name="velocity">
           <param name="min">-0.5235988</param>
@@ -80,8 +83,8 @@
       <joint name="${prefix}${arm_prefix}axis_d">
         <param name="device_id">4</param>
         <command_interface name="position">
-          <param name="min">0</param>
-          <param name="max">3.49</param>
+          <param name="min">${joint_limits['axis_d']['min_position']}</param>
+          <param name="max">${joint_limits['axis_d']['max_position']}</param>
         </command_interface>
         <command_interface name="velocity">
           <param name="min">-0.5235988</param>
@@ -102,8 +105,8 @@
       <joint name="${prefix}${arm_prefix}axis_e">
         <param name="device_id">5</param>
         <command_interface name="position">
-          <param name="min">0</param>
-          <param name="max">6.14</param>
+          <param name="min">${joint_limits['axis_e']['min_position']}</param>
+          <param name="max">${joint_limits['axis_e']['max_position']}</param>
         </command_interface>
         <command_interface name="velocity">
           <param name="min">-0.5235988</param>

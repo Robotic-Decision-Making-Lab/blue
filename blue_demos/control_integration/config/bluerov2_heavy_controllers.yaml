@@ -1,6 +1,9 @@
 controller_manager:
   ros__parameters:
     update_rate: 100 # Hz
+    hardware_components_initial_state:
+      inactive:
+        - bluerov2_heavy_thrusters
 
     adaptive_integral_terminal_sliding_mode_controller:
       type: velocity_controllers/AdaptiveIntegralTerminalSlidingModeController

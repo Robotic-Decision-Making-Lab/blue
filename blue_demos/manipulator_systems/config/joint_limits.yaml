@@ -1,0 +1,16 @@
+joint_limits:
+  axis_e:
+    max_position: 3.141593
+    min_position: 1.570796
+  axis_d:
+    max_position: 1.570796
+    min_position: 0.0
+  axis_c:
+    max_position: 3.22
+    min_position: 0.0
+  axis_b:
+    max_position: 3.22
+    min_position: 0.0
+  axis_a:
+    max_position: 0.015
+    min_position: 0.0

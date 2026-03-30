@@ -96,7 +96,8 @@ def generate_launch_description() -> LaunchDescription:
         cm = ["--controller-manager", ["", "controller_manager"]]
         controller_timeout = ["--controller-manager-timeout", "120"]
         switch_timeout = ["--switch-timeout", "100"]
-        return [name, *cm, *controller_timeout, *switch_timeout]
+        inactive = "--inactive"
+        return [name, *cm, *controller_timeout, *switch_timeout, inactive]
 
     velocity_controller_spawner = Node(
         package="controller_manager",
@@ -134,11 +135,7 @@ def generate_launch_description() -> LaunchDescription:
     tam_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        arguments=[
-            "thruster_allocation_matrix_controller",
-            "--controller-manager",
-            ["", "controller_manager"],
-        ],
+        arguments=make_controller_args("thruster_allocation_matrix_controller"),
     )
 
     delay_tam_controller_spawner_after_thruster_controller_spawners = (
@@ -159,6 +156,22 @@ def generate_launch_description() -> LaunchDescription:
         )
     )
 
+    controller_coordinator = Node(
+        package="controller_coordinator",
+        executable="controller_coordinator",
+        output="screen",
+        parameters=[
+            PathJoinSubstitution(
+                [
+                    FindPackageShare("blue_demos"),
+                    "control_integration",
+                    "config",
+                    "bluerov2_coordinator.yaml",
+                ]
+            ),
+        ],
+    )
+
     return LaunchDescription(
         [
             *args,
@@ -167,5 +180,6 @@ def generate_launch_description() -> LaunchDescription:
             *delay_thruster_spawners,
             delay_tam_controller_spawner_after_thruster_controller_spawners,
             delay_velocity_controller_spawner_after_tam_controller_spawner,
+            controller_coordinator,
         ]
     )

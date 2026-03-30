@@ -10,12 +10,13 @@
   <xacro:arg name="arm_prefix" default="alpha_" />
   <xacro:arg name="initial_positions_file" default="$(find blue_demos)/manipulator_systems/config/initial_positions.yaml" />
   <xacro:arg name="controllers_file" default="$(find blue_demos)/manipulator_systems/config/uvms_controllers.yaml" />
+  <xacro:arg name="joint_limits_file" default="$(find blue_demos)/manipulator_systems/config/joint_limits.yaml" />
 
-  <xacro:uvms_urdf prefix="$(arg prefix)" arm_prefix="$(arg arm_prefix)" />
+  <xacro:uvms_urdf prefix="$(arg prefix)" arm_prefix="$(arg arm_prefix)" joint_limits_file="$(arg joint_limits_file)" />
   <xacro:uvms_gazebo prefix="$(arg prefix)" controllers_file="$(arg controllers_file)" />
 
   <xacro:uvms_system prefix="$(arg prefix)" arm_prefix="$(arg arm_prefix)" name="uvms_system"
-    initial_positions_file="$(arg initial_positions_file)" />
+    initial_positions_file="$(arg initial_positions_file)" joint_limits_file="$(arg joint_limits_file)" />
   <xacro:uvms_model />
 
 </robot>

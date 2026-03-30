@@ -74,19 +74,19 @@ whole_body_controller:
         - alpha_axis_d
         - alpha_axis_e
       end_effector_pose_task:
-        gain: 0.38
+        gain: 0.4
       joint_limit_task:
         alpha_axis_c:
           safety_tolerance: 0.78539816
           activation_threshold: 0.087
           gain: 0.2
         alpha_axis_d:
-          safety_tolerance: 1.57079633
-          activation_threshold: 0.087
+          safety_tolerance: 0.03490659 # 2 degrees
+          activation_threshold: 0.087266463 # 3 degrees
           gain: 0.2
         alpha_axis_e:
-          safety_tolerance: 1.74532925
-          activation_threshold: 0.17453292
+          safety_tolerance: 0.087266 # 5 degrees
+          activation_threshold: 0.087266 # 5 degrees
           gain: 0.2
 
 adaptive_integral_terminal_sliding_mode_controller:
