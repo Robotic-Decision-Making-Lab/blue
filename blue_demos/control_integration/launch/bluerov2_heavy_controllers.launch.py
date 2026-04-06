@@ -18,15 +18,16 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+import itertools
+from typing import Optional
+
 from launch import LaunchDescription
 from launch.actions import (
     DeclareLaunchArgument,
-    IncludeLaunchDescription,
     RegisterEventHandler,
 )
 from launch.event_handlers import OnProcessExit
-from launch.launch_description_sources import FrontendLaunchDescriptionSource
-from launch.substitutions import PathJoinSubstitution, TextSubstitution
+from launch.substitutions import PathJoinSubstitution
 from launch_ros.actions import Node
 from launch_ros.substitutions import FindPackageShare
 
@@ -52,28 +53,28 @@ def generate_launch_description() -> LaunchDescription:
     ]
 
     # The velocity controller expects state information to be provided in the FSD frame
-    message_transformer = IncludeLaunchDescription(
-        FrontendLaunchDescriptionSource(
-            PathJoinSubstitution(
-                [
-                    FindPackageShare("message_transforms"),
-                    "launch",
-                    "message_transforms.launch.yaml",
-                ]
-            )
-        ),
-        launch_arguments={
-            "parameters_file": PathJoinSubstitution(
-                [
-                    FindPackageShare("blue_demos"),
-                    "control_integration",
-                    "config",
-                    "bluerov2_heavy_transforms.yaml",
-                ]
-            ),
-            "ns": TextSubstitution(text="control_integration"),
-        }.items(),
-    )
+    # message_transformer = IncludeLaunchDescription(
+    #     FrontendLaunchDescriptionSource(
+    #         PathJoinSubstitution(
+    #             [
+    #                 FindPackageShare("message_transforms"),
+    #                 "launch",
+    #                 "message_transforms.launch.yaml",
+    #             ]
+    #         )
+    #     ),
+    #     launch_arguments={
+    #         "parameters_file": PathJoinSubstitution(
+    #             [
+    #                 FindPackageShare("blue_demos"),
+    #                 "control_integration",
+    #                 "config",
+    #                 "bluerov2_heavy_transforms.yaml",
+    #             ]
+    #         ),
+    #         "ns": TextSubstitution(text="control_integration"),
+    #     }.items(),
+    # )
 
     controller_manager = Node(
         package="controller_manager",
@@ -91,20 +92,47 @@ def generate_launch_description() -> LaunchDescription:
         ],
     )
 
-    def make_controller_args(name):
+    # def make_controller_args(name):
+    #     cm = ["--controller-manager", ["", "controller_manager"]]
+    #     controller_timeout = ["--controller-manager-timeout", "120"]
+    #     switch_timeout = ["--switch-timeout", "100"]
+    #     inactive = "--inactive"
+    #     return [name, *cm, *controller_timeout, *switch_timeout, inactive]
+
+    def make_controller_args(
+        name, active: bool = False, remappings: Optional[list[str]] = None
+    ):
         cm = ["--controller-manager", ["", "controller_manager"]]
         controller_timeout = ["--controller-manager-timeout", "120"]
         switch_timeout = ["--switch-timeout", "100"]
-        inactive = "--inactive"
-        return [name, *cm, *controller_timeout, *switch_timeout, inactive]
+        inactive = ["--inactive"] if not active else []
+        remap = (
+            itertools.chain(
+                *[["--controller-ros-args", f"-r {remap}"] for remap in remappings]
+            )
+            if remappings
+            else []
+        )
+        commands = [name, *cm, *controller_timeout, *switch_timeout, *inactive, *remap]
+        return commands
 
+    # velocity_controller_spawner = Node(
+    #     package="controller_manager",
+    #     executable="spawner",
+    #     # arguments=make_controller_args(
+    #     #     "adaptive_integral_terminal_sliding_mode_controller"
+    #     # ),
+    #     arguments=make_controller_args("impedance_controller"),
+    # )
+
+    vehicle_state = "/model/bluerov2_heavy/odometry"
     velocity_controller_spawner = Node(
         package="controller_manager",
         executable="spawner",
-        # arguments=make_controller_args(
-        #     "adaptive_integral_terminal_sliding_mode_controller"
-        # ),
-        arguments=make_controller_args("impedance_controller"),
+        arguments=make_controller_args(
+            "impedance_controller",
+            remappings=[f"impedance_controller/system_state:={vehicle_state}"],
+        ),
     )
 
     thruster_spawners = [
@@ -175,7 +203,7 @@ def generate_launch_description() -> LaunchDescription:
     return LaunchDescription(
         [
             *args,
-            message_transformer,
+            # message_transformer,
             controller_manager,
             *delay_thruster_spawners,
             delay_tam_controller_spawner_after_thruster_controller_spawners,

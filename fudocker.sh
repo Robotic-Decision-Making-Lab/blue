@@ -1,0 +1,1 @@
+ros2 topic pub /impedance_controller/reference auv_control_msgs/msg/ImpedanceCommand "{header: auto, child_frame_id: '', pose: {position: {x: 0.0, y: 1.0, z: 1.0}, orientation: {x: 1.0, y: 0.0, z: 0.0, w: 0.0}}, twist: {linear: {x: 0.0, y: 0.0, z: 0.0}, angular: {x: 0.0, y: 0.0, z: 0.0}}, wrench: {force: {x: 0.0, y: 0.0, z: 0.0}, torque: {x: 0.0, y: 0.0, z: 0.0}}}"

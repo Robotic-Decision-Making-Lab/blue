@@ -87,23 +87,23 @@ impedance_controller:
     use_external_measured_states: true
     gains:
       x:
-        kp: 0.7
+        kp: 1.0
         kd: 0.5
       y:
-        kp: 0.7
+        kp: 1.0
         kd: 0.5
       z:
-        kp: 0.7
+        kp: 5.0
         kd: 0.5
       rx:
-        kp: 0.1
-        kd: 0.02
+        kp: 1.0
+        kd: 0.05
       ry:
-        kp: 0.1
-        kd: 0.02
+        kp: 1.0
+        kd: 0.05
       rz:
-        kp: 0.1
-        kd: 0.02
+        kp: 1.0
+        kd: 0.05
 
 thruster_allocation_matrix_controller:
   ros__parameters:
@@ -125,13 +125,15 @@ thruster_allocation_matrix_controller:
       - thruster6_controller
       - thruster7_controller
       - thruster8_controller
+
+    # TODO(evan-palmer): fix this!
     tam:
       x:  [ -0.707,  -0.707,   0.707,  0.707,      0.0,     0.0,      0.0,     0.0]
-      y:  [ 0.707,   -0.707,   0.707, -0.707,      0.0,     0.0,      0.0,     0.0]
-      z:  [    0.0,     0.0,     0.0,    0.0,      1.0,     1.0,      1.0,     1.0]
+      y:  [ -0.707,   0.707,   -0.707, 0.707,      0.0,     0.0,      0.0,     0.0]
+      z:  [    0.0,     0.0,     0.0,    0.0,      -1.0,     -1.0,      -1.0,     -1.0]
       rx: [    0.0,     0.0,     0.0,    0.0, -0.21805, 0.21805, -0.21805, 0.21805]
-      ry: [    0.0,     0.0,     0.0,    0.0,    -0.12,   -0.12,     0.12,    0.12]
-      rz: [0.1888,  -0.1888, -0.1888, 0.1888,      0.0,     0.0,      0.0,     0.0]
+      ry: [    0.0,     0.0,     0.0,    0.0,    0.12,   0.12,     -0.12,    -0.12]
+      rz: [-0.1888,  0.1888, 0.1888, -0.1888,      0.0,     0.0,      0.0,     0.0]
 
 thruster1_controller:
   ros__parameters:
